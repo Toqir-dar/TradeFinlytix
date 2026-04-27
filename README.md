@@ -1,7 +1,7 @@
 # TradeFinlytix
 
 > **AI-Powered PSX Trading Intelligence Platform**  
-> Stacking ensemble of XGBoost · LSTM · Transformer with SHAP explainability, event-aware confidence, and secure deployment — purpose-built for the Pakistan Stock Exchange.
+> Stacking ensemble of XGBoost · LSTM · Transformer with SHAP explainability, event-aware confidence, and secure deployment — purpose-built for the  Stock Exchange Market.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)

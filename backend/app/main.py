@@ -18,15 +18,84 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.routes import admin as admin_routes
 from app.api.routes import auth as auth_routes
+from app.api.routes import ciso as ciso_routes
+from app.api.routes import portfolio as portfolio_routes
+from app.api.routes import prediction as prediction_routes
 from app.core.bootstrap import bootstrap_privileged_users
 from app.core.config import settings
-from app.core.database import close_db, connect_db
+from app.core.database import close_db, connect_db, get_db
 from app.core.logging import setup_logging
+from app.repositories.audit_chain_state import (
+    audit_chain_append_allowed,
+    reset_audit_chain_trusted,
+    set_audit_chain_trusted,
+)
+from app.repositories.audit_repo import AuditRepository
+from app.security.csrf import request_needs_csrf, validate_csrf
 from app.security.rate_limiter import close_redis
+from app.security.security_alerts import emit_security_alert, redact_security_log_payload
 
 setup_logging()
 logger = logging.getLogger(__name__)
+
+SHOW_DOCS = settings.expose_openapi
+
+OPENAPI_TAGS = [
+    {
+        "name": "Auth",
+        "description": "Register, login, refresh tokens. Responses include `Bearer` "
+        "access tokens for `Authorization` headers on protected routes.",
+    },
+    {
+        "name": "Prediction",
+        "description": "Authenticated investors: adaptive risk envelope + deterministic "
+        "rule-based price-direction stub (`engine: rule_v1`).",
+    },
+    {
+        "name": "Portfolio",
+        "description": "Authenticated portfolio snapshots and trades with encrypted-at-rest "
+        "storage in `portfolio` / `transactions` collections.",
+    },
+    {
+        "name": "Admin",
+        "description": "Role **admin** only: user lifecycle, pagination, audits. "
+        "Privileged accounts (admin/CISO) cannot be deactivated / password-reset "
+        "via these endpoints (403).",
+    },
+    {
+        "name": "CISO",
+        "description": "Role **ciso** only: audit chain verification, anomalies, "
+        "risk dashboards. Responses use `{items, total, skip, limit}` pagination "
+        "(hard caps per query parameter).",
+    },
+    {"name": "System", "description": "Health checks (no JWT)."},
+]
+
+API_DESCRIPTION = """TradeFinlytix REST API.
+
+## Authentication
+
+- Most business routes require `Authorization: Bearer <access_token>`.
+- Obtain tokens via `POST /api/v1/auth/login` or `POST /api/v1/auth/register`.
+- **admin** routes require role `admin`. **ciso** routes require role `ciso`.
+- If `AUDIT_REJECT_NEW_EVENTS_WHEN_CHAIN_UNTRUSTED=true` and the audit chain is marked broken,
+  **`/api/v1/admin/*`**, **`/api/v1/ciso/*`**, and **`/api/v1/predict/*`** respond with **503**
+  until the chain is verified healthy again.
+
+## Errors
+
+- Structured JSON `{detail: ...}`; production responses omit exception stack traces
+  (`DEBUG=false` disables `exc_info` in server logs for unhandled errors).
+
+## Transport / Browser Security Notes
+
+- HTTPS/TLS and RSA key exchange are deployment concerns (reverse proxy / ingress),
+  not enabled by FastAPI app code itself.
+- CSRF middleware is available behind `CSRF_PROTECTION_ENABLED`; bearer-token APIs
+  usually keep it disabled.
+"""
 
 
 @asynccontextmanager
@@ -38,6 +107,40 @@ async def lifespan(app: FastAPI):
         settings.app_env,
     )
     await connect_db()
+    reset_audit_chain_trusted()
+    if settings.audit_startup_verify_chain:
+        db = await get_db()
+        res = await AuditRepository(db).verify_chain(
+            limit=settings.audit_startup_verify_limit,
+        )
+        ok = bool(res.get("ok"))
+        set_audit_chain_trusted(ok)
+        if ok:
+            logger.info(
+                "Startup audit chain verify OK (%s docs checked)",
+                res.get("checked"),
+            )
+        else:
+            logger.critical(
+                "audit_chain_startup_verification_failed",
+                extra=redact_security_log_payload(dict(res)),
+            )
+            await emit_security_alert(
+                "audit_chain_startup_verify_failed",
+                {
+                    "checked": res.get("checked"),
+                    "broken_at": res.get("broken_at"),
+                    "expected_prev": str(res.get("expected_prev")),
+                    "stored_prev": str(res.get("stored_prev")),
+                },
+            )
+            if settings.audit_abort_startup_when_chain_broken:
+                raise RuntimeError(
+                    "audit_abort_startup_when_chain_broken=true and chain incomplete"
+                )
+    else:
+        set_audit_chain_trusted(True)
+
     await bootstrap_privileged_users()
     logger.info("TradeFinlytix backend ready.")
     yield
@@ -49,9 +152,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="AI-powered PSX stock prediction platform",
-    docs_url="/docs" if settings.debug else None,
-    redoc_url="/redoc" if settings.debug else None,
+    description=API_DESCRIPTION,
+    docs_url="/docs" if SHOW_DOCS else None,
+    redoc_url="/redoc" if SHOW_DOCS else None,
+    openapi_tags=OPENAPI_TAGS,
     lifespan=lifespan,
 )
 
@@ -64,6 +168,41 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router, prefix="/api/v1")
+app.include_router(prediction_routes.router, prefix="/api/v1")
+app.include_router(portfolio_routes.router, prefix="/api/v1")
+app.include_router(admin_routes.router, prefix="/api/v1")
+app.include_router(ciso_routes.router, prefix="/api/v1")
+
+
+@app.middleware("http")
+async def csrf_guard_middleware(request: Request, call_next) -> Response:
+    if settings.csrf_protection_enabled and request_needs_csrf(
+        request, protected_prefixes=("/api/v1",)
+    ):
+        if not validate_csrf(request):
+            return JSONResponse(status_code=403, content={"detail": "CSRF token invalid."})
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def audit_chain_safety_middleware(request: Request, call_next) -> Response:
+    """
+    If audit chain is known broken, protect high-impact surfaces.
+    """
+    if (
+        settings.audit_reject_new_events_when_chain_untrusted
+        and not audit_chain_append_allowed()
+    ):
+        blocked_prefixes = ("/api/v1/admin", "/api/v1/ciso", "/api/v1/predict")
+        if request.url.path.startswith(blocked_prefixes):
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "detail": "Security hold: audit chain integrity check failed. "
+                    "Sensitive endpoints are temporarily blocked."
+                },
+            )
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -88,7 +227,7 @@ async def request_logging_middleware(request: Request, call_next) -> Response:
                 "duration_ms": duration_ms,
                 "client_ip": request.client.host if request.client else "unknown",
             },
-            exc_info=True,
+            exc_info=settings.debug,
         )
         raise
 
@@ -124,7 +263,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             "error": str(exc),
             "error_type": type(exc).__name__,
         },
-        exc_info=True,
+        exc_info=settings.debug,
     )
     return JSONResponse(
         status_code=500,

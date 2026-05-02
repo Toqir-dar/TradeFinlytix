@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import json
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -52,6 +53,7 @@ def create_refresh_token(subject: str, jwt_version: int = 1) -> str:
     payload = {
         "sub": subject,
         "ver": jwt_version,
+        "jti": secrets.token_hex(16),
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "refresh",
@@ -107,6 +109,11 @@ def sign_payload(payload: dict[str, Any]) -> str:
 
 def verify_signature(payload: dict[str, Any], signature: str) -> bool:
     return hmac.compare_digest(sign_payload(payload), signature)
+
+
+def stable_identifier_hash(value: str) -> str:
+    """Deterministic SHA-256 hash for lookup-safe identifiers (e.g., email)."""
+    return hashlib.sha256(value.strip().lower().encode()).hexdigest()
 
 
 def compute_audit_hash(log_entry: dict[str, Any], prev_hash: str) -> str:

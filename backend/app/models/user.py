@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.core.roles import UserRole
+from app.core.security import encrypt_field, stable_identifier_hash
 from app.utils.helpers import normalize_email
 
 
@@ -28,8 +29,10 @@ class User:
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_doc(self) -> dict[str, Any]:
+        email_norm = normalize_email(self.email)
         return {
-            "email": normalize_email(self.email),
+            "email_hash": stable_identifier_hash(email_norm),
+            "email_encrypted": encrypt_field(email_norm),
             "password_hash": self.password_hash,
             "full_name": self.full_name.strip(),
             "role": self.role.value,

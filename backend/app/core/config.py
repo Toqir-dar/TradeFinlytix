@@ -4,7 +4,7 @@ Import `settings` from here everywhere — never read os.environ directly.
 """
 from functools import lru_cache
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
     app_env: str = "development"
     debug: bool = True
+    expose_openapi: bool = True
 
     # Server
     host: str = "0.0.0.0"
@@ -37,6 +38,24 @@ class Settings(BaseSettings):
 
     # Auth — optional stricter password policy (symbol required)
     password_require_symbol: bool = False
+    auth_lockout_failed_attempts: int = 5
+    auth_lockout_minutes: int = 15
+
+    # Adaptive security — cumulative risk score floor for each RiskLevel tier
+    risk_score_medium_threshold: int = 30
+    risk_score_high_threshold: int = 55
+    risk_score_critical_threshold: int = 80
+
+    # Behavioral anomaly detector (IsolationForest + rule fallback)
+    anomaly_min_samples_ml: int = 50
+    anomaly_max_features_kept: int = 500
+    anomaly_model_ttl_seconds: int = 600
+    anomaly_refit_growth_threshold: float = 0.2
+    anomaly_alert_score_threshold: float = 0.6
+
+    # Rolling z-score anomaly over request-rate series
+    zscore_threshold: float = 3.0
+    zscore_window_samples: int = 100
 
     # Bootstrap (privileged accounts seeded on startup)
     enable_bootstrap: bool = True
@@ -62,6 +81,23 @@ class Settings(BaseSettings):
     # ML
     models_dir: str = "app/ml_engine/saved_models"
 
+    # Audit chain verification (tamper detection)
+    audit_startup_verify_chain: bool = False
+    audit_startup_verify_limit: int = 5000
+    audit_abort_startup_when_chain_broken: bool = False
+    audit_reject_new_events_when_chain_untrusted: bool = False
+
+    # Risk engine — persist each adaptive_security snapshot for CISO trending
+    persist_risk_snapshots_enabled: bool = True
+
+    # Optional outbound hook (generic JSON webhook) for alerts
+    security_alert_webhook_url: str = ""
+
+    # CSRF (mainly useful if auth is cookie-based; bearer-only APIs can keep disabled)
+    csrf_protection_enabled: bool = False
+    csrf_cookie_name: str = "csrf_token"
+    csrf_header_name: str = "X-CSRF-Token"
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"
@@ -69,6 +105,33 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
+
+    @model_validator(mode="after")
+    def validate_security_threshold_order(self) -> "Settings":
+        m, h, c = (
+            self.risk_score_medium_threshold,
+            self.risk_score_high_threshold,
+            self.risk_score_critical_threshold,
+        )
+        if not (0 <= m < h < c <= 100):
+            raise ValueError(
+                "risk_score_* must satisfy 0 <= medium < high <= critical <= 100"
+            )
+        return self
+
+    @field_validator("auth_lockout_failed_attempts")
+    @classmethod
+    def validate_lockout_attempts(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("auth_lockout_failed_attempts must be >= 1")
+        return v
+
+    @field_validator("auth_lockout_minutes")
+    @classmethod
+    def validate_lockout_window(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("auth_lockout_minutes must be >= 1")
+        return v
 
     @field_validator("jwt_secret_key")
     @classmethod

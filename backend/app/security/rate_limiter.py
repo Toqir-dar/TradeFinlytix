@@ -10,6 +10,7 @@ from fastapi import HTTPException, Request, status
 from redis.asyncio import Redis
 
 from app.core.config import settings
+from app.utils.helpers import get_client_ip
 
 _KEY_PREFIX: Final[str] = "rate_limit"
 _redis_client: Redis | None = None
@@ -31,7 +32,7 @@ async def rate_limit(request: Request) -> None:
     now_ms = int(time.time() * 1000)
     window_ms = settings.rate_limit_window_seconds * 1000
     cutoff_ms = now_ms - window_ms
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     key = f"{_KEY_PREFIX}:{ip}"
     member = f"{now_ms}:{id(request)}"
 

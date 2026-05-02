@@ -35,6 +35,16 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
 
+    # Auth — optional stricter password policy (symbol required)
+    password_require_symbol: bool = False
+
+    # Bootstrap (privileged accounts seeded on startup)
+    enable_bootstrap: bool = True
+    bootstrap_admin_email: str = ""
+    bootstrap_admin_password: str = ""
+    bootstrap_ciso_email: str = ""
+    bootstrap_ciso_password: str = ""
+
     # AES
     aes_secret_key: str = "CHANGE_THIS_32_BYTE_KEY_HERE_!!!"
 

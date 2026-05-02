@@ -18,6 +18,8 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.routes import auth as auth_routes
+from app.core.bootstrap import bootstrap_privileged_users
 from app.core.config import settings
 from app.core.database import close_db, connect_db
 from app.core.logging import setup_logging
@@ -36,6 +38,7 @@ async def lifespan(app: FastAPI):
         settings.app_env,
     )
     await connect_db()
+    await bootstrap_privileged_users()
     logger.info("TradeFinlytix backend ready.")
     yield
     await close_db()
@@ -59,6 +62,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_routes.router, prefix="/api/v1")
 
 
 @app.middleware("http")

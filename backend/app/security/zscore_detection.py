@@ -8,10 +8,8 @@ from statistics import mean, pstdev
 
 from redis.asyncio import Redis
 
+from app.core.config import settings
 from app.security.rate_limiter import _client
-
-ZSCORE_THRESHOLD = 3.0
-WINDOW_SAMPLES = 100
 
 
 def zscore(values: list[float], x: float) -> float:
@@ -29,14 +27,14 @@ async def record_and_score(key: str, value: float) -> tuple[float, bool]:
     client: Redis = _client()
     pipe = client.pipeline()
     pipe.rpush(key, value)
-    pipe.ltrim(key, -WINDOW_SAMPLES, -1)
+    pipe.ltrim(key, -settings.zscore_window_samples, -1)
     pipe.lrange(key, 0, -1)
     pipe.expire(key, 3600)
     _, _, raw, _ = await pipe.execute()
 
     history = [float(v) for v in raw[:-1]]
     z = zscore(history, value)
-    return z, abs(z) >= ZSCORE_THRESHOLD
+    return z, abs(z) >= settings.zscore_threshold
 
 
 async def request_rate_zscore(user_id: str) -> tuple[float, bool]:

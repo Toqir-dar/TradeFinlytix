@@ -20,6 +20,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
+from app.repositories.audit_repo import record_event
 from app.repositories.user_repo import UserRepository
 from app.schemas.user_schema import TokenResponse
 
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
+        self.db = db
         self.repo = UserRepository(db)
 
     async def register(
@@ -49,6 +51,12 @@ class AuthService:
         doc = await self.repo.create(user)
         tokens = await self._issue_tokens(doc)
         logger.info("user_registered", extra={"user_id": str(doc["_id"])})
+        await record_event(
+            self.db,
+            "user_registered",
+            user_id=str(doc["_id"]),
+            payload={"email": doc["email"]},
+        )
         return doc, tokens
 
     async def authenticate(
@@ -86,6 +94,13 @@ class AuthService:
                     "ip": ip,
                 },
             )
+            await record_event(
+                self.db,
+                "login_failed",
+                user_id=str(user["_id"]),
+                ip=ip,
+                payload={"attempts": attempts},
+            )
             raise invalid
 
         await self.repo.record_successful_login(str(user["_id"]), ip)
@@ -93,6 +108,13 @@ class AuthService:
         assert user is not None
         tokens = await self._issue_tokens(user)
         logger.info("login_success", extra={"user_id": str(user["_id"]), "ip": ip})
+        await record_event(
+            self.db,
+            "login_success",
+            user_id=str(user["_id"]),
+            ip=ip,
+            payload={"role": user.get("role")},
+        )
         return user, tokens
 
     async def refresh(self, refresh_token: str, ip: str) -> TokenResponse:
@@ -100,6 +122,15 @@ class AuthService:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token.",
         )
+        async def _record_misuse(reason: str, uid: str | None = None) -> None:
+            await record_event(
+                self.db,
+                "refresh_token_misuse",
+                user_id=uid,
+                ip=ip,
+                payload={"reason": reason},
+            )
+
         try:
             payload = decode_token(refresh_token)
         except JWTError as e:
@@ -112,6 +143,7 @@ class AuthService:
                     "ip": ip,
                 },
             )
+            await _record_misuse("decode_failed")
             raise invalid
 
         if payload.get("type") != "refresh":
@@ -119,6 +151,7 @@ class AuthService:
                 "refresh_token_misuse",
                 extra={"event": "refresh_misuse", "reason": "wrong_type", "ip": ip},
             )
+            await _record_misuse("wrong_type")
             raise invalid
 
         user_id: str = payload.get("sub", "")
@@ -134,6 +167,7 @@ class AuthService:
                     "ip": ip,
                 },
             )
+            await _record_misuse("user_or_version", user_id or None)
             raise invalid
         if not await self.repo.is_refresh_token_valid(user_id, refresh_token):
             logger.warning(
@@ -145,6 +179,7 @@ class AuthService:
                     "ip": ip,
                 },
             )
+            await _record_misuse("invalid_or_revoked_or_expired", user_id)
             raise invalid
 
         await self.repo.revoke_refresh_token(user_id, refresh_token)

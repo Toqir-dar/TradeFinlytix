@@ -13,6 +13,9 @@ from fastapi import HTTPException, Request, status
 from redis.asyncio import Redis
 
 from app.core.config import settings
+from app.core.database import get_db
+from app.repositories.audit_repo import record_event
+from app.repositories.risk_history_repo import persist_risk_from_request_best_effort
 from app.security.anomaly_detection import detect_anomaly
 from app.security.rate_limiter import _client
 from app.security.zscore_detection import request_rate_zscore
@@ -35,30 +38,31 @@ class RiskAssessment:
     factors: dict[str, float]
 
 
-LEVEL_THRESHOLDS = {
-    RiskLevel.LOW: 0,
-    RiskLevel.MEDIUM: 30,
-    RiskLevel.HIGH: 55,
-    RiskLevel.CRITICAL: 80,
-}
+def _risk_level_floor_thresholds() -> list[tuple[RiskLevel, int]]:
+    s = settings
+    return [
+        (RiskLevel.LOW, 0),
+        (RiskLevel.MEDIUM, s.risk_score_medium_threshold),
+        (RiskLevel.HIGH, s.risk_score_high_threshold),
+        (RiskLevel.CRITICAL, s.risk_score_critical_threshold),
+    ]
 
-LEVEL_RATE_LIMITS = {
-    RiskLevel.LOW: (
-        settings.rate_limit_requests,
-        settings.rate_limit_window_seconds,
-    ),
-    RiskLevel.MEDIUM: (
-        max(settings.rate_limit_requests // 2, 20),
-        settings.rate_limit_window_seconds,
-    ),
-    RiskLevel.HIGH: (10, settings.rate_limit_window_seconds),
-    RiskLevel.CRITICAL: (0, settings.rate_limit_window_seconds),
-}
+
+def _risk_level_rate_limits(level: RiskLevel) -> tuple[int, int]:
+    s = settings
+    window = s.rate_limit_window_seconds
+    if level == RiskLevel.LOW:
+        return s.rate_limit_requests, window
+    if level == RiskLevel.MEDIUM:
+        return max(s.rate_limit_requests // 2, 20), window
+    if level == RiskLevel.HIGH:
+        return 10, window
+    return 0, window
 
 
 def _bucket_score(score: float) -> RiskLevel:
     level = RiskLevel.LOW
-    for lvl, threshold in LEVEL_THRESHOLDS.items():
+    for lvl, threshold in _risk_level_floor_thresholds():
         if score >= threshold:
             level = lvl
     return level
@@ -83,10 +87,12 @@ async def compute_risk(
     factors["sensitive_path"] = 10.0 if sensitive else 0.0
     factors["anon_sensitive"] = 15.0 if (sensitive and user is None) else 0.0
 
-    z, is_zspike = await request_rate_zscore(user_id)
-    factors["zscore_rate"] = (
-        15.0 if is_zspike else min(abs(z) * 3, 10.0)
-    )
+    try:
+        z, is_zspike = await request_rate_zscore(user_id)
+        factors["zscore_rate"] = 15.0 if is_zspike else min(abs(z) * 3, 10.0)
+    except Exception as e:
+        logger.warning("zscore_rate_failed: %s", e)
+        factors["zscore_rate"] = 0.0
 
     if user is not None:
         meta = {
@@ -95,8 +101,12 @@ async def compute_risk(
             "payload_size": int(request.headers.get("content-length", 0) or 0),
             "status_code": 200,
         }
-        _is_anom, anom_score = await detect_anomaly(user_id, meta)
-        factors["anomaly_score"] = anom_score * 20.0
+        try:
+            _is_anom, anom_score = await detect_anomaly(user_id, meta)
+            factors["anomaly_score"] = anom_score * 20.0
+        except Exception as e:
+            logger.warning("detect_anomaly_failed: %s", e)
+            factors["anomaly_score"] = 0.0
     else:
         factors["anomaly_score"] = 0.0
 
@@ -105,7 +115,7 @@ async def compute_risk(
 
 
 async def _enforce_rate_limit(client: Redis, key: str, level: RiskLevel) -> None:
-    limit, window = LEVEL_RATE_LIMITS[level]
+    limit, window = _risk_level_rate_limits(level)
     if limit <= 0:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -152,6 +162,21 @@ async def apply_security_layers(
                 **log_extra,
             },
         )
+        try:
+            db = await get_db()
+            await record_event(
+                db,
+                "critical_block",
+                user_id=str(user["_id"]) if user else None,
+                ip=get_client_ip(request),
+                path=request.url.path,
+                payload={
+                    "score": assessment.score,
+                    "factors": assessment.factors,
+                },
+            )
+        except Exception:
+            pass
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Request blocked: critical risk detected.",
@@ -174,4 +199,14 @@ async def adaptive_security(request: Request) -> RiskAssessment:
     assessment = await compute_risk(request, user)
     request.state.risk = assessment
     await apply_security_layers(request, assessment, user)
+    ip = get_client_ip(request)
+    subj = str(user["_id"]) if user else f"anon:{ip}"
+    await persist_risk_from_request_best_effort(
+        request_path=request.url.path,
+        subject=subj,
+        score=assessment.score,
+        level_name=assessment.level.name,
+        factors=dict(assessment.factors),
+        client_ip=ip,
+    )
     return assessment

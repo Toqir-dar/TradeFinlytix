@@ -59,13 +59,14 @@ async def bootstrap_privileged_users() -> None:
             )
             continue
 
-        existing = await repo.get_by_email(email)
+        email_norm = normalize_email(email)
+        existing = await repo.get_by_email(email_norm)
         if existing:
             if existing.get("role") != role.value:
                 logger.warning(
                     "bootstrap_role_mismatch",
                     extra={
-                        "email": normalize_email(email),
+                        "email": email_norm,
                         "expected_role": role.value,
                         "actual_role": existing.get("role"),
                     },
@@ -74,7 +75,7 @@ async def bootstrap_privileged_users() -> None:
 
         await repo.create(
             User(
-                email=email,
+                email=email_norm,
                 password_hash=hash_password(password),
                 full_name=f"Bootstrap {label.upper()}",
                 role=role,
@@ -86,7 +87,7 @@ async def bootstrap_privileged_users() -> None:
             extra={
                 "event": "bootstrap_account_created",
                 "role": role.value,
-                "email": normalize_email(email),
+                "email": email_norm,
             },
         )
 

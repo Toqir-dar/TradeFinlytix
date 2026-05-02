@@ -14,16 +14,12 @@ from typing import Any
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
+from app.core.config import settings
 from app.security.rate_limiter import _client
 
 logger = logging.getLogger(__name__)
 
-MIN_SAMPLES_FOR_ML = 50
 FEATURE_KEY_TMPL = "anomaly:features:{user_id}"
-MAX_FEATURES_KEPT = 500
-
-MODEL_TTL_SECONDS = 600
-REFIT_GROWTH_THRESHOLD = 0.2
 
 _MODEL_CACHE: dict[str, tuple[IsolationForest, float, int]] = {}
 _CACHE_LOCK = Lock()
@@ -55,7 +51,7 @@ def featurize(request_meta: dict[str, Any]) -> list[float]:
 async def _load_history(user_id: str) -> np.ndarray | None:
     client = _client()
     raw = await client.lrange(FEATURE_KEY_TMPL.format(user_id=user_id), 0, -1)
-    if len(raw) < MIN_SAMPLES_FOR_ML:
+    if len(raw) < settings.anomaly_min_samples_ml:
         return None
     rows: list[list[float]] = []
     for r in raw:
@@ -72,7 +68,7 @@ async def _store_features(user_id: str, vec: list[float]) -> None:
     serialized = ",".join(f"{x:.4f}" for x in vec)
     pipe = client.pipeline()
     pipe.rpush(key, serialized)
-    pipe.ltrim(key, -MAX_FEATURES_KEPT, -1)
+    pipe.ltrim(key, -settings.anomaly_max_features_kept, -1)
     pipe.expire(key, 60 * 60 * 24 * 30)
     await pipe.execute()
 
@@ -117,16 +113,17 @@ async def detect_anomaly(user_id: str, request_meta: dict[str, Any]) -> tuple[bo
     history = await _load_history(user_id)
     await _store_features(user_id, vec)
 
+    alert_thr = settings.anomaly_alert_score_threshold
     if history is None:
         score = _rule_based_score(request_meta)
-        return score >= 0.6, score
+        return score >= alert_thr, score
 
     try:
         model = _get_or_train(user_id, history)
         raw_score = model.score_samples(np.array([vec]))[0]
         score = float(np.clip(0.5 - raw_score, 0.0, 1.0))
-        return score >= 0.6, score
+        return score >= alert_thr, score
     except Exception as e:
         logger.warning("anomaly_model_failed: %s", e)
         score = _rule_based_score(request_meta)
-        return score >= 0.6, score
+        return score >= alert_thr, score

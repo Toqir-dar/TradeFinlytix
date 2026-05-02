@@ -7,19 +7,21 @@ import logging
 from typing import Annotated
 
 from bson import ObjectId
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 
 from app.core.database import get_db
 from app.core.roles import UserRole
-from app.core.security import decode_token
+from app.core.security import decode_token, decrypt_field
+from app.utils.helpers import normalize_email
 
 logger = logging.getLogger(__name__)
 _bearer = HTTPBearer(auto_error=True)
 
 
 async def get_current_user(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
     db=Depends(get_db),
 ) -> dict:
@@ -53,17 +55,27 @@ async def get_current_user(
     if not user:
         raise auth_error
 
+    if "email" not in user and user.get("email_encrypted"):
+        try:
+            user["email"] = normalize_email(decrypt_field(user["email_encrypted"]))
+        except Exception:
+            user["email"] = "unknown@invalid.local"
+
+    # Prefer a clear 403 for deactivated accounts over 401 from jwt_version skew
+    # (deactivation bumps jwt_version and revokes refresh tokens).
+    if not user.get("is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is deactivated.",
+        )
+
     if user.get("jwt_version", 1) != token_version:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session invalidated. Please log in again.",
         )
 
-    if not user.get("is_active", True):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated.",
-        )
+    request.state.user = user
     return user
 
 

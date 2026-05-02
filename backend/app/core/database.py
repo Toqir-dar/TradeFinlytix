@@ -64,7 +64,14 @@ async def _create_indexes() -> None:
 
     db = _database
 
-    await db["users"].create_index("email", unique=True)
+    # ✅ Fixed
+    await db["users"].create_index(
+      [("email_hash", 1)],
+      unique=True,
+      name="users_email_hash_unique",
+      partialFilterExpression={"email_hash": {"$exists": True}}, 
+)
+
 
     await db["psx_eod"].create_index(
         [("symbol", ASCENDING), ("date", DESCENDING)],
@@ -104,9 +111,19 @@ async def _create_indexes() -> None:
         [("user_id", ASCENDING), ("timestamp", DESCENDING)],
         name="audit_logs_user_timestamp",
     )
+    # Single TTL on audit_logs: prefer created_at (canonical). Drop legacy timestamp TTL if present.
+    audit_idx = await db["audit_logs"].index_information()
+    if "audit_logs_ttl_30d" in audit_idx:
+        try:
+            await db["audit_logs"].drop_index("audit_logs_ttl_30d")
+        except Exception as e:
+            logger.warning(
+                "Could not drop legacy audit_logs TTL index audit_logs_ttl_30d: %s",
+                e,
+            )
     await db["audit_logs"].create_index(
-        "timestamp",
-        name="audit_logs_ttl_30d",
+        "created_at",
+        name="audit_logs_created_at_ttl_30d",
         expireAfterSeconds=60 * 60 * 24 * 30,
     )
 
@@ -131,6 +148,16 @@ async def _create_indexes() -> None:
         "expires_at",
         name="refresh_tokens_expires_at_ttl",
         expireAfterSeconds=0,
+    )
+
+    await db["risk_snapshots"].create_index(
+        [("subject", ASCENDING), ("created_at", DESCENDING)],
+        name="risk_snapshots_subject_created_at",
+    )
+    await db["risk_snapshots"].create_index(
+        "created_at",
+        name="risk_snapshots_created_at_ttl_90d",
+        expireAfterSeconds=60 * 60 * 24 * 90,
     )
 
     logger.info("All MongoDB indexes verified/created.")

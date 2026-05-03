@@ -90,11 +90,15 @@ def test_deactivate_revokes_refresh_tokens(harness):
 
 def test_chain_untrusted_blocks_sensitive_endpoints(harness, monkeypatch):
     c, db = harness
-    from app.core import config as cfg
+    from app.main import settings, audit_chain_append_allowed
     from app.repositories.audit_chain_state import set_audit_chain_trusted
     from tests.seed import seed_user
 
-    monkeypatch.setattr(cfg.settings, "audit_reject_new_events_when_chain_untrusted", True)
+    monkeypatch.setattr(settings, "audit_reject_new_events_when_chain_untrusted", True)
+    monkeypatch.setattr(
+        "app.main.audit_chain_append_allowed",
+        lambda: False,
+    )
     set_audit_chain_trusted(False)
     seed_user(db, email="admin@hold.com", password="AdminSecure1!", role="admin")
     tok = c.post(

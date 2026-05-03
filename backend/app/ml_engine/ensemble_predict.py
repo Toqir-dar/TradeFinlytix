@@ -75,19 +75,19 @@ def predict_symbol_ensemble(
         return {
             "signal": signal,
             "confidence": round(confidence, 3),
-            "probability": round(confidence, 3),
-            "expected_gain_pct": round(expected_gain_pct, 2),
-            "current_price": current_price,
-            "target_price": target_price,
-            "stop_loss": stop_loss,
-            "time_horizon_days": time_horizon_days,
-            "model_version": "stacked_ensemble_v1",
-            "base_scores": result.get("base_predictions", {}),
+            "engine": "ensemble_v1",
+            "tier": "core",
             "rationale": [
                 f"stacked_ensemble_prediction",
                 f"confidence={confidence:.3f}",
                 f"base_learners_consensus",
             ],
+            "entry_price": current_price,
+            "target_price": target_price,
+            "stop_loss": stop_loss,
+            "expected_gain_pct": round(expected_gain_pct, 2),
+            "time_horizon_days": time_horizon_days,
+            "base_scores": result.get("base_predictions", {}),
         }
 
     except Exception as e:
@@ -100,13 +100,14 @@ def _get_fallback_prediction(symbol: str) -> dict[str, Any]:
     return {
         "signal": "hold",
         "confidence": 0.5,
-        "probability": 0.5,
-        "expected_gain_pct": 0.0,
+        "engine": "fallback",
+        "tier": "core",
+        "rationale": ["model_inference_unavailable", "returning_neutral_signal"],
+        "entry_price": None,
         "target_price": None,
         "stop_loss": None,
+        "expected_gain_pct": 0.0,
         "time_horizon_days": 2,
-        "model_version": "fallback",
-        "rationale": ["model_inference_unavailable", "returning_neutral_signal"],
     }
 
 
@@ -120,8 +121,12 @@ def predict_symbol_rules(symbol: str) -> dict[str, Any]:
     return {
         "signal": "hold",
         "confidence": 0.5,
-        "expected_gain_pct": 0.0,
+        "engine": "rule_v1",
+        "tier": "core",
+        "rationale": ["rule_engine_v1_fallback"],
+        "entry_price": None,
         "target_price": None,
         "stop_loss": None,
+        "expected_gain_pct": 0.0,
         "time_horizon_days": 2,
     }

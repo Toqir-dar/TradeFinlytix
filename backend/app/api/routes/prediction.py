@@ -10,21 +10,21 @@ to zero so the response still returns HTTP 200.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Path
 
 from app.api.dependencies import CurrentUser
 from app.core.database import get_db
-from app.ml_engine.rule_predict import predict_symbol_rules
-from app.repositories.prediction_repo import PredictionRepository
 from app.schemas.prediction_schema import (
     PredictionIntegrityVerifyRequest,
     PredictionIntegrityVerifyResponse,
     PredictionResponse,
 )
-from app.security.hmac_signing import sign_response_payload, verify_response_payload
+from app.security.hmac_signing import verify_response_payload
 from app.security.security_orchestrator import RiskAssessment, adaptive_security
+from app.services.prediction_service import PredictionService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/predict", tags=["Prediction"])
@@ -34,16 +34,30 @@ router = APIRouter(prefix="/predict", tags=["Prediction"])
     "/{symbol}",
     response_model=PredictionResponse,
     summary="Rule-based stance + adaptive risk context",
+    include_in_schema=True,
 )
 async def predict_symbol(
-    symbol: str,
     user: CurrentUser,
+    symbol: str = Path(
+        ...,
+        min_length=1,
+        max_length=32,
+        description="Stock symbol to predict.",
+    ),
     assessment: RiskAssessment = Depends(adaptive_security),
     db=Depends(get_db),
 ) -> PredictionResponse:
-    model_out = predict_symbol_rules(symbol)
-    now = datetime.now(timezone.utc)
+    symbol = symbol.strip().upper()
+    if not symbol:
+        raise HTTPException(status_code=422, detail="Symbol must be non-empty.")
+    if not re.fullmatch(r"^[A-Z0-9._-]+$", symbol):
+        raise HTTPException(
+            status_code=422,
+            detail="Symbol may only contain letters, digits, dot, underscore, or hyphen.",
+        )
+
     subject = str(user["_id"])
+    now = datetime.now(timezone.utc)
     ten_min_ago = now.timestamp() - 600
     recent_count = 0
     high_count = 0
@@ -67,38 +81,14 @@ async def predict_symbol(
             "predict_snapshot_counts_failed subject=%s err=%s", subject, e, exc_info=False
         )
 
-    dynamic_risk = min(
-        100.0, assessment.score + (high_count * 2.0) + min(recent_count, 20) * 0.4
+    service = PredictionService(db)
+    return await service.predict_symbol(
+        symbol=symbol,
+        user=user,
+        assessment=assessment,
+        recent_request_count_10m=recent_count,
+        historical_high_risk_events=high_count,
     )
-    body = {
-        "symbol": symbol.upper(),
-        "user_id": str(user["_id"]),
-        "predicted_at": now.isoformat(),
-        "prediction": model_out,
-        "risk": {
-            "score": assessment.score,
-            "level": assessment.level.name,
-            "dynamic_score": round(dynamic_risk, 2),
-            "recent_request_count_10m": recent_count,
-            "historical_high_risk_events": high_count,
-        },
-    }
-    response = PredictionResponse(
-        **body,
-        integrity={
-            "algorithm": "HMAC-SHA256",
-            "signature": sign_response_payload(body),
-        },
-    )
-    try:
-        await PredictionRepository(db).record_prediction(
-            user_id=str(user["_id"]),
-            symbol=symbol,
-            response_payload=response.model_dump(),
-        )
-    except Exception as e:
-        logger.warning("predict_record_persist_failed err=%s", e, exc_info=False)
-    return response
 
 
 @router.post(

@@ -12,6 +12,27 @@ class RulePrediction(BaseModel):
     rationale: list[str]
     tier: str
 
+    entry_price: float | None = Field(
+        None,
+        description="Suggested execution price for the trade signal.",
+    )
+    target_price: float | None = Field(
+        None,
+        description="Recommended target price for profit taking.",
+    )
+    stop_loss: float | None = Field(
+        None,
+        description="Recommended stop-loss price to limit downside.",
+    )
+    expected_gain_pct: float | None = Field(
+        None,
+        description="Expected gain or loss percentage for the signal.",
+    )
+    time_horizon_days: int | None = Field(
+        None,
+        description="Suggested holding horizon for the signal in days.",
+    )
+
 
 class AdaptiveRiskSlice(BaseModel):
     score: float
@@ -55,6 +76,11 @@ class PredictionResponse(BaseModel):
                         "rule_engine_v1_symbol_char_heuristic",
                     ],
                     "tier": "core",
+                    "entry_price": 122.45,
+                    "target_price": 127.50,
+                    "stop_loss": 118.00,
+                    "expected_gain_pct": 4.1,
+                    "time_horizon_days": 5,
                 },
                 "risk": {
                     "score": 42.5,

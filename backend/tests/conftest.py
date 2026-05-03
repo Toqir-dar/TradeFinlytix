@@ -13,7 +13,7 @@ os.environ.setdefault(
     "JWT_SECRET_KEY",
     "testjwt_0123456789abcdef_deadbeefcafef00d_secure_key_not_change_placeholder",
 )
-os.environ.setdefault("AES_SECRET_KEY", "CHANGE_THIS_32_BYTE_KEY_HERE_!")
+os.environ.setdefault("AES_SECRET_KEY", "0123456789abcdef0123456789abcdef")
 os.environ.setdefault("ENABLE_BOOTSTRAP", "false")
 os.environ.setdefault("MONGODB_URI", "mongodb://127.0.0.1:27017")
 os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6379")

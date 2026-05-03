@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
+from typing import Any
 
+from app.ml_engine.ensemble_predict import predict_symbol_ensemble
 from app.ml_engine.rule_predict import predict_symbol_rules
 from app.repositories.prediction_repo import PredictionRepository
 from app.schemas.prediction_schema import PredictionResponse
@@ -24,8 +26,39 @@ class PredictionService:
         assessment: RiskAssessment,
         recent_request_count_10m: int = 0,
         historical_high_risk_events: int = 0,
+        symbol_data: dict[str, Any] | None = None,
+        history: list[dict[str, Any]] | None = None,
     ) -> PredictionResponse:
-        model_out = predict_symbol_rules(symbol)
+        """
+        Generate prediction for a symbol using ensemble model.
+
+        Args:
+            symbol: Stock symbol (e.g., 'AAPL')
+            user: User dictionary with _id
+            assessment: RiskAssessment from security orchestrator
+            recent_request_count_10m: Number of recent requests
+            historical_high_risk_events: Count of high-risk events
+            symbol_data: Current symbol data (price, volume, etc.) - optional for ensemble
+            history: Historical data for sequence features - optional for ensemble
+
+        Returns:
+            PredictionResponse with prediction and risk assessment
+        """
+        # Try ensemble prediction if symbol_data provided, otherwise fall back to rules
+        if symbol_data:
+            try:
+                model_out = predict_symbol_ensemble(symbol, symbol_data, history)
+                logger.info(f"Ensemble prediction for {symbol}: {model_out['signal']}")
+            except Exception as e:
+                logger.warning(
+                    f"Ensemble prediction failed for {symbol}: {e}, using fallback",
+                    exc_info=False,
+                )
+                model_out = predict_symbol_rules(symbol)
+        else:
+            # Use rule-based fallback if no symbol data provided
+            model_out = predict_symbol_rules(symbol)
+
         now = datetime.now(timezone.utc)
         dynamic_score = min(
             100.0,
@@ -64,4 +97,5 @@ class PredictionService:
             logger.warning("predict_record_persist_failed err=%s", exc, exc_info=False)
 
         return response
+
 

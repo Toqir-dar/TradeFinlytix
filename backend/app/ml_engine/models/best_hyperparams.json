@@ -1,0 +1,46 @@
+{
+  "lgb": {
+    "learning_rate": 0.043414294446107095,
+    "num_leaves": 254,
+    "min_child_samples": 56,
+    "subsample": 0.8497674878069208,
+    "colsample_bytree": 0.6008147597351519,
+    "reg_alpha": 1.008922468675775,
+    "reg_lambda": 0.12049489668390587,
+    "min_split_gain": 0.6880738833714279,
+    "objective": "binary",
+    "n_estimators": 1000,
+    "verbosity": -1,
+    "n_jobs": -1,
+    "random_state": 42,
+    "device_type": "cpu"
+  },
+  "xgb": {
+    "learning_rate": 0.02757359293934948,
+    "max_depth": 10,
+    "min_child_weight": 8,
+    "subsample": 0.7993292420985183,
+    "colsample_bytree": 0.5780093202212182,
+    "colsample_bylevel": 0.5779972601681014,
+    "reg_alpha": 0.0017073967431528124,
+    "reg_lambda": 2.9154431891537547,
+    "gamma": 3.005575058716044,
+    "objective": "binary:logistic",
+    "n_estimators": 1000,
+    "early_stopping_rounds": 50,
+    "eval_metric": "logloss",
+    "verbosity": 0,
+    "random_state": 42,
+    "n_jobs": -1,
+    "tree_method": "hist",
+    "device": "cpu"
+  },
+  "lstm": {
+    "seq_len": 5,
+    "units1": 256,
+    "units2": 128,
+    "dropout": 0.4969450661841347,
+    "lr": 0.0048535351493388555,
+    "batch_size": 512
+  }
+}

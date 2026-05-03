@@ -29,11 +29,9 @@ from app.ml_engine.models import (
     get_lstm_model,
     get_xgb_model,
 )
-from app.ml_engine.models.ensemble_model import (
-    LGBModelWrapper,
-    LSTMModelWrapper,
-    XGBModelWrapper,
-)
+from app.ml_engine.models.lgb_model import LGBModelWrapper
+from app.ml_engine.models.lstm_model import LSTMModelWrapper
+from app.ml_engine.models.xgb_model import XGBModelWrapper
 from app.services.prediction_service import PredictionService
 
 

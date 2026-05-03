@@ -10,9 +10,9 @@ import pickle
 from pathlib import Path
 from typing import Any
 
+import joblib
 import numpy as np
 import xgboost as xgb
-from sklearn.preprocessing import StandardScaler
 
 try:
     import lightgbm as lgb
@@ -41,6 +41,7 @@ class EnsembleModel:
         self.lstm_scaler = None
         self.meta_scaler = None
         self.hyperparams = None
+        self.seq_len = 10
         self.is_loaded = False
 
     def load_models(self) -> bool:
@@ -49,10 +50,10 @@ class EnsembleModel:
             # Load hyperparameters
             with open(MODEL_DIR / "best_hyperparams.json", "r") as f:
                 self.hyperparams = json.load(f)
+            self.seq_len = int(self.hyperparams.get("lstm", {}).get("seq_len", 10))
 
             # Load XGBoost model
-            self.xgb_model = xgb.Booster()
-            self.xgb_model.load_model(str(MODEL_DIR / "xgb_model.pkl"))
+            self.xgb_model = joblib.load(MODEL_DIR / "xgb_model.pkl")
             logger.info("XGBoost model loaded successfully")
 
             # Load LightGBM model
@@ -93,42 +94,51 @@ class EnsembleModel:
             return False
 
     def predict_xgb(self, features: np.ndarray) -> np.ndarray:
-        """Get XGBoost base model predictions."""
+        """Get XGBoost base model probabilities with shape (n_samples, 2)."""
         if self.xgb_model is None:
             raise ValueError("XGBoost model not loaded")
 
-        dmatrix = xgb.DMatrix(features)
-        return self.xgb_model.predict(dmatrix)
+        if hasattr(self.xgb_model, "predict_proba"):
+            proba = self.xgb_model.predict_proba(features)
+            return proba if proba.ndim == 2 else np.column_stack([1 - proba, proba])
+
+        if isinstance(self.xgb_model, xgb.Booster):
+            preds = self.xgb_model.predict(xgb.DMatrix(features))
+            return np.column_stack([1 - preds, preds])
+
+        raise TypeError("Unsupported XGBoost model format")
 
     def predict_lgb(self, features: np.ndarray) -> np.ndarray:
-        """Get LightGBM base model predictions."""
+        """Get LightGBM base model probabilities with shape (n_samples, 2)."""
         if self.lgb_model is None:
             raise ValueError("LightGBM model not loaded")
 
-        return self.lgb_model.predict_proba(features)[:, 1]
+        proba = self.lgb_model.predict_proba(features)
+        return proba if proba.ndim == 2 else np.column_stack([1 - proba, proba])
 
     def predict_lstm(self, sequences: np.ndarray) -> np.ndarray:
-        """Get LSTM base model predictions."""
+        """Get LSTM base model probabilities with shape (n_samples, 2)."""
         if self.lstm_model is None:
             raise ValueError("LSTM model not loaded")
         if self.lstm_scaler is None:
             raise ValueError("LSTM scaler not loaded")
 
-        # Scale sequences
-        seq_len = sequences.shape[1]
-        scaled_sequences = np.zeros_like(sequences)
-        for i in range(sequences.shape[0]):
-            scaled_sequences[i] = self.lstm_scaler.transform(
-                sequences[i].reshape(-1, 1)
-            ).flatten()
+        if sequences.ndim != 3:
+            raise ValueError(
+                "Expected LSTM sequences with shape (batch, seq_len, n_features)"
+            )
 
-        # Reshape for LSTM (batch_size, seq_len, n_features)
-        scaled_sequences = scaled_sequences.reshape(
-            scaled_sequences.shape[0], seq_len, 1
-        )
+        batch_size, seq_len, n_features = sequences.shape
+        flat = sequences.reshape(batch_size * seq_len, n_features)
+        scaled_flat = self.lstm_scaler.transform(flat)
+        scaled_sequences = scaled_flat.reshape(batch_size, seq_len, n_features)
 
         predictions = self.lstm_model.predict(scaled_sequences, verbose=0)
-        return predictions.flatten()
+        if predictions.ndim == 2 and predictions.shape[1] == 2:
+            return predictions
+
+        preds = predictions.flatten()
+        return np.column_stack([1 - preds, preds])
 
     def predict_ensemble(
         self, features: np.ndarray, sequences: np.ndarray | None = None
@@ -148,33 +158,48 @@ class EnsembleModel:
 
         try:
             # Get base model predictions
-            xgb_preds = self.predict_xgb(features)
-            lgb_preds = self.predict_lgb(features)
+            xgb_probs = self.predict_xgb(features)
+            lgb_probs = self.predict_lgb(features)
 
-            # Stack base predictions
-            base_predictions = np.column_stack([xgb_preds, lgb_preds])
+            # Notebook stack contract: [lgb_0, lgb_1, xgb_0, xgb_1, lstm_0, lstm_1]
+            base_predictions = np.column_stack([
+                lgb_probs[:, 0],
+                lgb_probs[:, 1],
+                xgb_probs[:, 0],
+                xgb_probs[:, 1],
+            ])
+            lstm_probs = None
 
             # Add LSTM predictions if sequences provided
             if sequences is not None and self.lstm_model is not None:
-                lstm_preds = self.predict_lstm(sequences)
-                base_predictions = np.column_stack([base_predictions, lstm_preds])
+                lstm_probs = self.predict_lstm(sequences)
+                base_predictions = np.column_stack([
+                    base_predictions,
+                    lstm_probs[:, 0],
+                    lstm_probs[:, 1],
+                ])
 
             # Scale meta-features
-            if self.meta_scaler is not None:
+            if self.meta_scaler is not None and base_predictions.shape[1] == 6:
                 base_predictions = self.meta_scaler.transform(base_predictions)
 
-            # Get meta-learner final prediction
-            final_prediction = self.meta_learner.predict_proba(base_predictions)[
-                :, 1
-            ]
+            # Use meta-learner only when full 6-column stack is available.
+            if self.meta_learner is not None and base_predictions.shape[1] == 6:
+                final_prediction = self.meta_learner.predict_proba(base_predictions)[:, 1]
+            else:
+                # Safe fallback: average available base up-probabilities.
+                up_scores = [lgb_probs[:, 1], xgb_probs[:, 1]]
+                if lstm_probs is not None:
+                    up_scores.append(lstm_probs[:, 1])
+                final_prediction = np.mean(np.column_stack(up_scores), axis=1)
 
             return {
                 "prediction": final_prediction,
                 "confidence": final_prediction,
                 "base_predictions": {
-                    "xgb": xgb_preds,
-                    "lgb": lgb_preds,
-                    "lstm": lstm_preds if sequences is not None else None,
+                    "xgb": xgb_probs,
+                    "lgb": lgb_probs,
+                    "lstm": lstm_probs,
                 },
             }
 

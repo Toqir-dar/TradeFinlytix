@@ -37,8 +37,12 @@ def predict_symbol_ensemble(
             logger.warning("Ensemble model not loaded, returning fallback prediction")
             return _get_fallback_prediction(symbol)
 
-        # Prepare input features
-        features, sequences = prepare_prediction_input(symbol_data, history)
+        # Prepare input features using the saved LSTM sequence length.
+        features, sequences = prepare_prediction_input(
+            symbol_data,
+            history,
+            seq_len=ensemble.seq_len,
+        )
 
         # Get ensemble prediction
         result = ensemble.predict_ensemble(features, sequences)
@@ -75,6 +79,7 @@ def predict_symbol_ensemble(
         return {
             "signal": signal,
             "confidence": round(confidence, 3),
+            "model_version": "stacked_ensemble_v1",
             "engine": "ensemble_v1",
             "tier": "core",
             "rationale": [
@@ -100,6 +105,7 @@ def _get_fallback_prediction(symbol: str) -> dict[str, Any]:
     return {
         "signal": "hold",
         "confidence": 0.5,
+        "model_version": "stacked_ensemble_v1",
         "engine": "fallback",
         "tier": "core",
         "rationale": ["model_inference_unavailable", "returning_neutral_signal"],

@@ -96,7 +96,12 @@ def predict_symbol_ensemble(
         }
 
     except Exception as e:
-        logger.error(f"Ensemble prediction failed for {symbol}: {e}", exc_info=True)
+        logger.error(
+            "Ensemble prediction failed for %s: %s — is_loaded=%s",
+            symbol, e,
+            getattr(ensemble, "is_loaded", "N/A"),
+            exc_info=True,
+        )
         return _get_fallback_prediction(symbol)
 
 

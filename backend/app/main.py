@@ -142,6 +142,18 @@ async def lifespan(app: FastAPI):
         set_audit_chain_trusted(True)
 
     await bootstrap_privileged_users()
+
+    # Pre-load ensemble models so failures surface at startup, not first request.
+    try:
+        from app.ml_engine.models import get_ensemble
+        ensemble = get_ensemble()
+        if ensemble.is_loaded:
+            logger.info("Ensemble models pre-loaded: is_loaded=True")
+        else:
+            logger.warning("Ensemble models FAILED to load; predictions will use fallback")
+    except Exception as _exc:
+        logger.error("Ensemble pre-load raised: %s", _exc, exc_info=True)
+
     logger.info("TradeFinlytix backend ready.")
     yield
     await close_db()

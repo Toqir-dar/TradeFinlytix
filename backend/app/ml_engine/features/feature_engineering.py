@@ -8,36 +8,39 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# Must match the exact training-time order from 04_model_training - Copy.ipynb.
+# Exact column order from 01_feature_engineering + 03_preprocessing_fix notebooks.
+# 59 features total. Order is positional — tree models use it for inference.
 FEATURE_COLS: list[str] = [
-    # Price Structure (5)
+    # Price Structure (5) — denominators are open-based as in training
     "close_open_ratio", "high_low_range", "upper_wick", "lower_wick", "body_size",
     # Returns (7)
     "return_1d", "return_5d", "return_10d", "return_20d",
     "return_60d", "return_120d", "log_return_1d",
-    # MA Ratios (3)
+    # MA Ratios (3) — ratios, no -1 subtraction
     "price_to_sma20", "price_to_ema26", "sma5_cross_sma20",
-    # Momentum (10)
-    "rsi_14", "macd_pct", "macd_signal_pct", "macd_hist_pct",
-    "roc_10", "williams_r_14", "stoch_k", "stoch_d",
-    "direction_streak", "overnight_gap",
+    # Momentum (5) — raw 0-100 scale for RSI/stoch/williams; MACD moved to end
+    "rsi_14", "roc_10", "williams_r_14", "stoch_k", "stoch_d",
     # Volatility (6)
     "bb_width", "bb_pct", "atr_pct",
     "volatility_5d", "volatility_10d", "volatility_20d",
-    # Risk-Adjusted (2)
-    "sharpe_5d", "sharpe_20d",
-    # Volume (2)
-    "volume_ratio", "obv_zscore",
+    # Volume (1) — obv_zscore moved to end (added by preprocessing notebook)
+    "volume_ratio",
     # Lag Returns (5)
     "lag_return_1d", "lag_return_2d", "lag_return_3d", "lag_return_4d", "lag_return_5d",
     # Time (5)
     "day_of_week", "month", "quarter", "is_month_end", "is_quarter_end",
+    # V2 additions — order matches pipeline output after per-symbol loop
+    "overnight_gap", "direction_streak", "sharpe_5d", "sharpe_20d",
     # Cross-Sectional Ranks (10)
     "return_1d_xrank", "return_5d_xrank", "return_20d_xrank", "return_60d_xrank",
     "rsi_14_xrank", "stoch_k_xrank", "bb_pct_xrank",
     "volume_ratio_xrank", "atr_pct_xrank", "volatility_20d_xrank",
     # Market-Wide (3)
     "market_return_1d", "market_breadth", "market_vol",
+    # MACD normalized (3) — added by 03_preprocessing_fix
+    "macd_pct", "macd_signal_pct", "macd_hist_pct",
+    # OBV normalized (1) — added by 03_preprocessing_fix
+    "obv_zscore",
 ]
 
 DEFAULT_LSTM_SEQ_LEN = 10

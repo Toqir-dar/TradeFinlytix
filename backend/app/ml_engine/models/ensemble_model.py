@@ -141,18 +141,19 @@ class EnsembleModel:
             raise ValueError("Models not loaded. Call load_models() first.")
 
         try:
-            # Get base model predictions
             xgb_probs = self.predict_xgb(features)
-            lgb_probs = self.predict_lgb(features)
-
-            # Notebook stack contract: [lgb_0, lgb_1, xgb_0, xgb_1, lstm_0, lstm_1]
-            base_predictions = np.column_stack([
-                lgb_probs[:, 0],
-                lgb_probs[:, 1],
-                xgb_probs[:, 0],
-                xgb_probs[:, 1],
-            ])
+            lgb_probs = self.predict_lgb(features) if self.lgb_model is not None else None
             lstm_probs = None
+
+            if lgb_probs is not None:
+                # Full stack contract: [lgb_0, lgb_1, xgb_0, xgb_1, ...]
+                base_predictions = np.column_stack([
+                    lgb_probs[:, 0], lgb_probs[:, 1],
+                    xgb_probs[:, 0], xgb_probs[:, 1],
+                ])
+            else:
+                logger.warning("LightGBM not available; using XGBoost only")
+                base_predictions = np.column_stack([xgb_probs[:, 0], xgb_probs[:, 1]])
 
             # Add LSTM predictions if sequences provided
             if sequences is not None and self.lstm_model is not None:
@@ -163,16 +164,16 @@ class EnsembleModel:
                     lstm_probs[:, 1],
                 ])
 
-            # Scale meta-features
+            # Meta-learner requires the full 6-column stack (lgb + xgb + lstm).
             if self.meta_scaler is not None and base_predictions.shape[1] == 6:
                 base_predictions = self.meta_scaler.transform(base_predictions)
 
-            # Use meta-learner only when full 6-column stack is available.
             if self.meta_learner is not None and base_predictions.shape[1] == 6:
                 final_prediction = self.meta_learner.predict_proba(base_predictions)[:, 1]
             else:
-                # Safe fallback: average available base up-probabilities.
-                up_scores = [lgb_probs[:, 1], xgb_probs[:, 1]]
+                up_scores = [xgb_probs[:, 1]]
+                if lgb_probs is not None:
+                    up_scores.append(lgb_probs[:, 1])
                 if lstm_probs is not None:
                     up_scores.append(lstm_probs[:, 1])
                 final_prediction = np.mean(np.column_stack(up_scores), axis=1)

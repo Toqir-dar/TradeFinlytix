@@ -1,13 +1,16 @@
-"""OpenAPI shapes for `/predict` — deterministic rule stub + adaptive risk."""
+"""OpenAPI shapes for `/predict` — ensemble prediction + adaptive risk."""
 
 from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class RulePrediction(BaseModel):
+class PredictionPayload(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     signal: str
     confidence: float
+    model_version: str | None = None
     engine: str
     rationale: list[str]
     tier: str
@@ -57,7 +60,7 @@ class PredictionResponse(BaseModel):
     symbol: str
     user_id: str
     predicted_at: str
-    prediction: RulePrediction
+    prediction: PredictionPayload
     risk: AdaptiveRiskSlice
     integrity: IntegritySignature
 
@@ -70,10 +73,12 @@ class PredictionResponse(BaseModel):
                 "prediction": {
                     "signal": "hold",
                     "confidence": 0.51,
-                    "engine": "rule_v1",
+                    "model_version": "stacked_ensemble_v1",
+                    "engine": "ensemble_v1",
                     "rationale": [
-                        "checksum_mod=0.47",
-                        "rule_engine_v1_symbol_char_heuristic",
+                        "stacked_ensemble_prediction",
+                        "confidence=0.510",
+                        "base_learners_consensus",
                     ],
                     "tier": "core",
                     "entry_price": 122.45,

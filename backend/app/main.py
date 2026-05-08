@@ -50,8 +50,8 @@ OPENAPI_TAGS = [
     },
     {
         "name": "Prediction",
-        "description": "Authenticated investors: adaptive risk envelope + deterministic "
-        "rule-based price-direction stub (`engine: rule_v1`).",
+        "description": "Authenticated investors: adaptive risk envelope + ensemble "
+        "model prediction output (`engine: ensemble_v1`).",
     },
     {
         "name": "Portfolio",

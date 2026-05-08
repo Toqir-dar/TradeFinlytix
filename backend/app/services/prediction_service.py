@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.ml_engine.ensemble_predict import predict_symbol_ensemble
-from app.ml_engine.rule_predict import predict_symbol_rules
 from app.repositories.prediction_repo import PredictionRepository
 from app.schemas.prediction_schema import PredictionResponse
 from app.security.hmac_signing import sign_response_payload
@@ -44,20 +43,10 @@ class PredictionService:
         Returns:
             PredictionResponse with prediction and risk assessment
         """
-        # Try ensemble prediction if symbol_data provided, otherwise fall back to rules
-        if symbol_data:
-            try:
-                model_out = predict_symbol_ensemble(symbol, symbol_data, history)
-                logger.info(f"Ensemble prediction for {symbol}: {model_out['signal']}")
-            except Exception as e:
-                logger.warning(
-                    f"Ensemble prediction failed for {symbol}: {e}, using fallback",
-                    exc_info=False,
-                )
-                model_out = predict_symbol_rules(symbol)
-        else:
-            # Use rule-based fallback if no symbol data provided
-            model_out = predict_symbol_rules(symbol)
+        # Rule-based predictions are removed. Always use ensemble path.
+        payload = symbol_data or {}
+        model_out = predict_symbol_ensemble(symbol, payload, history)
+        logger.info(f"Ensemble prediction for {symbol}: {model_out['signal']}")
 
         now = datetime.now(timezone.utc)
         dynamic_score = min(

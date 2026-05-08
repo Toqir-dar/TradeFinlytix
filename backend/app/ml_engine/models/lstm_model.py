@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 import logging
-import pickle
 from pathlib import Path
 
+import joblib
 import numpy as np
 
 try:
-    import tensorflow as tf
     from tensorflow import keras
 except ImportError:
     keras = None
@@ -32,15 +31,8 @@ class LSTMModelWrapper:
             return False
 
         try:
-            # Load model
-            self.model = keras.models.load_model(
-                str(MODEL_DIR / "lstm_model.keras")
-            )
-
-            # Load scaler
-            with open(MODEL_DIR / "lstm_scaler.pkl", "rb") as f:
-                self.scaler = pickle.load(f)
-
+            self.model = keras.models.load_model(str(MODEL_DIR / "lstm_model.keras"))
+            self.scaler = joblib.load(MODEL_DIR / "lstm_scaler.pkl")
             self.is_loaded = True
             logger.info("LSTM model and scaler loaded successfully")
             return True
@@ -49,37 +41,37 @@ class LSTMModelWrapper:
             return False
 
     def preprocess_sequences(self, sequences: np.ndarray) -> np.ndarray:
-        """Preprocess sequences using the scaler."""
+        """Scale sequences using the RobustScaler fit on training features.
+
+        sequences shape: (batch, seq_len, n_features)
+        The scaler was fit on (n_samples, n_features), so we flatten the batch
+        and seq dimensions, transform, then restore the original shape.
+        """
         if self.scaler is None:
             raise ValueError("Scaler not loaded")
+        if sequences.ndim != 3:
+            raise ValueError("Expected sequences with shape (batch, seq_len, n_features)")
 
-        # Scale sequences
-        seq_len = sequences.shape[1]
-        scaled_sequences = np.zeros_like(sequences)
-        for i in range(sequences.shape[0]):
-            scaled_sequences[i] = self.scaler.transform(
-                sequences[i].reshape(-1, 1)
-            ).flatten()
+        batch, seq_len, n_features = sequences.shape
+        flat = sequences.reshape(batch * seq_len, n_features)
+        scaled_flat = self.scaler.transform(flat)
+        return scaled_flat.reshape(batch, seq_len, n_features).astype(np.float32)
 
-        # Reshape for LSTM (batch_size, seq_len, n_features)
-        return scaled_sequences.reshape(scaled_sequences.shape[0], seq_len, 1)
-
-    def predict(self, sequences: np.ndarray) -> np.ndarray:
-        """Make predictions on sequences."""
+    def predict_proba(self, sequences: np.ndarray) -> np.ndarray:
+        """Return class probabilities with shape (n_samples, n_classes)."""
         if not self.is_loaded:
             raise ValueError("Model not loaded")
 
-        # Preprocess
         preprocessed = self.preprocess_sequences(sequences)
-
-        # Predict
         predictions = self.model.predict(preprocessed, verbose=0)
-        return predictions.flatten()
-
-    def predict_proba(self, sequences: np.ndarray) -> np.ndarray:
-        """Get probabilities (for binary classification)."""
-        preds = self.predict(sequences)
+        if predictions.ndim == 2:
+            return predictions
+        preds = predictions.flatten()
         return np.column_stack([1 - preds, preds])
+
+    def predict(self, sequences: np.ndarray) -> np.ndarray:
+        """Return predicted class indices."""
+        return np.argmax(self.predict_proba(sequences), axis=1)
 
 
 # Global instance

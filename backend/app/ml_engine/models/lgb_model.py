@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import logging
-import pickle
 from pathlib import Path
 
+import joblib
 import numpy as np
 
 try:
@@ -30,8 +30,7 @@ class LGBModelWrapper:
             return False
 
         try:
-            with open(MODEL_DIR / "lgb_model.pkl", "rb") as f:
-                self.model = pickle.load(f)
+            self.model = joblib.load(MODEL_DIR / "lgb_model.pkl")
             self.is_loaded = True
             logger.info("LightGBM model loaded successfully")
             return True

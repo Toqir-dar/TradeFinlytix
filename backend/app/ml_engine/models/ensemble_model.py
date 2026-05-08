@@ -6,13 +6,11 @@ from __future__ import annotations
 
 import json
 import logging
-import pickle
 from pathlib import Path
 from typing import Any
 
 import joblib
 import numpy as np
-import xgboost as xgb
 
 try:
     import lightgbm as lgb
@@ -20,7 +18,6 @@ except ImportError:
     lgb = None
 
 try:
-    import tensorflow as tf
     from tensorflow import keras
 except ImportError:
     keras = None
@@ -58,8 +55,7 @@ class EnsembleModel:
 
             # Load LightGBM model
             if lgb is not None:
-                with open(MODEL_DIR / "lgb_model.pkl", "rb") as f:
-                    self.lgb_model = pickle.load(f)
+                self.lgb_model = joblib.load(MODEL_DIR / "lgb_model.pkl")
                 logger.info("LightGBM model loaded successfully")
 
             # Load LSTM model
@@ -68,20 +64,15 @@ class EnsembleModel:
                     str(MODEL_DIR / "lstm_model.keras")
                 )
                 logger.info("LSTM model loaded successfully")
-
-                # Load LSTM scaler
-                with open(MODEL_DIR / "lstm_scaler.pkl", "rb") as f:
-                    self.lstm_scaler = pickle.load(f)
+                self.lstm_scaler = joblib.load(MODEL_DIR / "lstm_scaler.pkl")
                 logger.info("LSTM scaler loaded successfully")
 
             # Load meta-learner
-            with open(MODEL_DIR / "meta_learner.pkl", "rb") as f:
-                self.meta_learner = pickle.load(f)
+            self.meta_learner = joblib.load(MODEL_DIR / "meta_learner.pkl")
             logger.info("Meta-learner loaded successfully")
 
             # Load meta-learner scaler
-            with open(MODEL_DIR / "meta_scaler.pkl", "rb") as f:
-                self.meta_scaler = pickle.load(f)
+            self.meta_scaler = joblib.load(MODEL_DIR / "meta_scaler.pkl")
             logger.info("Meta-scaler loaded successfully")
 
             self.is_loaded = True
@@ -98,15 +89,8 @@ class EnsembleModel:
         if self.xgb_model is None:
             raise ValueError("XGBoost model not loaded")
 
-        if hasattr(self.xgb_model, "predict_proba"):
-            proba = self.xgb_model.predict_proba(features)
-            return proba if proba.ndim == 2 else np.column_stack([1 - proba, proba])
-
-        if isinstance(self.xgb_model, xgb.Booster):
-            preds = self.xgb_model.predict(xgb.DMatrix(features))
-            return np.column_stack([1 - preds, preds])
-
-        raise TypeError("Unsupported XGBoost model format")
+        proba = self.xgb_model.predict_proba(features)
+        return proba if proba.ndim == 2 else np.column_stack([1 - proba, proba])
 
     def predict_lgb(self, features: np.ndarray) -> np.ndarray:
         """Get LightGBM base model probabilities with shape (n_samples, 2)."""

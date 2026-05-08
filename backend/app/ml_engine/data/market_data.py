@@ -1,4 +1,4 @@
-"""Real-time market data fetching and 57-feature engineering for the prediction pipeline."""
+"""Real-time market data fetching and 58-feature engineering for the prediction pipeline."""
 from __future__ import annotations
 
 import logging
@@ -127,68 +127,74 @@ def _safe_float(val: Any) -> float:
 def _build_features_df(
     df: pd.DataFrame,
     spy_ret_1d: pd.Series,
-    market_breadth: pd.Series,
-    vix: pd.Series,
+    spy_atr_pct: pd.Series,
 ) -> pd.DataFrame:
-    """Compute all 57 FEATURE_COLS for every row in *df*."""
+    """
+    Compute all 59 FEATURE_COLS for every row in *df*.
+
+    Formulas mirror 01_feature_engineering + 03_preprocessing_fix notebooks exactly:
+    - Price structure uses open as denominator (not close)
+    - RSI, Stochastic, Williams %R on native 0-100 / -100-0 scale (not /100)
+    - ROC multiplied by 100
+    - price_to_sma20/ema26 are plain ratios (no -1)
+    - sma5_cross_sma20 is binary 0/1
+    - Sharpe = returnXd / (volatilityXd + 1e-8)
+    - MACD normalised (÷close) added at end
+    - OBV z-scored (rolling 20-day) added at end
+    - sentiment_of_market = 1 if SPY closed up, else 0
+    """
     close = df["Close"]
     open_ = df["Open"]
     high = df["High"]
     low = df["Low"]
     volume = df["Volume"].clip(lower=1)
+    open_safe = open_.replace(0, np.nan)
 
     feat = pd.DataFrame(index=df.index)
 
-    # --- Price Structure (5) ---
+    # --- Price Structure (5) — denominator is OPEN as in training ---
     body_high = pd.concat([open_, close], axis=1).max(axis=1)
     body_low = pd.concat([open_, close], axis=1).min(axis=1)
-    feat["close_open_ratio"] = close / open_.replace(0, np.nan) - 1
-    feat["high_low_range"] = (high - low) / close.replace(0, np.nan)
-    feat["upper_wick"] = (high - body_high) / close.replace(0, np.nan)
-    feat["lower_wick"] = (body_low - low) / close.replace(0, np.nan)
-    feat["body_size"] = (close - open_).abs() / close.replace(0, np.nan)
+    feat["close_open_ratio"] = (close - open_) / open_safe
+    feat["high_low_range"] = (high - low) / open_safe
+    feat["upper_wick"] = (high - body_high) / open_safe
+    feat["lower_wick"] = (body_low - low) / open_safe
+    feat["body_size"] = (close - open_).abs() / open_safe
 
     # --- Returns (7) ---
     ret_1d = close.pct_change(1)
+    ret_5d = close.pct_change(5)
+    ret_20d = close.pct_change(20)
     feat["return_1d"] = ret_1d
-    feat["return_5d"] = close.pct_change(5)
+    feat["return_5d"] = ret_5d
     feat["return_10d"] = close.pct_change(10)
-    feat["return_20d"] = close.pct_change(20)
+    feat["return_20d"] = ret_20d
     feat["return_60d"] = close.pct_change(60)
     feat["return_120d"] = close.pct_change(120)
     feat["log_return_1d"] = np.log(close / close.shift(1).replace(0, np.nan))
 
-    # --- MA Ratios (3) ---
+    # --- MA Ratios (3) — plain ratio, NO -1 subtraction ---
     sma20 = close.rolling(20).mean()
     ema26 = close.ewm(span=26, adjust=False).mean()
     sma5 = close.rolling(5).mean()
-    feat["price_to_sma20"] = close / sma20.replace(0, np.nan) - 1
-    feat["price_to_ema26"] = close / ema26.replace(0, np.nan) - 1
-    feat["sma5_cross_sma20"] = sma5 / sma20.replace(0, np.nan) - 1
+    feat["price_to_sma20"] = close / sma20.replace(0, np.nan)
+    feat["price_to_ema26"] = close / ema26.replace(0, np.nan)
+    feat["sma5_cross_sma20"] = (sma5 > sma20).astype(float)  # binary 0/1
 
-    # --- Momentum (10) ---
-    feat["rsi_14"] = _calc_rsi(close, 14) / 100
-
-    ema12 = close.ewm(span=12, adjust=False).mean()
-    ema26_m = close.ewm(span=26, adjust=False).mean()
-    macd_line = ema12 - ema26_m
-    macd_sig = macd_line.ewm(span=9, adjust=False).mean()
-    feat["macd_pct"] = macd_line / close.replace(0, np.nan)
-    feat["macd_signal_pct"] = macd_sig / close.replace(0, np.nan)
-    feat["macd_hist_pct"] = (macd_line - macd_sig) / close.replace(0, np.nan)
-
-    feat["roc_10"] = close.pct_change(10)
-
+    # --- Momentum (5) — native scales matching training ---
+    # RSI on 0-100 (NOT divided by 100)
+    feat["rsi_14"] = _calc_rsi(close, 14)
+    # ROC multiplied by 100 to give percentage (matches training * 100)
+    feat["roc_10"] = close.pct_change(10) * 100
+    # Williams %R on -100..0 (NOT divided by 100)
     hh14 = high.rolling(14).max()
     ll14 = low.rolling(14).min()
     denom14 = (hh14 - ll14).replace(0, np.nan)
-    feat["williams_r_14"] = -100 * (hh14 - close) / denom14 / 100
+    feat["williams_r_14"] = -100 * (hh14 - close) / denom14
+    # Stochastic on 0-100 (NOT divided by 100)
     stoch_k = 100 * (close - ll14) / denom14
-    feat["stoch_k"] = stoch_k / 100
-    feat["stoch_d"] = stoch_k.rolling(3).mean() / 100
-
-    feat["direction_streak"] = _calc_direction_streak(close)
-    feat["overnight_gap"] = open_ / close.shift(1).replace(0, np.nan) - 1
+    feat["stoch_k"] = stoch_k
+    feat["stoch_d"] = stoch_k.rolling(3).mean()
 
     # --- Volatility (6) ---
     bb_std = close.rolling(20).std()
@@ -197,24 +203,16 @@ def _build_features_df(
     feat["bb_width"] = (bb_upper - bb_lower) / sma20.replace(0, np.nan)
     feat["bb_pct"] = (close - bb_lower) / (bb_upper - bb_lower).replace(0, np.nan)
     feat["atr_pct"] = _calc_atr(high, low, close, 14) / close.replace(0, np.nan)
-    feat["volatility_5d"] = ret_1d.rolling(5).std()
-    feat["volatility_10d"] = ret_1d.rolling(10).std()
-    feat["volatility_20d"] = ret_1d.rolling(20).std()
+    vol_5d = ret_1d.rolling(5).std()
+    vol_10d = ret_1d.rolling(10).std()
+    vol_20d = ret_1d.rolling(20).std()
+    feat["volatility_5d"] = vol_5d
+    feat["volatility_10d"] = vol_10d
+    feat["volatility_20d"] = vol_20d
 
-    # --- Risk-Adjusted (2) ---
-    feat["sharpe_5d"] = (
-        ret_1d.rolling(5).mean() / ret_1d.rolling(5).std().replace(0, np.nan)
-    )
-    feat["sharpe_20d"] = (
-        ret_1d.rolling(20).mean() / ret_1d.rolling(20).std().replace(0, np.nan)
-    )
-
-    # --- Volume (2) ---
+    # --- Volume (1) — obv_zscore added at end ---
     vol_ma20 = volume.rolling(20).mean()
     feat["volume_ratio"] = volume / vol_ma20.replace(0, np.nan)
-    obv = (np.sign(close.diff()).fillna(0) * volume).cumsum()
-    obv_std = obv.rolling(20).std()
-    feat["obv_zscore"] = (obv - obv.rolling(20).mean()) / obv_std.replace(0, np.nan)
 
     # --- Lag Returns (5) ---
     for lag in range(1, 6):
@@ -227,7 +225,14 @@ def _build_features_df(
     feat["is_month_end"] = df.index.is_month_end.astype(float)
     feat["is_quarter_end"] = df.index.is_quarter_end.astype(float)
 
-    # --- Cross-Sectional Ranks (10) — percentile rank within rolling window ---
+    # --- V2 additions (4) — match pipeline order from training ---
+    feat["overnight_gap"] = (open_ - close.shift(1)) / close.shift(1).replace(0, np.nan)
+    feat["direction_streak"] = _calc_direction_streak(close)
+    # Sharpe = period return / period volatility (matches training: return_Xd / (vol_Xd + 1e-8))
+    feat["sharpe_5d"] = ret_5d / (vol_5d + 1e-8)
+    feat["sharpe_20d"] = ret_20d / (vol_20d + 1e-8)
+
+    # --- Cross-Sectional Ranks (10) — rolling percentile within symbol's own history ---
     _rank_pairs = [
         ("return_1d_xrank", "return_1d"),
         ("return_5d_xrank", "return_5d"),
@@ -245,9 +250,25 @@ def _build_features_df(
 
     # --- Market-Wide (3) ---
     feat["market_return_1d"] = spy_ret_1d.reindex(df.index, method="ffill").fillna(0.0)
-    feat["market_breadth"] = market_breadth.reindex(df.index, method="ffill").fillna(0.0)
-    # VIX is 0–100; normalise to decimal annualised vol proxy
-    feat["market_vol"] = vix.reindex(df.index, method="ffill").fillna(20.0) / 100.0
+    feat["market_breadth"] = (spy_ret_1d > 0).astype(float).reindex(
+        df.index, method="ffill"
+    ).fillna(0.0)
+    feat["market_vol"] = spy_atr_pct.reindex(df.index, method="ffill").fillna(0.015)
+
+    # --- MACD normalised (3) — added by 03_preprocessing_fix, at end ---
+    ema12 = close.ewm(span=12, adjust=False).mean()
+    ema26_m = close.ewm(span=26, adjust=False).mean()
+    macd_line = ema12 - ema26_m
+    macd_sig = macd_line.ewm(span=9, adjust=False).mean()
+    close_safe = close.replace(0, np.nan)
+    feat["macd_pct"] = macd_line / close_safe
+    feat["macd_signal_pct"] = macd_sig / close_safe
+    feat["macd_hist_pct"] = (macd_line - macd_sig) / close_safe
+
+    # --- OBV z-scored (1) — added by 03_preprocessing_fix, at end ---
+    obv = (np.sign(close.diff()).fillna(0) * volume).cumsum()
+    obv_std = obv.rolling(20).std()
+    feat["obv_zscore"] = (obv - obv.rolling(20).mean()) / obv_std.replace(0, np.nan)
 
     return feat.replace([np.inf, -np.inf], 0.0).fillna(0.0)
 
@@ -280,11 +301,11 @@ def build_live_feature_payload(
     history_rows: int = 30,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """
-    Fetch real-time OHLCV data and compute all 57 technical features.
+    Fetch real-time OHLCV data and compute all 59 technical features.
 
     Results are cached for 5 minutes per ticker so repeated prediction
-    requests do not re-hit Yahoo Finance.  SPY and VIX are fetched
-    separately and aligned to the symbol's trading calendar.
+    requests do not re-hit Yahoo Finance.  SPY is fetched for market-wide
+    features and aligned to the symbol's trading calendar.
 
     Args:
         symbol: Ticker symbol, e.g. ``"AAPL"``.
@@ -292,7 +313,7 @@ def build_live_feature_payload(
             (default 30 covers any reasonable ``seq_len``).
 
     Returns:
-        ``(symbol_data, history)`` — both dicts contain all 57
+        ``(symbol_data, history)`` — both dicts contain all 59
         ``FEATURE_COLS`` keys plus ``price``, ``open``, ``high``,
         ``low``, ``volume``, ``change_pct``, ``date``.
 
@@ -307,26 +328,20 @@ def build_live_feature_payload(
     if len(df) < 30:
         raise ValueError(f"Insufficient history for {symbol}: {len(df)} rows")
 
-    # --- SPY: market return + breadth proxy ---
+    # --- SPY: market return, breadth, vol proxy ---
     try:
         spy_df = _fetch_ohlcv("SPY")
         spy_ret_1d = spy_df["Close"].pct_change(1)
-        # fraction of last-5 SPY sessions that closed positive → [-1, 1]
-        market_breadth = np.sign(spy_ret_1d).rolling(5, min_periods=1).mean()
+        spy_atr_pct = (
+            _calc_atr(spy_df["High"], spy_df["Low"], spy_df["Close"], 14)
+            / spy_df["Close"].replace(0, np.nan)
+        )
     except Exception as exc:
         logger.warning("SPY fetch failed (%s) — zeroing market features", exc)
         spy_ret_1d = pd.Series(0.0, index=df.index)
-        market_breadth = pd.Series(0.0, index=df.index)
+        spy_atr_pct = pd.Series(0.015, index=df.index)
 
-    # --- VIX: market volatility proxy ---
-    try:
-        vix_df = _fetch_ohlcv("^VIX")
-        vix_series = vix_df["Close"] if not vix_df.empty else pd.Series(dtype=float)
-    except Exception as exc:
-        logger.warning("VIX fetch failed (%s) — using default 20.0", exc)
-        vix_series = pd.Series(dtype=float)
-
-    feat_df = _build_features_df(df, spy_ret_1d, market_breadth, vix_series)
+    feat_df = _build_features_df(df, spy_ret_1d, spy_atr_pct)
 
     latest_idx = df.index[-1]
     symbol_data = _row_to_dict(feat_df.loc[latest_idx], df.loc[latest_idx])

@@ -12,7 +12,6 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.roles import UserRole
 from app.core.security import hash_password
-from app.models.user import User
 from app.repositories.user_repo import UserRepository
 from app.utils.helpers import normalize_email, validate_password_strength
 
@@ -74,13 +73,11 @@ async def bootstrap_privileged_users() -> None:
             continue
 
         await repo.create(
-            User(
-                email=email_norm,
-                password_hash=hash_password(password),
-                full_name=f"Bootstrap {label.upper()}",
-                role=role,
-                is_verified=True,
-            )
+            email=email_norm,
+            password_hash=hash_password(password),
+            full_name=f"Bootstrap {label.upper()}",
+            role=role,
+            is_verified=True,
         )
         logger.warning(
             "bootstrap_account_created",

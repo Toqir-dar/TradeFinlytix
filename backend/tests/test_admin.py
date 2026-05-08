@@ -228,14 +228,13 @@ def test_investor_cannot_hit_ciso_routes(harness):
 
 def test_ciso_lists_audit_events(harness):
     c, db = harness
-    from app.models.audit import AuditEvent
     from app.repositories.audit_repo import AuditRepository
 
     repo = AuditRepository(db)
 
     async def _seed_audits():
-        await repo.record(AuditEvent(event_type="b_list_a", payload={"k": "a"}))
-        await repo.record(AuditEvent(event_type="b_list_b", payload={"k": "b"}))
+        await repo.record(event_type="b_list_a", payload={"k": "a"})
+        await repo.record(event_type="b_list_b", payload={"k": "b"})
 
     asyncio.run(_seed_audits())
 
@@ -355,11 +354,10 @@ def test_ciso_can_verify_audit_chain(harness):
     from app.repositories.audit_repo import AuditRepository
 
     repo = AuditRepository(db)
-    from app.models.audit import AuditEvent
 
     async def _two():
-        await repo.record(AuditEvent(event_type="unit_a", payload={"n": 1}))
-        await repo.record(AuditEvent(event_type="unit_b", payload={"n": 2}))
+        await repo.record(event_type="unit_a", payload={"n": 1})
+        await repo.record(event_type="unit_b", payload={"n": 2})
 
     import asyncio
 

@@ -14,7 +14,6 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.config import settings
 from app.core.security import compute_audit_hash
 from app.repositories.audit_chain_state import audit_chain_append_allowed
-from app.models.audit import AuditEvent
 
 logger = logging.getLogger(__name__)
 
@@ -36,17 +35,33 @@ class AuditRepository:
             return latest["chain_hash"]
         return GENESIS_HASH
 
-    async def record(self, event: AuditEvent) -> None:
+    async def record(
+        self,
+        *,
+        event_type: str,
+        user_id: str | None = None,
+        ip: str | None = None,
+        path: str | None = None,
+        payload: dict[str, Any] | None = None,
+        created_at: datetime | None = None,
+    ) -> None:
         if settings.audit_reject_new_events_when_chain_untrusted and (
             not audit_chain_append_allowed()
         ):
             logger.critical(
                 "audit_append_skipped_chain_untrusted",
-                extra={"event_type": event.event_type},
+                extra={"event_type": event_type},
             )
             return
         try:
-            doc = event.to_doc()
+            doc = {
+                "event_type": event_type,
+                "user_id": user_id,
+                "ip": ip,
+                "path": path,
+                "payload": payload or {},
+                "created_at": created_at or datetime.now(timezone.utc),
+            }
             prev_hash = await self._get_chain_head()
             doc["prev_hash"] = prev_hash
             doc["chain_hash"] = compute_audit_hash(doc, prev_hash)
@@ -54,7 +69,7 @@ class AuditRepository:
         except Exception as e:
             logger.warning(
                 "audit_record_failed",
-                extra={"event_type": event.event_type, "error": str(e)},
+                extra={"event_type": event_type, "error": str(e)},
             )
 
     async def list_events(
@@ -154,7 +169,7 @@ async def record_event(
     payload: dict[str, Any] | None = None,
 ) -> None:
     """Convenience helper: build and record an event in one call."""
-    event = AuditEvent(
+    await AuditRepository(db).record(
         event_type=event_type,
         user_id=user_id,
         ip=ip,
@@ -162,4 +177,3 @@ async def record_event(
         payload=payload or {},
         created_at=datetime.now(timezone.utc),
     )
-    await AuditRepository(db).record(event)

@@ -19,7 +19,6 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.user import User
 from app.repositories.audit_repo import record_event
 from app.repositories.user_repo import UserRepository
 from app.schemas.user_schema import TokenResponse
@@ -42,13 +41,12 @@ class AuthService:
                 detail="Email already registered.",
             )
 
-        user = User(
+        doc = await self.repo.create(
             email=email,
             password_hash=hash_password(password),
             full_name=full_name,
             role=UserRole.INVESTOR,
         )
-        doc = await self.repo.create(user)
         tokens = await self._issue_tokens(doc)
         logger.info("user_registered", extra={"user_id": str(doc["_id"])})
         await record_event(

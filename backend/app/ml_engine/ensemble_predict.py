@@ -9,8 +9,8 @@ from typing import Any
 
 import numpy as np
 
-from app.ml_engine.features.feature_engineering import prepare_prediction_input
-from app.ml_engine.models import get_ensemble
+from .features.feature_engineering import prepare_prediction_input
+from .models import get_ensemble
 
 logger = logging.getLogger(__name__)
 

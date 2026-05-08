@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import logging
-import pickle
 from pathlib import Path
 
+import joblib
 import numpy as np
-import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 MODEL_DIR = Path(__file__).parent
@@ -22,8 +21,7 @@ class XGBModelWrapper:
     def load(self) -> bool:
         """Load the XGBoost model from disk."""
         try:
-            self.model = xgb.Booster()
-            self.model.load_model(str(MODEL_DIR / "xgb_model.pkl"))
+            self.model = joblib.load(MODEL_DIR / "xgb_model.pkl")
             self.is_loaded = True
             logger.info("XGBoost model loaded successfully")
             return True
@@ -35,14 +33,14 @@ class XGBModelWrapper:
         """Make predictions on features."""
         if not self.is_loaded:
             raise ValueError("Model not loaded")
-
-        dmatrix = xgb.DMatrix(features)
-        return self.model.predict(dmatrix)
+        return self.model.predict(features)
 
     def predict_proba(self, features: np.ndarray) -> np.ndarray:
         """Get probabilities (for binary classification)."""
-        preds = self.predict(features)
-        return np.column_stack([1 - preds, preds])
+        if not self.is_loaded:
+            raise ValueError("Model not loaded")
+        proba = self.model.predict_proba(features)
+        return proba if proba.ndim == 2 else np.column_stack([1 - proba, proba])
 
 
 # Global instance

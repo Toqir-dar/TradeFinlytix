@@ -1,5 +1,5 @@
 """
-Prediction route: adaptive risk → rule engine placeholder (until saved models wired).
+Prediction route: adaptive risk + ensemble model output.
 
 Requires `Authorization: Bearer` (any active account; deactivated users receive 403).
 
@@ -14,9 +14,11 @@ import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Path
+from starlette.concurrency import run_in_threadpool
 
 from app.api.dependencies import CurrentUser
 from app.core.database import get_db
+from app.ml_engine.data.market_data import build_live_feature_payload
 from app.schemas.prediction_schema import (
     PredictionIntegrityVerifyRequest,
     PredictionIntegrityVerifyResponse,
@@ -33,7 +35,7 @@ router = APIRouter(prefix="/predict", tags=["Prediction"])
 @router.get(
     "/{symbol}",
     response_model=PredictionResponse,
-    summary="Rule-based stance + adaptive risk context",
+    summary="Ensemble stance + adaptive risk context",
     include_in_schema=True,
 )
 async def predict_symbol(
@@ -82,12 +84,31 @@ async def predict_symbol(
         )
 
     service = PredictionService(db)
+    try:
+        symbol_data, history = await run_in_threadpool(
+            build_live_feature_payload,
+            symbol,
+        )
+    except Exception as exc:
+        logger.warning(
+            "predict_market_data_failed symbol=%s err=%s",
+            symbol,
+            exc,
+            exc_info=False,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Market data unavailable for requested symbol.",
+        )
+
     return await service.predict_symbol(
         symbol=symbol,
         user=user,
         assessment=assessment,
         recent_request_count_10m=recent_count,
         historical_high_risk_events=high_count,
+        symbol_data=symbol_data,
+        history=history,
     )
 
 

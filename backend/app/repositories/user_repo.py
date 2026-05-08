@@ -12,8 +12,8 @@ from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from app.core.config import settings
+from app.core.roles import UserRole
 from app.core.security import decrypt_field, encrypt_field, stable_identifier_hash
-from app.models.user import User
 from app.repositories.audit_repo import record_event
 from app.utils.helpers import normalize_email
 
@@ -59,9 +59,56 @@ class UserRepository:
         doc.pop("email", None)
         return doc
 
-    async def create(self, user: User) -> dict[str, Any]:
+    @staticmethod
+    def _build_user_doc(
+        *,
+        email: str,
+        password_hash: str,
+        full_name: str,
+        role: UserRole = UserRole.INVESTOR,
+        is_active: bool = True,
+        is_verified: bool = False,
+    ) -> dict[str, Any]:
+        now = datetime.now(timezone.utc)
+        email_norm = normalize_email(email)
+        return {
+            "email_hash": stable_identifier_hash(email_norm),
+            "email_encrypted": encrypt_field(email_norm),
+            "password_hash": password_hash,
+            "full_name": full_name.strip(),
+            "role": role.value,
+            "is_active": is_active,
+            "is_verified": is_verified,
+            "jwt_version": 1,
+            "failed_login_attempts": 0,
+            "locked_until": None,
+            "last_login_at": None,
+            "last_login_ip": None,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    async def create(
+        self,
+        *,
+        email: str,
+        password_hash: str,
+        full_name: str,
+        role: UserRole = UserRole.INVESTOR,
+        is_active: bool = True,
+        is_verified: bool = False,
+    ) -> dict[str, Any]:
         try:
-            result = await self.users.insert_one(user.to_doc())
+            result = await self.users.insert_one(
+                self._build_user_doc(
+                    email=email,
+                    password_hash=password_hash,
+                    full_name=full_name,
+                    role=role,
+                    is_active=is_active,
+                    is_verified=is_verified,
+                )
+            )
         except DuplicateKeyError as e:
             raise ValueError("Email already registered.") from e
         doc = await self.users.find_one({"_id": result.inserted_id})

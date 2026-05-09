@@ -12,7 +12,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.dependencies import CISOOnly
+from app.api.dependencies import require_permission
 from app.core.database import get_db
 from app.repositories.audit_chain_state import set_audit_chain_trusted
 from app.schemas.admin_schema import ChainVerifyResponse
@@ -41,7 +41,7 @@ def _svc(db) -> CISOService:
 
 @router.get("/audit", response_model=PaginatedJsonItems)
 async def list_audit(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:read")),
     db=Depends(get_db),
     event_type: str | None = None,
     user_id: str | None = Query(
@@ -62,7 +62,7 @@ async def list_audit(
 
 @router.get("/audit/logs", response_model=PaginatedJsonItems)
 async def list_audit_logs(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:read")),
     db=Depends(get_db),
     event_type: str | None = None,
     user_id: str | None = None,
@@ -86,7 +86,7 @@ async def list_audit_logs(
     summary="Verify tamper-evident audit hash chain",
 )
 async def verify_audit_chain(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:write")),
     db=Depends(get_db),
     limit: int = Query(
         2000,
@@ -121,7 +121,7 @@ async def verify_audit_chain(
 
 @router.get("/anomalies", response_model=PaginatedJsonItems)
 async def list_anomalies_stored(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("anomaly:read")),
     db=Depends(get_db),
     skip: int = Query(0, ge=0, le=5000),
     limit: int = Query(50, ge=1, le=500),
@@ -131,7 +131,7 @@ async def list_anomalies_stored(
 
 @router.get("/anomalies/stats", response_model=AnomalyStatsPage)
 async def anomaly_stats_view(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("anomaly:read")),
     db=Depends(get_db),
     days: int = Query(7, ge=1, le=90),
     skip: int = Query(0, ge=0, le=366),
@@ -142,7 +142,7 @@ async def anomaly_stats_view(
 
 @router.get("/risk/snapshots", response_model=PaginatedJsonItems)
 async def risk_snapshot_history_view(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:read")),
     db=Depends(get_db),
     subject: str | None = Query(
         None,
@@ -158,7 +158,7 @@ async def risk_snapshot_history_view(
 
 @router.get("/risk/trend", response_model=RiskTrendPage)
 async def risk_trend_view(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:read")),
     db=Depends(get_db),
     user_id: str | None = Query(
         None, description="Mongo user ObjectId hex to scope trend to one user."
@@ -182,7 +182,7 @@ async def risk_trend_view(
 
 @router.get("/risk/top", response_model=TopRiskyPage)
 async def top_risk_subjects_view(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:read")),
     db=Depends(get_db),
     skip: int = Query(0, ge=0, le=500),
     limit: int = Query(10, ge=1, le=100),
@@ -192,7 +192,7 @@ async def top_risk_subjects_view(
 
 @router.get("/risk/recent", response_model=PaginatedJsonItems)
 async def recent_risk_events_view(
-    _: CISOOnly,
+    _: dict = Depends(require_permission("audit:read")),
     db=Depends(get_db),
     skip: int = Query(0, ge=0, le=5000),
     limit: int = Query(50, ge=1, le=500),

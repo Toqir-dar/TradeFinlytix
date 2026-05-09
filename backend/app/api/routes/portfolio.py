@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query, status
 from starlette.responses import Response
 
-from app.api.dependencies import CurrentUser
+from app.api.dependencies import require_permission
 from app.core.database import get_db
 from app.schemas.portfolio_schema import (
     PortfolioResponse,
@@ -26,14 +26,17 @@ def _svc(db) -> PortfolioService:
 
 
 @router.get("", response_model=PortfolioResponse)
-async def get_portfolio(current: CurrentUser, db=Depends(get_db)) -> PortfolioResponse:
+async def get_portfolio(
+    current: dict = Depends(require_permission("portfolio:read")),
+    db=Depends(get_db),
+) -> PortfolioResponse:
     return await _svc(db).get_portfolio(user_id=str(current["_id"]))
 
 
 @router.put("", response_model=PortfolioResponse)
 async def upsert_portfolio(
     payload: PortfolioUpsertRequest,
-    current: CurrentUser,
+    current: dict = Depends(require_permission("portfolio:write")),
     db=Depends(get_db),
 ) -> PortfolioResponse:
     return await _svc(db).upsert_portfolio(user_id=str(current["_id"]), payload=payload)
@@ -42,7 +45,7 @@ async def upsert_portfolio(
 @router.post("/trades", status_code=status.HTTP_204_NO_CONTENT)
 async def add_trade(
     payload: TradeCreateRequest,
-    current: CurrentUser,
+    current: dict = Depends(require_permission("portfolio:write")),
     db=Depends(get_db),
 ) -> Response:
     await _svc(db).add_trade(user_id=str(current["_id"]), payload=payload)
@@ -51,7 +54,7 @@ async def add_trade(
 
 @router.get("/trades", response_model=TradeListResponse)
 async def list_trades(
-    current: CurrentUser,
+    current: dict = Depends(require_permission("portfolio:read")),
     db=Depends(get_db),
     limit: int = Query(20, ge=1, le=200),
 ) -> TradeListResponse:

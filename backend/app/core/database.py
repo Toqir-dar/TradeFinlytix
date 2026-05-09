@@ -103,8 +103,14 @@ async def _create_indexes() -> None:
         name="transactions_user_timestamp",
     )
     await db["alerts"].create_index(
-        [("user_id", ASCENDING), ("triggered", ASCENDING)],
-        name="alerts_user_triggered",
+        [("user_id", ASCENDING), ("created_at", DESCENDING)],
+        name="alerts_user_created_at",
+    )
+    await db["alerts"].create_index("is_read", name="alerts_is_read")
+    await db["alerts"].create_index(
+        "created_at",
+        name="alerts_created_at_ttl_30d",
+        expireAfterSeconds=60 * 60 * 24 * 30,
     )
 
     await db["audit_logs"].create_index(

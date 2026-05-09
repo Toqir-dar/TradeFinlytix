@@ -1,7 +1,8 @@
 """
 Reusable FastAPI dependency functions.
   - get_current_user -> validates JWT + checks jwt_version in DB
-  - require_role     -> RBAC guard for specific roles
+  - require_permission -> permission-based access control (preferred)
+  - require_role     -> role-based access control (deprecated, use require_permission)
 """
 import logging
 from typing import Annotated
@@ -12,7 +13,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 
 from app.core.database import get_db
-from app.core.roles import UserRole
+from app.core.roles import UserRole, has_permission
 from app.core.security import decode_token, decrypt_field
 from app.utils.helpers import normalize_email
 
@@ -94,8 +95,26 @@ def require_role(*allowed_roles: UserRole):
     return _check
 
 
+def require_permission(permission: str):
+    async def _check(current_user: dict = Depends(get_current_user)) -> dict:
+        role_value = current_user.get("role")
+        try:
+            role = UserRole(role_value)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied.",
+            )
+        if not has_permission(role, permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permission.",
+            )
+        return current_user
+
+    return _check
+
+
 CurrentUser = Annotated[dict, Depends(get_current_user)]
-AdminOnly = Annotated[dict, Depends(require_role(UserRole.ADMIN))]
-CISOOnly = Annotated[dict, Depends(require_role(UserRole.CISO))]
-AdminOrCISO = Annotated[dict, Depends(require_role(UserRole.ADMIN, UserRole.CISO))]
+PermissionRequired = Annotated[dict, Depends(require_permission)]
 

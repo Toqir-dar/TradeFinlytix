@@ -16,9 +16,11 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.repositories.audit_repo import record_event
 from app.repositories.risk_history_repo import persist_risk_from_request_best_effort
+from app.schemas.alert_schema import AlertCreate, AlertSeverity, AlertType
 from app.security.anomaly_detection import detect_anomaly
 from app.security.rate_limiter import _client
 from app.security.zscore_detection import request_rate_zscore
+from app.services.alert_service import AlertService
 from app.utils.helpers import get_client_ip
 
 logger = logging.getLogger(__name__)
@@ -189,6 +191,23 @@ async def apply_security_layers(
     if assessment.level >= RiskLevel.HIGH:
         request.state.high_risk = True
         logger.warning("security_layer_high", extra=log_extra)
+        # Create alert for high/critical risk
+        if user:
+            try:
+                db = await get_db()
+                alert_service = AlertService(db)
+                severity = AlertSeverity.HIGH if assessment.level == RiskLevel.HIGH else AlertSeverity.CRITICAL
+                await alert_service.create_alert(
+                    AlertCreate(
+                        type=AlertType.SECURITY,
+                        severity=severity,
+                        message=f"High security risk detected: {assessment.level.name} level with score {assessment.score:.1f}.",
+                        user_id=str(user["_id"]),
+                        metadata={"risk_score": assessment.score, "factors": assessment.factors},
+                    )
+                )
+            except Exception as e:
+                logger.error("alert_creation_failed: %s", e)
 
 
 async def adaptive_security(request: Request) -> RiskAssessment:

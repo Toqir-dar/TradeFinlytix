@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routes import admin as admin_routes
+from app.api.routes import alerts as alerts_routes
 from app.api.routes import auth as auth_routes
 from app.api.routes import ciso as ciso_routes
 from app.api.routes import portfolio as portfolio_routes
@@ -57,6 +58,10 @@ OPENAPI_TAGS = [
         "name": "Portfolio",
         "description": "Authenticated portfolio snapshots and trades with encrypted-at-rest "
         "storage in `portfolio` / `transactions` collections.",
+    },
+    {
+        "name": "Alerts",
+        "description": "Authenticated user alerts: get alerts, mark as read, unread count.",
     },
     {
         "name": "Admin",
@@ -182,6 +187,7 @@ app.add_middleware(
 app.include_router(auth_routes.router, prefix="/api/v1")
 app.include_router(prediction_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")
+app.include_router(alerts_routes.router, prefix="/api/v1")
 app.include_router(admin_routes.router, prefix="/api/v1")
 app.include_router(ciso_routes.router, prefix="/api/v1")
 

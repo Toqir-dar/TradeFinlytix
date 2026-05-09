@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query, Request
 
-from app.api.dependencies import AdminOnly
+from app.api.dependencies import require_permission
 from app.core.database import get_db
 from app.schemas.admin_schema import PaginatedUsers, PasswordResetResponse, UserSummary
 from app.services.admin_service import AdminService
@@ -30,7 +30,7 @@ def _svc(db) -> AdminService:
 
 @router.get("/users", response_model=PaginatedUsers)
 async def list_users(
-    _: AdminOnly,
+    _: dict = Depends(require_permission("admin:read")),
     db=Depends(get_db),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
@@ -45,13 +45,16 @@ async def list_users(
 
 
 @router.get("/users/{user_id}", response_model=UserSummary)
-async def get_user(user_id: str, _: AdminOnly, db=Depends(get_db)):
+async def get_user(user_id: str, _: dict = Depends(require_permission("admin:read")), db=Depends(get_db)):
     return await _svc(db).get_user(user_id)
 
 
 @router.post("/users/{user_id}/deactivate", response_model=UserSummary)
 async def deactivate_user(
-    user_id: str, request: Request, admin: AdminOnly, db=Depends(get_db)
+    user_id: str,
+    request: Request,
+    admin: dict = Depends(require_permission("admin:write")),
+    db=Depends(get_db),
 ):
     ip = get_client_ip(request)
     return await _svc(db).deactivate_user(
@@ -64,7 +67,10 @@ async def deactivate_user(
 
 @router.post("/users/{user_id}/activate", response_model=UserSummary)
 async def activate_user(
-    user_id: str, request: Request, admin: AdminOnly, db=Depends(get_db)
+    user_id: str,
+    request: Request,
+    admin: dict = Depends(require_permission("admin:write")),
+    db=Depends(get_db),
 ):
     ip = get_client_ip(request)
     return await _svc(db).activate_user(
@@ -77,7 +83,10 @@ async def activate_user(
 
 @router.post("/users/{user_id}/reset-password", response_model=PasswordResetResponse)
 async def reset_user_password(
-    user_id: str, request: Request, admin: AdminOnly, db=Depends(get_db)
+    user_id: str,
+    request: Request,
+    admin: dict = Depends(require_permission("admin:write")),
+    db=Depends(get_db),
 ):
     ip = get_client_ip(request)
     return await _svc(db).reset_password(
@@ -91,7 +100,7 @@ async def reset_user_password(
 @router.get("/users/{user_id}/activity")
 async def user_activity(
     user_id: str,
-    _: AdminOnly,
+    _: dict = Depends(require_permission("admin:read")),
     db=Depends(get_db),
     limit: int = Query(50, ge=1, le=500),
 ):

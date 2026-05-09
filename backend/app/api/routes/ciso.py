@@ -18,12 +18,17 @@ from app.repositories.audit_chain_state import set_audit_chain_trusted
 from app.schemas.admin_schema import ChainVerifyResponse
 from app.schemas.ciso_schema import (
     AnomalyStatsPage,
+    AuditSearchRequest,
+    AuditSearchResponse,
     PaginatedJsonItems,
     RiskTrendPage,
     TopRiskyPage,
 )
+
 from app.security.security_alerts import emit_security_alert
 from app.services.ciso_service import CISOService
+
+from app.rag.rag_service import answer_query
 
 router = APIRouter(
     prefix="/ciso",
@@ -198,3 +203,12 @@ async def recent_risk_events_view(
     limit: int = Query(50, ge=1, le=500),
 ):
     return await _svc(db).recent_risk_events(skip=skip, limit=limit)
+
+@router.post("/audit/search", response_model=AuditSearchResponse)
+async def semantic_audit_search(
+    payload: AuditSearchRequest,
+    _: dict = Depends(require_permission("audit:read")),
+    db=Depends(get_db),
+):
+    return await answer_query(db, payload.question)
+

@@ -11,6 +11,10 @@ from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+
+from app.rag.retriever import store_embedding
+
+
 from app.core.config import settings
 from app.core.security import compute_audit_hash
 from app.repositories.audit_chain_state import audit_chain_append_allowed
@@ -66,6 +70,11 @@ class AuditRepository:
             doc["prev_hash"] = prev_hash
             doc["chain_hash"] = compute_audit_hash(doc, prev_hash)
             await self.collection.insert_one(doc)
+            inserted_id = doc.get("_id")
+            if inserted_id:
+                    import asyncio
+                    asyncio.ensure_future(store_embedding(self.db, inserted_id, doc))
+
         except Exception as e:
             logger.warning(
                 "audit_record_failed",

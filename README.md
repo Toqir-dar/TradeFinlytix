@@ -34,7 +34,7 @@
 
 ## Overview
 
-TradeFinlytix is a full-stack, production-grade AI trading platform built specifically for the **Pakistan Stock Exchange (PSX)**. It generates actionable trading signals — **BUY / HOLD / TRIM / SELL** — by combining a calibrated stacking ensemble with real-time sentiment analysis, market event detection, adaptive security scoring, and SHAP-based explainability.
+TradeFinlytix is a production-grade AI trading platform built specifically for the **Pakistan Stock Exchange (PSX)**. It generates actionable trading signals — **BUY / HOLD / TRIM / SELL** — by combining a calibrated stacking ensemble with live market data, adaptive security scoring, RAG-powered audit log search, and an immutable audit chain.
 
 ---
 
@@ -55,77 +55,70 @@ Existing PSX analytics tools suffer from critical gaps:
 ## Solution Highlights
 
 - **AI trading signals** with calibrated confidence scores
-- **SHAP explainability** — every prediction is interpretable
-- **Event-aware intelligence** — uncertainty adjusts when market anomalies are detected
 - **Adaptive security engine** — per-request risk scoring that dynamically tightens rate limits
 - **Immutable audit chain** — tamper-evident, hash-linked prediction and event log
+- **RAG-powered audit search** — natural language queries over audit logs via semantic retrieval + LLM (Groq / LLaMA)
 - **RBAC** — investor, admin, and CISO roles with distinct permission scopes
-- **PSX-specific modeling** — trained on `.KA` tickers with local news sources
+- **59-feature technical pipeline** — RSI, MACD, Bollinger Bands, ATR, OBV, cross-sectional ranks, and more computed live from yfinance
 
 ---
 
 ## AI Pipeline
 
 ```
-Raw Data → Sentiment → Event Detection → Feature Engineering
-    └──────────────────────────────────────────────────────┐
-                                                    Base Models
-                                              ┌─────────────────┐
-                                              │ XGBoost (tabular)│
-                                              │ LightGBM (tabular│
-                                              │ LSTM (time-seq)  │
-                                              └────────┬────────┘
-                                                Meta-Learner (LR)
-                                                       │
-                                            Final Signal + SHAP + ATR
+yfinance OHLCV → 59 Technical Features → Feature Engineering
+                                                    │
+                                              Base Models
+                                        ┌─────────────────┐
+                                        │ XGBoost (tabular)│
+                                        │ LightGBM (tabular│
+                                        │ LSTM (time-seq)  │
+                                        └────────┬────────┘
+                                          Meta-Learner (LR)
+                                                 │
+                                      Final Signal + ATR levels
 ```
 
 ### 1 · Data Ingestion
 
-| Source | Provider |
-|--------|----------|
-| Price & OHLCV | `yfinance` — `.KA` tickers |
-| Financial News | Google News, Dawn, Tribune |
-| Social Sentiment | Reddit — `r/PakistanStocks`, `r/investing` |
+| Source | Provider | Status |
+|--------|----------|--------|
+| Price & OHLCV | `yfinance` — any ticker | ✅ Implemented |
+| SPY market-wide features | `yfinance` | ✅ Implemented |
+| Financial News / Social Sentiment | Google News, Reddit | ❌ Not implemented |
 
 ---
 
-### 2 · Sentiment Processing (FinBERT)
+### 2 · Sentiment Processing
 
-- **Model:** FinBERT via `sentence-transformers` (finance-domain BERT)
-- **Outputs per `(date, symbol)`:**
-  - `finbert_score ∈ [-1, 1]` — directional sentiment
-  - `finbert_conf ∈ [0, 1]` — model confidence
-- Aggregated and aligned to trading days before feature merge
+> **Not implemented.** `sentiment.py` is a placeholder. FinBERT sentiment features are not included in the live prediction pipeline. The 59-feature set is purely technical.
 
 ---
 
-### 3 · Event Detection *(Key Innovation)*
+### 3 · Event Detection
 
-Detects anomalous market conditions using three independent signals:
-
-| Signal | Method |
-|--------|--------|
-| Volume spike | Z-score vs. rolling window |
-| Price shock | ATR-normalized daily move |
-| Sentiment surge | Sudden shift in `finbert_score` |
-
-**Outputs:**
-- `event_flag ∈ {0, 1}` — binary anomaly indicator
-- `event_score ∈ [0, 1]` — magnitude of the anomaly
-
-> **Data leakage prevention:** All event features are shifted T → T+1 before training.
+> **Not implemented.** `event_detection.py` is a placeholder. Event flags are not computed at inference time.
 
 ---
 
 ### 4 · Feature Engineering
 
+59 features computed live from OHLCV data:
+
 | Category | Features |
 |----------|----------|
-| Technical | RSI, MACD, EMA (9/21/50), SMA (50/200), ATR |
-| Momentum | Lag-1/3/5 returns, price momentum |
-| Sentiment | `finbert_score`, `finbert_conf`, sentiment-strength agreement |
-| Event | `event_flag`, `event_score`, rolling event frequency |
+| Price Structure | close/open ratio, high-low range, upper/lower wick, body size |
+| Returns | 1d/5d/10d/20d/60d/120d returns, log return |
+| MA Ratios | price-to-SMA20, price-to-EMA26, SMA5 cross SMA20 |
+| Momentum | RSI(14), ROC(10), Williams %R, Stochastic K/D |
+| Volatility | Bollinger width/pct, ATR%, volatility 5d/10d/20d |
+| Volume | volume ratio, OBV z-score |
+| Lag Returns | lag 1d–5d |
+| Time | day of week, month, quarter, month-end, quarter-end |
+| V2 | overnight gap, direction streak, Sharpe 5d/20d |
+| Cross-Sectional Ranks | 10 rolling percentile rank features |
+| Market-Wide | SPY return, breadth, volatility |
+| MACD | MACD%, signal%, histogram% (normalised) |
 
 ---
 
@@ -133,11 +126,11 @@ Detects anomalous market conditions using three independent signals:
 
 Each model independently outputs an up/down probability pair:
 
-| Model | Framework | Specialty |
-|-------|-----------|-----------|
-| **XGBoost** | `xgboost` | Tabular feature importance |
-| **LightGBM** | `lightgbm` | Fast gradient-boosted trees |
-| **LSTM** | TensorFlow / Keras | Sequential price dependencies |
+| Model | Framework | Status |
+|-------|-----------|--------|
+| **XGBoost** | `xgboost` | ✅ Trained, loaded at startup |
+| **LightGBM** | `lightgbm` | ✅ Trained, loaded at startup |
+| **LSTM** | TensorFlow / Keras | ✅ Trained, loaded at startup |
 
 ---
 
@@ -159,21 +152,13 @@ confidence ≥ 0.45  →  TRIM
 confidence <  0.45 →  SELL
 ```
 
-Each signal carries an `entry_price`, `target_price`, `stop_loss`, `expected_gain_pct`, and `time_horizon_days`.
+Each signal carries `entry_price`, `target_price`, `stop_loss`, `expected_gain_pct`, and `time_horizon_days`.
 
 ---
 
 ### 8 · Explainability (SHAP)
 
-Every prediction includes a SHAP breakdown, computed per model type:
-
-```
-Feature Contributions (example — OGDC):
-  LSTM Signal        +31%  ████████████████████████████████
-  FinBERT Sentiment  +28%  ████████████████████████████
-  Event Score        +15%  ███████████████
-  RSI (Overbought)   -10%  ██████████  ←  negative contribution
-```
+> **Not implemented.** `shap_explainer.py` is a placeholder. SHAP values are not computed in the current prediction response.
 
 ---
 
@@ -182,33 +167,61 @@ Feature Contributions (example — OGDC):
 | Parameter | Calculation |
 |-----------|-------------|
 | **Entry** | Current price at signal time |
-| **Target** | Entry + `k₁ × ATR(14)` |
-| **Stop-Loss** | Entry − `k₂ × ATR(14)` |
+| **Target** | Entry × (1 + expected_gain_pct / 100) |
+| **Stop-Loss** | Entry × 0.975 (2.5% fixed floor) |
+
+---
+
+### 10 · RAG Audit Search *(New)*
+
+Natural language search over the security audit log using semantic retrieval and an LLM.
+
+```
+CISO question (natural language)
+        │
+        ▼
+  Embed query (all-MiniLM-L6-v2)
+        │
+        ▼
+  Cosine similarity search over stored audit log embeddings (MongoDB)
+        │
+        ▼
+  Top-K relevant logs → LLM prompt (Groq / LLaMA 3.3 70B)
+        │
+        ▼
+  Grounded natural language answer + source logs
+```
+
+- Embeddings stored automatically on every new audit log write
+- Model: `all-MiniLM-L6-v2` (reused from anomaly detection — no extra memory)
+- LLM: Groq API (`llama-3.3-70b-versatile`)
+- Endpoint: `POST /api/v1/ciso/audit/search`
 
 ---
 
 ## Tech Stack
 
 ### AI / ML
-- **XGBoost** + **LightGBM** — tabular base models
-- **TensorFlow / Keras** — LSTM model
-- **sentence-transformers** — FinBERT sentiment
-- **SHAP** — prediction explainability
-- **scikit-learn** — meta-learner, scalers, walk-forward validation
+- **XGBoost** + **LightGBM** — tabular base models (trained, loaded at startup)
+- **TensorFlow / Keras** — LSTM model (trained, loaded at startup)
+- **scikit-learn** — meta-learner (Logistic Regression), StandardScaler, walk-forward validation
+- **sentence-transformers** (`all-MiniLM-L6-v2`) — behavioral anomaly detection + RAG embeddings
+- **Groq API** (`llama-3.3-70b-versatile`) — LLM for RAG audit search
+- **yfinance** — live OHLCV data fetch with 5-minute TTL cache
 
 ### Backend
 - **FastAPI 0.111** — async REST API
 - **Pydantic v2** — strict request/response validation
 - **Motor + PyMongo** — async MongoDB driver
-- **APScheduler** — scheduled retraining and data pulls
 - **Redis** — rate limiting and adaptive security counters
 - **python-jose + passlib** — JWT auth and bcrypt password hashing
 - **cryptography (AES)** — portfolio data encrypted at rest
 - **HMAC-SHA256** — prediction response signing
+- **httpx** — async HTTP client (Groq API calls)
 
 ### Database & Infrastructure
-- **MongoDB 7.0** — predictions, audit logs, users, portfolios
-- **Redis 7.2** — rate limiting
+- **MongoDB 7.0** — predictions, audit logs (with embeddings), users, portfolios
+- **Redis 7.2** — rate limiting, anomaly feature store
 - **Docker / Docker Compose** — fully containerized (backend + MongoDB + Redis)
 
 ---
@@ -222,52 +235,61 @@ tradefinlytix/
     │   ├── main.py                  # FastAPI entry point, middleware, lifespan
     │   ├── core/
     │   │   ├── config.py            # Pydantic Settings — all env vars
-    │   │   ├── database.py          # MongoDB connect/disconnect
+    │   │   ├── database.py          # MongoDB connect/disconnect + index setup
     │   │   ├── bootstrap.py         # Seed admin/CISO accounts on startup
     │   │   ├── logging.py           # JSON structured logging
     │   │   └── roles.py             # RBAC role definitions
     │   ├── api/
-    │   │   ├── dependencies.py      # CurrentUser, DB injection
+    │   │   ├── dependencies.py      # CurrentUser, DB injection, require_permission
     │   │   └── routes/
     │   │       ├── auth.py          # Register, login, refresh, logout
     │   │       ├── prediction.py    # GET /predict/{symbol}
     │   │       ├── portfolio.py     # Portfolio + trade history
+    │   │       ├── alerts.py        # User alerts
+    │   │       ├── screener.py      # Stock screener
     │   │       ├── admin.py         # User lifecycle (admin only)
-    │   │       └── ciso.py          # Audit chain, anomaly dashboard (CISO only)
+    │   │       └── ciso.py          # Audit chain, anomaly dashboard, RAG search (CISO only)
     │   ├── ml_engine/
     │   │   ├── ensemble_predict.py  # Top-level ensemble inference
     │   │   ├── models/
-    │   │   │   ├── ensemble_model.py  # EnsembleModel class (XGB + LGB + LSTM)
-    │   │   │   ├── xgb_model.py
-    │   │   │   ├── lgb_model.py
-    │   │   │   └── lstm_model.py
+    │   │   │   ├── ensemble_model.py  # EnsembleModel class (XGB + LGB + LSTM + meta)
+    │   │   │   ├── xgb_model.pkl      # Trained XGBoost model
+    │   │   │   ├── lgb_model.pkl      # Trained LightGBM model
+    │   │   │   ├── lstm_model.keras   # Trained LSTM model
+    │   │   │   ├── meta_learner.pkl   # Trained meta-learner (LR)
+    │   │   │   ├── lstm_scaler.pkl    # LSTM input scaler
+    │   │   │   └── meta_scaler.pkl    # Meta-learner input scaler
     │   │   ├── features/
-    │   │   │   ├── feature_engineering.py
-    │   │   │   ├── event_detection.py
+    │   │   │   ├── feature_engineering.py  # 59-feature extraction + LSTM sequences
+    │   │   │   ├── event_detection.py      # placeholder
     │   │   │   └── preprocessing.py
     │   │   ├── data/
-    │   │   │   ├── market_data.py   # yfinance live feature payload
+    │   │   │   ├── market_data.py   # yfinance live OHLCV + 59-feature computation
     │   │   │   ├── ingestion.py
-    │   │   │   ├── sentiment.py     # FinBERT pipeline
+    │   │   │   ├── sentiment.py     # placeholder
     │   │   │   └── aggregation.py
     │   │   ├── evaluation/
     │   │   │   ├── backtesting.py
     │   │   │   └── metrics.py
     │   │   ├── explainability/
-    │   │   │   └── shap_explainer.py
+    │   │   │   └── shap_explainer.py  # placeholder
     │   │   └── utils/
     │   │       └── atr_levels.py
+    │   ├── rag/                          # RAG audit search (new)
+    │   │   ├── embedder.py              # log dict → 384-dim vector (all-MiniLM-L6-v2)
+    │   │   ├── retriever.py             # store embeddings + cosine similarity search
+    │   │   └── rag_service.py           # retrieval + Groq LLM answer generation
     │   ├── security/
     │   │   ├── security_orchestrator.py  # Adaptive risk scoring engine
-    │   │   ├── anomaly_detection.py      # IsolationForest on request features
+    │   │   ├── anomaly_detection.py      # IsolationForest + sentence-transformer vectors
     │   │   ├── zscore_detection.py       # Rolling z-score request-rate check
     │   │   ├── hmac_signing.py           # HMAC-SHA256 prediction signing
-    │   │   ├── rate_limiter.py           # Redis-backed rate limiting
-    │   │   ├── csrf.py
-    │   │   ├── security_alerts.py        # Webhook + structured alert emission
+    │   │   ├── rate_limiter.py           # Redis-backed sliding window rate limiting
+    │   │   ├── csrf.py                   # CSRF middleware (disabled by default)
+    │   │   ├── security_alerts.py        # Structured log + optional webhook alerts
     │   │   └── input_validator.py
     │   ├── repositories/
-    │   │   ├── audit_repo.py             # Append-only hash-chained audit log
+    │   │   ├── audit_repo.py             # Append-only hash-chained audit log + embedding trigger
     │   │   ├── audit_chain_state.py      # In-process chain trust flag
     │   │   ├── prediction_repo.py
     │   │   ├── portfolio_repo.py
@@ -280,10 +302,12 @@ tradefinlytix/
     │   │   ├── prediction_service.py
     │   │   ├── auth_service.py
     │   │   ├── portfolio_service.py
+    │   │   ├── alert_service.py
+    │   │   ├── screener_service.py
     │   │   ├── admin_service.py
     │   │   └── ciso_service.py
     │   ├── schemas/                  # Pydantic v2 request/response models
-    │   ├── workers/                  # APScheduler background jobs
+    │   ├── workers/                  # placeholders (scheduler, alert_worker, data_collector)
     │   └── utils/
     ├── scripts/
     │   ├── train_model.py
@@ -383,7 +407,7 @@ BOOTSTRAP_CISO_PASSWORD=CisoPass123
 #### Step 6 · Start the backend
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --reload
 ```
 
 The API will be available at `http://localhost:8000`.  
@@ -529,9 +553,34 @@ Verify the HMAC signature of a previously returned prediction payload.
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET` | `/api/v1/ciso/audit` | Paginated audit log |
+| `GET` | `/api/v1/ciso/audit/logs` | Alias of above |
 | `GET` | `/api/v1/ciso/audit/verify` | Verify audit chain integrity |
+| `POST` | `/api/v1/ciso/audit/search` | Natural language search over audit logs (RAG) |
 | `GET` | `/api/v1/ciso/anomalies` | Behavioral anomaly events |
-| `GET` | `/api/v1/ciso/risk/dashboard` | Adaptive risk snapshots and trending |
+| `GET` | `/api/v1/ciso/anomalies/stats` | Anomaly frequency by day |
+| `GET` | `/api/v1/ciso/risk/snapshots` | Adaptive risk snapshot history |
+| `GET` | `/api/v1/ciso/risk/trend` | Daily risk score trend |
+| `GET` | `/api/v1/ciso/risk/top` | Top risky subjects |
+| `GET` | `/api/v1/ciso/risk/recent` | Recent critical block events |
+
+#### `POST /api/v1/ciso/audit/search`
+
+Requires: role `ciso`.
+
+```json
+{ "question": "show me suspicious login attempts from unusual IPs" }
+```
+
+**Response:**
+```json
+{
+  "answer": "Two login attempts from IP 1.2.3.4 at unusual hours...",
+  "sources": [
+    { "event_type": "login_success", "ip": "1.2.3.4", "_score": 0.87, ... }
+  ]
+}
+```
 
 ---
 
@@ -542,9 +591,28 @@ Verify the HMAC signature of a previously returned prediction payload.
 | `GET` | `/health` | Liveness check — no DB hit |
 | `GET` | `/health/db` | Deep check — pings MongoDB |
 
+## Environment Variables
+
+Key variables required in `backend/.env`:
+
+| Variable | Description |
+|----------|-------------|
+| `MONGODB_URI` | MongoDB connection string |
+| `MONGODB_DB_NAME` | Database name |
+| `JWT_SECRET_KEY` | Strong random string for JWT signing |
+| `AES_SECRET_KEY` | Exactly 32 bytes for portfolio encryption |
+| `HMAC_SECRET_KEY` | Secret for prediction response signing |
+| `REDIS_URL` | Redis connection URL |
+| `GROQ_API_KEY` | Groq API key for RAG audit search |
+| `ENABLE_BOOTSTRAP` | `true` to seed admin/CISO on first startup |
+| `BOOTSTRAP_ADMIN_EMAIL` | Admin account email |
+| `BOOTSTRAP_ADMIN_PASSWORD` | Admin account password |
+| `BOOTSTRAP_CISO_EMAIL` | CISO account email |
+| `BOOTSTRAP_CISO_PASSWORD` | CISO account password |
+
 ---
 
-## Model Validation
+
 
 All models are validated using **walk-forward time-series cross-validation** (`TimeSeriesSplit`) to prevent look-ahead bias.
 
@@ -605,10 +673,14 @@ Privileged accounts (admin / CISO) cannot be deactivated or password-reset via t
 
 ## Roadmap
 
+- [ ] FinBERT sentiment pipeline (`sentiment.py` — currently placeholder)
+- [ ] SHAP explainability per prediction (`shap_explainer.py` — currently placeholder)
+- [ ] Event detection at inference time (`event_detection.py` — currently placeholder)
+- [ ] APScheduler background jobs — scheduled retraining, data collection, alert worker
 - [ ] Real-time streaming signals via WebSockets
+- [ ] Frontend React dashboard with TradingView chart overlay
 - [ ] PSX-fine-tuned FinBERT (Urdu + English financial corpus)
 - [ ] Reinforcement learning for dynamic position sizing
-- [ ] Frontend React dashboard with TradingView chart overlay
 - [ ] Multi-market support (KSE derivatives, commodity futures)
 - [ ] MLflow experiment tracking integration
 

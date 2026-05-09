@@ -72,3 +72,10 @@ class TopRiskyPage(BaseModel):
     total: int = Field(description="Total subjects in the ranked pool (after scan cap).")
     skip: int
     limit: int
+
+class AuditSearchRequest(BaseModel):
+    question: str
+
+class AuditSearchResponse(BaseModel):
+    answer: str
+    sources: list[dict[str, Any]]

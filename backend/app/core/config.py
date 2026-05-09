@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
 
+    #RAG
+    groq_api_key: str = ""
+
+
     # Auth — optional stricter password policy (symbol required)
     password_require_symbol: bool = False
     auth_lockout_failed_attempts: int = 5

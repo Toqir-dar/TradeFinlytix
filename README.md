@@ -298,24 +298,63 @@ tradefinlytix/
 
 ## Getting Started
 
-### Prerequisites
+> **Recommended: Run locally without Docker.** Docker Compose is available for production deployments but adds overhead during development. Follow the local setup steps below to get started quickly.
+
+---
+
+### Option A — Run Locally (Recommended for Development)
+
+#### Prerequisites
 
 - Python 3.10+
-- Docker & Docker Compose
-- MongoDB (local or Atlas) — or use Docker Compose
-- Redis — or use Docker Compose
+- MongoDB 7.0 — [Download](https://www.mongodb.com/try/download/community)
+- Redis 7.2 — [Download for Windows](https://github.com/tporadowski/redis/releases) · [macOS](https://formulae.brew.sh/formula/redis) · [Linux](https://redis.io/docs/install/install-redis/)
 
-### 1 · Clone
+#### Step 1 · Clone the repo
 
 ```bash
 git clone https://github.com/Toqir-dar/TradeFinlytix.git
 cd TradeFinlytix/backend
 ```
 
-### 2 · Environment Setup
+#### Step 2 · Create and activate a virtual environment
 
 ```bash
-cp .env.example .env
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# macOS / Linux
+source venv/bin/activate
+```
+
+#### Step 3 · Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+#### Step 4 · Start MongoDB and Redis
+
+Make sure both services are running **before** starting the backend.
+
+```bash
+# MongoDB (runs on port 27017 by default)
+mongod
+
+# Redis (runs on port 6379 by default)
+redis-server
+```
+
+> On Windows you can also start them from Services if installed as a Windows service.
+
+#### Step 5 · Configure environment variables
+
+Copy the example env file and fill in the required values:
+
+```bash
+cp .env.example .env   # or manually create backend/.env
 ```
 
 Minimum required variables:
@@ -323,52 +362,77 @@ Minimum required variables:
 ```env
 MONGODB_URI=mongodb://localhost:27017
 MONGODB_DB_NAME=tradefinlytix_db
-JWT_SECRET_KEY=<strong-random-secret>
-AES_SECRET_KEY=<exactly-32-bytes>
-HMAC_SECRET_KEY=<strong-random-secret>
+
+# Must be a strong random string — app will refuse to start with the default placeholder
+JWT_SECRET_KEY=your-strong-random-secret-here
+
+# Must be exactly 32 bytes (characters)
+AES_SECRET_KEY=your-exactly-32-byte-key-here!!
+
+HMAC_SECRET_KEY=your-hmac-secret-here
 REDIS_URL=redis://localhost:6379/0
 
-# Seed privileged accounts on startup
+# Seed admin and CISO accounts on first startup
 ENABLE_BOOTSTRAP=true
 BOOTSTRAP_ADMIN_EMAIL=admin@example.com
-BOOTSTRAP_ADMIN_PASSWORD=<password>
+BOOTSTRAP_ADMIN_PASSWORD=AdminPass123
 BOOTSTRAP_CISO_EMAIL=ciso@example.com
-BOOTSTRAP_CISO_PASSWORD=<password>
+BOOTSTRAP_CISO_PASSWORD=CisoPass123
 ```
 
-### 3 · Run with Docker Compose
+#### Step 6 · Start the backend
 
 ```bash
-# Production services: backend + MongoDB + Redis
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The API will be available at `http://localhost:8000`.  
+Interactive docs (Swagger UI) at `http://localhost:8000/docs`.
+
+#### Step 7 · Train models (first time only)
+
+The trained model files (`.pkl`, `.keras`) are included in the repo under `app/ml_engine/models/`. If you need to retrain from scratch:
+
+```bash
+python scripts/train_model.py --symbol OGDC --start 2020-01-01 --end 2025-01-01
+```
+
+---
+
+### Option B — Run with Docker Compose (Production / CI)
+
+> Requires Docker and Docker Compose installed. This spins up the backend, MongoDB, and Redis together in containers.
+
+#### Prerequisites
+
+- Docker & Docker Compose
+
+#### Step 1 · Clone and configure
+
+```bash
+git clone https://github.com/Toqir-dar/TradeFinlytix.git
+cd TradeFinlytix/backend
+cp .env.example .env   # fill in JWT_SECRET_KEY, AES_SECRET_KEY, HMAC_SECRET_KEY
+```
+
+#### Step 2 · Start all services
+
+```bash
+# Backend + MongoDB + Redis
 docker-compose up --build
 
-# Include Mongo Express (browser UI) for development
+# Add Mongo Express browser UI (development only)
 docker-compose --profile dev up --build
 ```
 
-Services:
+#### Services and ports
 
 | Service | Port |
 |---------|------|
 | FastAPI backend | `8000` |
 | MongoDB | `27017` |
 | Redis | `6379` |
-| Mongo Express (dev) | `8081` |
-
-### 4 · Run Locally (without Docker)
-
-```bash
-pip install -r requirements.txt
-
-# Start MongoDB and Redis separately, then:
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### 5 · Train Models
-
-```bash
-python scripts/train_model.py --symbol OGDC --start 2020-01-01 --end 2025-01-01
-```
+| Mongo Express (dev profile) | `8081` |
 
 ---
 

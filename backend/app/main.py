@@ -24,6 +24,7 @@ from app.api.routes import auth as auth_routes
 from app.api.routes import ciso as ciso_routes
 from app.api.routes import portfolio as portfolio_routes
 from app.api.routes import prediction as prediction_routes
+from app.api.routes import screener as screener_routes
 from app.core.bootstrap import bootstrap_privileged_users
 from app.core.config import settings
 from app.core.database import close_db, connect_db, get_db
@@ -62,6 +63,10 @@ OPENAPI_TAGS = [
     {
         "name": "Alerts",
         "description": "Authenticated user alerts: get alerts, mark as read, unread count.",
+    },
+    {
+        "name": "Screener",
+        "description": "Authenticated investors/admins: filter stocks by price, volume, trend, growth, and risk rules.",
     },
     {
         "name": "Admin",
@@ -188,6 +193,7 @@ app.include_router(auth_routes.router, prefix="/api/v1")
 app.include_router(prediction_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")
 app.include_router(alerts_routes.router, prefix="/api/v1")
+app.include_router(screener_routes.router, prefix="/api/v1")
 app.include_router(admin_routes.router, prefix="/api/v1")
 app.include_router(ciso_routes.router, prefix="/api/v1")
 

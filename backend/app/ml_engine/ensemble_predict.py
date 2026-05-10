@@ -53,6 +53,9 @@ def predict_symbol_ensemble(
         )
         confidence = prediction_value
 
+        # SHAP explanation (non-fatal — returns None when unavailable)
+        explanation = ensemble.explain(features)
+
         # Determine signal based on confidence
         if confidence >= 0.65:
             signal = "buy"
@@ -83,9 +86,9 @@ def predict_symbol_ensemble(
             "engine": "ensemble_v1",
             "tier": "core",
             "rationale": [
-                f"stacked_ensemble_prediction",
+                "stacked_ensemble_prediction",
                 f"confidence={confidence:.3f}",
-                f"base_learners_consensus",
+                "base_learners_consensus",
             ],
             "entry_price": current_price,
             "target_price": target_price,
@@ -93,6 +96,7 @@ def predict_symbol_ensemble(
             "expected_gain_pct": round(expected_gain_pct, 2),
             "time_horizon_days": time_horizon_days,
             "base_scores": result.get("base_predictions", {}),
+            "explanation": explanation,
         }
 
     except Exception as e:

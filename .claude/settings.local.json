@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(Get-ChildItem -Path \"d:\\\\ML codes\\\\Tradefinlytix\\\\tradefinlytix\" -Depth 0)",
-      "Bash(Select-Object FullName, PSIsContainer)"
-    ]
-  }
-}

@@ -104,16 +104,6 @@ async def predict_symbol(
             detail="Market data unavailable for requested symbol.",
         )
 
-    return await service.predict_symbol(
-        symbol=symbol,
-        user=user,
-        assessment=assessment,
-        recent_request_count_10m=recent_count,
-        historical_high_risk_events=high_count,
-        symbol_data=symbol_data,
-        history=history,
-    )
-
     response = await service.predict_symbol(
         symbol=symbol,
         user=user,
@@ -124,7 +114,6 @@ async def predict_symbol(
         history=history,
     )
 
-    # Trigger alert for high risk predictions
     if response.risk.level in ["HIGH", "CRITICAL"]:
         alert_service = AlertService(db)
         severity = AlertSeverity.HIGH if response.risk.level == "HIGH" else AlertSeverity.CRITICAL

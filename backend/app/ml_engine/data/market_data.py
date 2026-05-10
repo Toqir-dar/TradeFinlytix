@@ -42,23 +42,36 @@ def _cache_put(key: str, df: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def _fetch_ohlcv(symbol: str) -> pd.DataFrame:
-    """Download 2 years of daily OHLCV for *symbol*; results cached for 5 min."""
+    """Download 2 years of daily OHLCV for *symbol*; results cached for 5 min.
+
+    PSX tickers (Pakistan Stock Exchange) that return no data bare are retried
+    with the Yahoo Finance ``.KA`` suffix automatically.
+    """
     cached = _cache_get(symbol)
     if cached is not None:
         return cached
 
-    ticker = yf.Ticker(symbol)
-    df = ticker.history(period="2y", interval="1d", auto_adjust=True)
+    def _download(sym: str) -> pd.DataFrame:
+        ticker = yf.Ticker(sym)
+        raw = ticker.history(period="2y", interval="1d", auto_adjust=True)
+        if isinstance(raw.columns, pd.MultiIndex):
+            raw.columns = raw.columns.get_level_values(0)
+        for col in ("Open", "High", "Low", "Close", "Volume"):
+            if col not in raw.columns:
+                return pd.DataFrame()
+        raw = raw[["Open", "High", "Low", "Close", "Volume"]].copy()
+        raw = raw.dropna(subset=["Open", "High", "Low", "Close"])
+        if getattr(raw.index, "tz", None) is not None:
+            raw.index = raw.index.tz_localize(None)
+        return raw
 
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
+    df = _download(symbol)
 
-    df = df[["Open", "High", "Low", "Close", "Volume"]].copy()
-    df = df.dropna(subset=["Open", "High", "Low", "Close"])
-
-    # Normalise to tz-naive DatetimeIndex so all series align cleanly.
-    if getattr(df.index, "tz", None) is not None:
-        df.index = df.index.tz_localize(None)
+    # PSX fallback: retry with .KA suffix for Karachi-listed tickers.
+    if df.empty and not symbol.endswith(".KA"):
+        ka_symbol = symbol + ".KA"
+        logger.debug("Empty data for %s — retrying as %s", symbol, ka_symbol)
+        df = _download(ka_symbol)
 
     if not df.empty:
         _cache_put(symbol, df)

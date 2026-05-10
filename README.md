@@ -681,8 +681,6 @@ Privileged accounts (admin / CISO) cannot be deactivated or password-reset via t
 - [ ] Frontend React dashboard with TradingView chart overlay
 - [ ] PSX-fine-tuned FinBERT (Urdu + English financial corpus)
 - [ ] Reinforcement learning for dynamic position sizing
-- [ ] Multi-market support (KSE derivatives, commodity futures)
-- [ ] MLflow experiment tracking integration
 
 ---
 

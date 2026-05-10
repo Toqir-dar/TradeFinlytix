@@ -47,7 +47,7 @@ Existing PSX analytics tools suffer from critical gaps:
 | No AI-based prediction | Traders rely on manual TA only |
 | No actionable signals | Missing entry, target, stop-loss |
 | No sentiment integration | News and social data ignored |
-| Black-box models | Zero explainability for decisions |
+| Black-box models | Zero explainability for decisions — SHAP attribution per prediction |
 | Insecure pipelines | No audit trail or model integrity checks |
 
 ---
@@ -55,6 +55,7 @@ Existing PSX analytics tools suffer from critical gaps:
 ## Solution Highlights
 
 - **AI trading signals** with calibrated confidence scores
+- **SHAP explainability** — every prediction includes per-feature attribution showing exactly which indicators drove the signal and by how much
 - **Adaptive security engine** — per-request risk scoring that dynamically tightens rate limits
 - **Immutable audit chain** — tamper-evident, hash-linked prediction and event log
 - **RAG-powered audit search** — natural language queries over audit logs via semantic retrieval + LLM (Groq / LLaMA)
@@ -76,7 +77,11 @@ yfinance OHLCV → 59 Technical Features → Feature Engineering
                                         └────────┬────────┘
                                           Meta-Learner (LR)
                                                  │
-                                      Final Signal + ATR levels
+                                   ┌─────────────┴─────────────┐
+                             Final Signal                  SHAP Explainer
+                           + ATR levels              (TreeExplainer on XGB)
+                                                      Top-10 feature attribution
+                                                      per prediction response
 ```
 
 ### 1 · Data Ingestion
@@ -158,7 +163,53 @@ Each signal carries `entry_price`, `target_price`, `stop_loss`, `expected_gain_p
 
 ### 8 · Explainability (SHAP)
 
-> **Not implemented.** `shap_explainer.py` is a placeholder. SHAP values are not computed in the current prediction response.
+Every prediction response includes a `explanation` block powered by **SHAP TreeExplainer** applied to the XGBoost base model (fastest and most accurate for tree-based models at inference time).
+
+```
+59 Features → XGBoost base model
+                      │
+              shap.TreeExplainer
+                      │
+          Per-feature SHAP values (Shapley attribution)
+                      │
+          Top-10 features ranked by |SHAP value|
+          (direction: bullish / bearish per feature)
+```
+
+**What each field means:**
+
+| Field | Description |
+|-------|-------------|
+| `method` | Explainer variant used (e.g. `shap_tree_explainer_xgb`) |
+| `base_value` | Model's expected output before observing any features (prior) |
+| `top_features[].feature` | Technical feature name (from the 59-feature set) |
+| `top_features[].shap_value` | Raw SHAP value — positive = pushed toward BUY, negative = pushed toward SELL |
+| `top_features[].feature_value` | Observed value of that feature at inference time |
+| `top_features[].direction` | `"bullish"` if `shap_value > 0`, else `"bearish"` |
+
+**Example explanation (OGDC, HOLD signal, confidence 0.632):**
+
+```json
+"explanation": {
+  "method": "shap_tree_explainer_xgb",
+  "base_value": 0.015483,
+  "top_features": [
+    { "feature": "obv_zscore",      "shap_value":  0.340298, "feature_value":  1.4820, "direction": "bullish" },
+    { "feature": "macd_signal_pct", "shap_value":  0.291460, "feature_value":  0.0273, "direction": "bullish" },
+    { "feature": "sharpe_20d",      "shap_value":  0.133623, "feature_value":  4.6943, "direction": "bullish" },
+    { "feature": "quarter",         "shap_value": -0.110121, "feature_value":  2.0000, "direction": "bearish" },
+    { "feature": "volatility_20d",  "shap_value": -0.097885, "feature_value":  0.0229, "direction": "bearish" },
+    { "feature": "direction_streak","shap_value": -0.085704, "feature_value": -1.0000, "direction": "bearish" }
+  ]
+}
+```
+
+> Interpretation: OBV accumulation and MACD momentum are the primary bullish drivers, but elevated 20-day volatility and a negative price streak are pulling the signal short of a BUY threshold.
+
+**Implementation notes:**
+- SHAP explainer is initialised at startup alongside the model load — zero per-request overhead beyond the SHAP pass itself
+- LightGBM explainer is also initialised and available as a fallback
+- Returns `null` gracefully when legacy (non-59-feature) payloads are used or if SHAP computation fails — prediction flow is never blocked
 
 ---
 
@@ -205,6 +256,7 @@ CISO question (natural language)
 - **XGBoost** + **LightGBM** — tabular base models (trained, loaded at startup)
 - **TensorFlow / Keras** — LSTM model (trained, loaded at startup)
 - **scikit-learn** — meta-learner (Logistic Regression), StandardScaler, walk-forward validation
+- **SHAP** (`shap.TreeExplainer`) — per-prediction feature attribution for XGBoost and LightGBM
 - **sentence-transformers** (`all-MiniLM-L6-v2`) — behavioral anomaly detection + RAG embeddings
 - **Groq API** (`llama-3.3-70b-versatile`) — LLM for RAG audit search
 - **yfinance** — live OHLCV data fetch with 5-minute TTL cache
@@ -272,7 +324,7 @@ tradefinlytix/
     │   │   │   ├── backtesting.py
     │   │   │   └── metrics.py
     │   │   ├── explainability/
-    │   │   │   └── shap_explainer.py  # placeholder
+    │   │   │   └── shap_explainer.py  # SHAPExplainer — TreeExplainer for XGB + LGB
     │   │   └── utils/
     │   │       └── atr_levels.py
     │   ├── rag/                          # RAG audit search (new)
@@ -498,26 +550,45 @@ Requires: any active authenticated user.
 ```json
 {
   "symbol": "OGDC",
-  "signal": "buy",
-  "confidence": 0.72,
-  "model_version": "stacked_ensemble_v1",
-  "engine": "ensemble_v1",
-  "entry_price": 175.00,
-  "target_price": 187.25,
-  "stop_loss": 170.63,
-  "expected_gain_pct": 7.0,
-  "time_horizon_days": 5,
-  "base_scores": {
-    "xgb": [...],
-    "lgb": [...],
-    "lstm": [...]
+  "user_id": "69f5ee8c...",
+  "predicted_at": "2026-05-10T07:40:00.630853+00:00",
+  "prediction": {
+    "signal": "hold",
+    "confidence": 0.632,
+    "model_version": "stacked_ensemble_v1",
+    "engine": "ensemble_v1",
+    "tier": "core",
+    "rationale": ["stacked_ensemble_prediction", "confidence=0.632", "base_learners_consensus"],
+    "entry_price": 329.68,
+    "target_price": 331.33,
+    "stop_loss": 321.44,
+    "expected_gain_pct": 0.5,
+    "time_horizon_days": 2,
+    "explanation": {
+      "method": "shap_tree_explainer_xgb",
+      "base_value": 0.015483,
+      "top_features": [
+        { "feature": "obv_zscore",      "shap_value":  0.340298, "feature_value":  1.482,  "direction": "bullish" },
+        { "feature": "macd_signal_pct", "shap_value":  0.291460, "feature_value":  0.0273, "direction": "bullish" },
+        { "feature": "sharpe_20d",      "shap_value":  0.133623, "feature_value":  4.6943, "direction": "bullish" },
+        { "feature": "quarter",         "shap_value": -0.110121, "feature_value":  2.0,    "direction": "bearish" },
+        { "feature": "volatility_20d",  "shap_value": -0.097885, "feature_value":  0.0229, "direction": "bearish" }
+      ]
+    }
   },
-  "signature": "hmac-sha256:a3f9...",
-  "risk_level": "LOW"
+  "risk": {
+    "score": 10,
+    "level": "LOW",
+    "dynamic_score": 10.4,
+    "recent_request_count_10m": 1,
+    "historical_high_risk_events": 0
+  },
+  "integrity": {
+    "algorithm": "HMAC-SHA256",
+    "signature": "0cdc9f..."
+  }
 }
 ```
-
-If `event_detected = true`, confidence is downward-adjusted and a `HIGH UNCERTAINTY — MARKET EVENT DETECTED` tag is appended.
 
 #### `POST /api/v1/predict/verify-integrity`
 
@@ -674,7 +745,7 @@ Privileged accounts (admin / CISO) cannot be deactivated or password-reset via t
 ## Roadmap
 
 - [ ] FinBERT sentiment pipeline (`sentiment.py` — currently placeholder)
-- [ ] SHAP explainability per prediction (`shap_explainer.py` — currently placeholder)
+- [x] SHAP explainability per prediction — live, returned in every `GET /predict/{symbol}` response
 - [ ] Event detection at inference time (`event_detection.py` — currently placeholder)
 - [ ] APScheduler background jobs — scheduled retraining, data collection, alert worker
 - [ ] Real-time streaming signals via WebSockets

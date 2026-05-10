@@ -22,6 +22,9 @@ try:
 except ImportError:
     keras = None
 
+from app.ml_engine.explainability.shap_explainer import SHAPExplainer
+from app.ml_engine.features.feature_engineering import FEATURE_COLS
+
 logger = logging.getLogger(__name__)
 
 MODEL_DIR = Path(__file__).parent
@@ -40,6 +43,7 @@ class EnsembleModel:
         self.hyperparams = None
         self.seq_len = 10
         self.is_loaded = False
+        self._shap: SHAPExplainer | None = None
 
     def load_models(self) -> bool:
         """Load all trained models from disk."""
@@ -77,12 +81,25 @@ class EnsembleModel:
 
             self.is_loaded = True
             logger.info("All ensemble models loaded successfully")
+
+            # Initialise SHAP explainers (non-fatal if they fail)
+            self._shap = SHAPExplainer(FEATURE_COLS)
+            self._shap.setup_xgb(self.xgb_model)
+            if self.lgb_model is not None:
+                self._shap.setup_lgb(self.lgb_model)
+
             return True
 
         except Exception as e:
             logger.error(f"Failed to load ensemble models: {e}", exc_info=True)
             self.is_loaded = False
             return False
+
+    def explain(self, features: np.ndarray, top_n: int = 10) -> dict | None:
+        """Return SHAP attribution for a single feature row (1, n_features)."""
+        if self._shap is None:
+            return None
+        return self._shap.explain(features, top_n=top_n)
 
     def predict_xgb(self, features: np.ndarray) -> np.ndarray:
         """Get XGBoost base model probabilities with shape (n_samples, 2)."""

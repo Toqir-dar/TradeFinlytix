@@ -1,8 +1,4 @@
 import type { Metadata } from "next";
-<<<<<<< HEAD
-=======
-import "./globals.css";
->>>>>>> b2784bda7c8dbc997441a6b08852685a82d7e96c
 import { AppQueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/lib/auth";
 

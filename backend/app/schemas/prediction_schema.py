@@ -5,6 +5,25 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class SHAPFeature(BaseModel):
+    """Attribution for a single feature in a SHAP explanation."""
+
+    feature: str = Field(..., description="Technical feature name.")
+    shap_value: float = Field(..., description="Raw SHAP value (positive = bullish contribution).")
+    feature_value: float | None = Field(None, description="Observed value of the feature at inference time.")
+    direction: str = Field(..., description="'bullish' if shap_value > 0, else 'bearish'.")
+
+
+class SHAPExplanation(BaseModel):
+    """SHAP attribution block returned alongside every prediction."""
+
+    method: str = Field(..., description="Explainer variant used (e.g. shap_tree_explainer_xgb).")
+    base_value: float = Field(..., description="Model expected value before observing any features.")
+    top_features: list[SHAPFeature] = Field(
+        ..., description="Top features ranked by |SHAP value|, descending."
+    )
+
+
 class PredictionPayload(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
 
@@ -34,6 +53,10 @@ class PredictionPayload(BaseModel):
     time_horizon_days: int | None = Field(
         None,
         description="Suggested holding horizon for the signal in days.",
+    )
+    explanation: SHAPExplanation | None = Field(
+        None,
+        description="SHAP feature attribution explaining this prediction. None when model not fully loaded.",
     )
 
 

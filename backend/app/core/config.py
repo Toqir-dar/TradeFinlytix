@@ -44,6 +44,18 @@ class Settings(BaseSettings):
     password_require_symbol: bool = False
     auth_lockout_failed_attempts: int = 5
     auth_lockout_minutes: int = 15
+    password_reset_otp_expire_seconds: int = 120
+    password_reset_otp_max_attempts: int = 5
+    password_reset_otp_resend_cooldown_seconds: int = 30
+    password_reset_otp_max_resends: int = 3
+
+    # Email / SMTP (used for password reset OTP delivery)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = "no-reply@tradefinlytix.local"
+    smtp_use_tls: bool = True
 
     # Adaptive security — cumulative risk score floor for each RiskLevel tier
     risk_score_medium_threshold: int = 30
@@ -135,6 +147,34 @@ class Settings(BaseSettings):
     def validate_lockout_window(cls, v: int) -> int:
         if v < 1:
             raise ValueError("auth_lockout_minutes must be >= 1")
+        return v
+
+    @field_validator("password_reset_otp_expire_seconds")
+    @classmethod
+    def validate_password_reset_otp_expiry(cls, v: int) -> int:
+        if v < 30:
+            raise ValueError("password_reset_otp_expire_seconds must be >= 30")
+        return v
+
+    @field_validator("password_reset_otp_max_attempts")
+    @classmethod
+    def validate_password_reset_otp_attempts(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("password_reset_otp_max_attempts must be >= 1")
+        return v
+
+    @field_validator("password_reset_otp_resend_cooldown_seconds")
+    @classmethod
+    def validate_password_reset_otp_resend_cooldown(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("password_reset_otp_resend_cooldown_seconds must be >= 0")
+        return v
+
+    @field_validator("password_reset_otp_max_resends")
+    @classmethod
+    def validate_password_reset_otp_max_resends(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("password_reset_otp_max_resends must be >= 0")
         return v
 
     @field_validator("jwt_secret_key")

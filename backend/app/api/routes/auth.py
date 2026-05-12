@@ -8,11 +8,15 @@ from app.api.dependencies import CurrentUser
 from app.core.database import get_db
 from app.schemas.user_schema import (
     AuthResponse,
+    ForgotPasswordRequest,
+    MessageResponse,
     RefreshRequest,
+    ResetPasswordWithOtpRequest,
     TokenResponse,
     UserLoginRequest,
     UserPublic,
     UserRegisterRequest,
+    VerifyPasswordResetOtpRequest,
 )
 from app.services.auth_service import AuthService
 from app.utils.helpers import get_client_ip
@@ -52,6 +56,59 @@ async def refresh(payload: RefreshRequest, request: Request, db=Depends(get_db))
     service = AuthService(db)
     ip = get_client_ip(request)
     return await service.refresh(payload.refresh_token, ip)
+
+
+@router.post("/forgot-password", response_model=MessageResponse)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    request: Request,
+    db=Depends(get_db),
+) -> MessageResponse:
+    service = AuthService(db)
+    ip = get_client_ip(request)
+    message = await service.request_password_reset(payload.email, ip)
+    return MessageResponse(message=message)
+
+
+@router.post("/forgot-password/resend", response_model=MessageResponse)
+async def resend_forgot_password_otp(
+    payload: ForgotPasswordRequest,
+    request: Request,
+    db=Depends(get_db),
+) -> MessageResponse:
+    service = AuthService(db)
+    ip = get_client_ip(request)
+    message = await service.resend_password_reset_otp(payload.email, ip)
+    return MessageResponse(message=message)
+
+
+@router.post("/forgot-password/verify-otp", response_model=MessageResponse)
+async def verify_forgot_password_otp(
+    payload: VerifyPasswordResetOtpRequest,
+    request: Request,
+    db=Depends(get_db),
+) -> MessageResponse:
+    service = AuthService(db)
+    ip = get_client_ip(request)
+    message = await service.verify_password_reset_otp(payload.email, payload.otp, ip)
+    return MessageResponse(message=message)
+
+
+@router.post("/forgot-password/reset", response_model=MessageResponse)
+async def reset_forgotten_password(
+    payload: ResetPasswordWithOtpRequest,
+    request: Request,
+    db=Depends(get_db),
+) -> MessageResponse:
+    service = AuthService(db)
+    ip = get_client_ip(request)
+    message = await service.reset_password_with_otp(
+        payload.email,
+        payload.otp,
+        payload.new_password,
+        ip,
+    )
+    return MessageResponse(message=message)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

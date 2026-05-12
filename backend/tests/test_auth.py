@@ -92,3 +92,111 @@ def test_expired_refresh_rejected(harness):
 
     bad = c.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
     assert bad.status_code == 401
+
+
+def test_forgot_password_otp_verify_then_reset(harness, monkeypatch):
+    captured: dict[str, str] = {}
+
+    async def _capture_otp(self, *, to_email: str, otp: str) -> None:
+        captured["to_email"] = to_email
+        captured["otp"] = otp
+
+    monkeypatch.setattr(
+        "app.services.email_service.EmailService.send_password_reset_otp",
+        _capture_otp,
+    )
+
+    c, db = harness
+    assert c.post("/api/v1/auth/register", json=REG_BODY).status_code == 201
+
+    requested = c.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": REG_BODY["email"]},
+    )
+    assert requested.status_code == 200, requested.text
+    assert captured["to_email"] == REG_BODY["email"]
+    assert len(captured["otp"]) == 6
+
+    otp_doc = db["password_reset_otps"].docs[0]
+    assert otp_doc["otp_hash"] != captured["otp"]
+    assert otp_doc["attempts"] == 0
+    assert otp_doc["consumed_at"] is None
+
+    blocked = c.post(
+        "/api/v1/auth/forgot-password/reset",
+        json={
+            "email": REG_BODY["email"],
+            "otp": captured["otp"],
+            "new_password": "Newpass1!",
+        },
+    )
+    assert blocked.status_code == 400
+    assert "verified" in blocked.json()["detail"].lower()
+
+    verified = c.post(
+        "/api/v1/auth/forgot-password/verify-otp",
+        json={"email": REG_BODY["email"], "otp": captured["otp"]},
+    )
+    assert verified.status_code == 200, verified.text
+
+    reset = c.post(
+        "/api/v1/auth/forgot-password/reset",
+        json={
+            "email": REG_BODY["email"],
+            "otp": captured["otp"],
+            "new_password": "Newpass1!",
+        },
+    )
+    assert reset.status_code == 200, reset.text
+    assert db["password_reset_otps"].docs[0]["consumed_at"] is not None
+
+    old_login = c.post(
+        "/api/v1/auth/login",
+        json={"email": REG_BODY["email"], "password": REG_BODY["password"]},
+    )
+    assert old_login.status_code == 401
+
+    new_login = c.post(
+        "/api/v1/auth/login",
+        json={"email": REG_BODY["email"], "password": "Newpass1!"},
+    )
+    assert new_login.status_code == 200, new_login.text
+
+
+def test_forgot_password_otp_attempt_limit(harness, monkeypatch):
+    captured: dict[str, str] = {}
+
+    async def _capture_otp(self, *, to_email: str, otp: str) -> None:
+        captured["otp"] = otp
+
+    monkeypatch.setattr(
+        "app.services.email_service.EmailService.send_password_reset_otp",
+        _capture_otp,
+    )
+
+    c, db = harness
+    assert c.post("/api/v1/auth/register", json=REG_BODY).status_code == 201
+    assert c.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": REG_BODY["email"]},
+    ).status_code == 200
+
+    for _ in range(4):
+        bad = c.post(
+            "/api/v1/auth/forgot-password/verify-otp",
+            json={"email": REG_BODY["email"], "otp": "000000"},
+        )
+        assert bad.status_code == 400
+
+    locked = c.post(
+        "/api/v1/auth/forgot-password/verify-otp",
+        json={"email": REG_BODY["email"], "otp": "000000"},
+    )
+    assert locked.status_code == 429
+    assert db["password_reset_otps"].docs[0]["consumed_at"] is not None
+
+    valid_after_limit = c.post(
+        "/api/v1/auth/forgot-password/verify-otp",
+        json={"email": REG_BODY["email"], "otp": captured["otp"]},
+    )
+    assert valid_after_limit.status_code == 400

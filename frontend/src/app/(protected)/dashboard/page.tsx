@@ -293,30 +293,32 @@ export default function DashboardPage() {
               <h3 style={{ fontWeight: 700, fontSize: 16 }}>Recent Trades</h3>
               <Link href="/trades" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
             </div>
-            <div style={{ overflowX: "auto" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                <span>Symbol</span><span>Type</span><span>Quantity</span><span>Price</span><span>Time</span><span>P&L</span>
+            <div className="table-scroll">
+              <div className="table-min">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <span>Symbol</span><span>Type</span><span>Quantity</span><span>Price</span><span>Time</span><span>P&L</span>
+                </div>
+                <motion.div variants={rowStagger} initial="hidden" animate="visible">
+                  {MOCK_TRADES.map((t, i) => (
+                    <motion.div
+                      key={i}
+                      className="trade-row"
+                      variants={rowItem}
+                      whileHover={{ backgroundColor: "#F9FAFB", transition: { duration: 0.1 } }}
+                      style={{ backgroundColor: "transparent", borderRadius: 8 }}
+                    >
+                      <span style={{ fontWeight: 700, color: "#111827" }}>{t.symbol}</span>
+                      <span>
+                        <span className="chip" style={{ background: t.type === "BUY" ? "#DCFCE7" : "#FEE2E2", color: t.type === "BUY" ? "#15803D" : "#991B1B" }}>{t.type}</span>
+                      </span>
+                      <span style={{ color: "#374151" }}>{t.qty}</span>
+                      <span style={{ color: "#374151" }}>{t.price}</span>
+                      <span style={{ color: "#9CA3AF" }}>{t.time}</span>
+                      <span style={{ color: "#16A34A", fontWeight: 600 }}>{t.pnl}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
               </div>
-              <motion.div variants={rowStagger} initial="hidden" animate="visible">
-                {MOCK_TRADES.map((t, i) => (
-                  <motion.div
-                    key={i}
-                    className="trade-row"
-                    variants={rowItem}
-                    whileHover={{ backgroundColor: "#F9FAFB", transition: { duration: 0.1 } }}
-                    style={{ backgroundColor: "transparent", borderRadius: 8 }}
-                  >
-                    <span style={{ fontWeight: 700, color: "#111827" }}>{t.symbol}</span>
-                    <span>
-                      <span className="chip" style={{ background: t.type === "BUY" ? "#DCFCE7" : "#FEE2E2", color: t.type === "BUY" ? "#15803D" : "#991B1B" }}>{t.type}</span>
-                    </span>
-                    <span style={{ color: "#374151" }}>{t.qty}</span>
-                    <span style={{ color: "#374151" }}>{t.price}</span>
-                    <span style={{ color: "#9CA3AF" }}>{t.time}</span>
-                    <span style={{ color: "#16A34A", fontWeight: 600 }}>{t.pnl}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
             </div>
           </motion.div>
 

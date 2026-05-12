@@ -123,7 +123,7 @@ export default function PredictPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
         {/* Left — Browse Symbols */}
         <div>
           {/* Sector Filter */}
@@ -135,7 +135,7 @@ export default function PredictPage() {
           </div>
 
           {/* Symbol Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div className="responsive-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {filtered.map(s => (
               <Link key={s.symbol} href={`/predict/${s.symbol}`} className="symbol-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>

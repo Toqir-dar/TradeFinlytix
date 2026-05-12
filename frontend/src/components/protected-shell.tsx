@@ -211,7 +211,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
               {/* Alerts Dropdown */}
               {showAlerts && (
-                <div id="alerts-panel" className="alerts-panel" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 360, background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 100 }}>
+                <div id="alerts-panel" className="alerts-panel" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: "min(360px, 90vw)", background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 100 }}>
                   <div style={{ padding: "14px 16px", borderBottom: "1px solid #F3F4F6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontWeight: 700, fontSize: 15 }}>Notifications</span>
                     <span style={{ fontSize: 12, color: "#9CA3AF" }}>{unreadCount} unread</span>

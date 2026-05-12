@@ -116,7 +116,7 @@ export default function CisoAuditPage() {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Audit Explorer</h1>
           <p style={{ fontSize: 14, color: "#6B7280" }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
@@ -145,7 +145,7 @@ export default function CisoAuditPage() {
       )}
 
       {/* Stat Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Events", value: audit?.total?.toLocaleString() ?? "3,421", sub: "All time" },
           { label: "Anomalies", value: anomalies?.total ?? 7, sub: "Detected", color: "#DC2626" },
@@ -195,45 +195,49 @@ export default function CisoAuditPage() {
             </div>
           </div>
 
-          {/* Table Header */}
-          <div className="audit-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
-            {["Event Type", "User / Path", "Time", "Details"].map(h => (
-              <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
-            ))}
-          </div>
+          <div className="table-scroll">
+            <div className="table-min">
+              {/* Table Header */}
+              <div className="audit-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
+                {["Event Type", "User / Path", "Time", "Details"].map(h => (
+                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
+                ))}
+              </div>
 
-          {isLoading ? (
-            <div style={{ textAlign: "center", padding: "32px", color: "#9CA3AF" }}>Loading audit events...</div>
-          ) : filteredAudit.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "48px", color: "#9CA3AF" }}>
-              <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No events found</div>
-            </div>
-          ) : (
-            filteredAudit.map((item: any) => {
-              const cfg = EVENT_CONFIG[item.event_type] ?? EVENT_CONFIG.default;
-              return (
-                <div key={item._id} className="audit-row">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, background: cfg.bg, borderRadius: 8, flexShrink: 0 }}/>
-                    <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>
-                      {item.event_type?.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{item.user_id?.slice(0, 16) ?? "—"}</div>
-                    <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 1 }}>{item.path}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 13, color: "#374151" }}>{new Date(item.created_at).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
-                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(item.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short" })}</div>
-                  </div>
-                  <div style={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
-                    {Object.keys(item.payload ?? {}).length > 0 ? JSON.stringify(item.payload).slice(0, 40) + "..." : "—"}
-                  </div>
+              {isLoading ? (
+                <div style={{ textAlign: "center", padding: "32px", color: "#9CA3AF" }}>Loading audit events...</div>
+              ) : filteredAudit.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "48px", color: "#9CA3AF" }}>
+                  <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No events found</div>
                 </div>
-              );
-            })
-          )}
+              ) : (
+                filteredAudit.map((item: any) => {
+                  const cfg = EVENT_CONFIG[item.event_type] ?? EVENT_CONFIG.default;
+                  return (
+                    <div key={item._id} className="audit-row">
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 34, height: 34, background: cfg.bg, borderRadius: 8, flexShrink: 0 }}/>
+                        <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>
+                          {item.event_type?.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{item.user_id?.slice(0, 16) ?? "—"}</div>
+                        <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 1 }}>{item.path}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, color: "#374151" }}>{new Date(item.created_at).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(item.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short" })}</div>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
+                        {Object.keys(item.payload ?? {}).length > 0 ? JSON.stringify(item.payload).slice(0, 40) + "..." : "—"}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
 
           <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F3F4F6", fontSize: 13, color: "#9CA3AF" }}>
             Showing {filteredAudit.length} of {audit?.total?.toLocaleString() ?? 0} total events

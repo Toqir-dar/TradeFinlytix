@@ -148,9 +148,18 @@ export default function ForgotPasswordPage() {
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9CA3AF; padding: 0; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .auth-left { width: 50%; }
+        .auth-right { width: 50%; }
+        @media (max-width: 768px) {
+          .auth-left { display: none !important; }
+          .auth-right { width: 100% !important; padding: 40px 24px !important; }
+        }
+        @media (max-width: 480px) {
+          .auth-right { padding: 32px 16px !important; }
+        }
       `}</style>
 
-      <div style={{ width: "50%", background: "linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%)", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "40px 48px", position: "relative", overflow: "hidden" }}>
+      <div className="auth-left" style={{ width: "50%", background: "linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%)", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "40px 48px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, opacity: 0.07 }}>
           <svg width="100%" height="100%">
             <defs>
@@ -199,7 +208,7 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
 
-      <div style={{ width: "50%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", background: "#FAFAFA" }}>
+      <div className="auth-right" style={{ width: "50%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", background: "#FAFAFA" }}>
         <div style={{ maxWidth: 420, width: "100%" }} className="fade-in">
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "#111827", marginBottom: 8, letterSpacing: "-0.5px" }}>
             {title}

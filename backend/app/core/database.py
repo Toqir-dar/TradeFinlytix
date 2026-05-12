@@ -156,6 +156,16 @@ async def _create_indexes() -> None:
         expireAfterSeconds=0,
     )
 
+    await db["password_reset_otps"].create_index(
+        [("user_id", ASCENDING), ("created_at", DESCENDING)],
+        name="password_reset_otps_user_created_at",
+    )
+    await db["password_reset_otps"].create_index(
+        "expires_at",
+        name="password_reset_otps_expires_at_ttl",
+        expireAfterSeconds=0,
+    )
+
     await db["risk_snapshots"].create_index(
         [("subject", ASCENDING), ("created_at", DESCENDING)],
         name="risk_snapshots_subject_created_at",

@@ -25,6 +25,7 @@ class UserRepository:
         self.db = db
         self.users = db["users"]
         self.refresh_tokens = db["refresh_tokens"]
+        self.password_reset_otps = db["password_reset_otps"]
 
     async def _inflate_user_doc(self, doc: dict[str, Any] | None) -> dict[str, Any] | None:
         if not doc:
@@ -251,6 +252,78 @@ class UserRepository:
         await self.refresh_tokens.update_many(
             {"user_id": ObjectId(user_id)},
             {"$set": {"revoked": True}},
+        )
+
+    async def invalidate_active_password_reset_otps(self, user_id: str) -> None:
+        now = datetime.now(timezone.utc)
+        await self.password_reset_otps.update_many(
+            {"user_id": ObjectId(user_id), "consumed_at": None},
+            {"$set": {"consumed_at": now, "updated_at": now}},
+        )
+
+    async def create_password_reset_otp(
+        self,
+        *,
+        user_id: str,
+        otp_hash: str,
+        expires_at: datetime,
+        max_attempts: int,
+        resend_count: int = 0,
+    ) -> dict[str, Any]:
+        now = datetime.now(timezone.utc)
+        await self.invalidate_active_password_reset_otps(user_id)
+        doc = {
+            "user_id": ObjectId(user_id),
+            "otp_hash": otp_hash,
+            "expires_at": expires_at,
+            "attempts": 0,
+            "max_attempts": max_attempts,
+            "resend_count": resend_count,
+            "verified_at": None,
+            "consumed_at": None,
+            "created_at": now,
+            "sent_at": now,
+            "updated_at": now,
+        }
+        result = await self.password_reset_otps.insert_one(doc)
+        doc["_id"] = result.inserted_id
+        return doc
+
+    async def get_latest_password_reset_otp(self, user_id: str) -> dict[str, Any] | None:
+        return await self.password_reset_otps.find_one(
+            {"user_id": ObjectId(user_id), "consumed_at": None},
+            sort=[("created_at", -1)],
+        )
+
+    async def record_password_reset_otp_attempt(
+        self,
+        otp_id: Any,
+    ) -> dict[str, Any] | None:
+        return await self.password_reset_otps.find_one_and_update(
+            {"_id": otp_id},
+            {
+                "$inc": {"attempts": 1},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+
+    async def mark_password_reset_otp_verified(
+        self,
+        otp_id: Any,
+    ) -> dict[str, Any] | None:
+        now = datetime.now(timezone.utc)
+        return await self.password_reset_otps.find_one_and_update(
+            {"_id": otp_id, "consumed_at": None},
+            {"$set": {"verified_at": now, "updated_at": now}},
+            return_document=ReturnDocument.AFTER,
+        )
+
+    async def consume_password_reset_otp(self, otp_id: Any) -> None:
+        now = datetime.now(timezone.utc)
+        await self.password_reset_otps.update_one(
+            {"_id": otp_id},
+            {"$set": {"consumed_at": now, "updated_at": now}},
         )
 
     async def list_users(

@@ -42,6 +42,45 @@ class RefreshRequest(BaseModel):
     refresh_token: str = Field(min_length=10)
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email_field(cls, v: str) -> str:
+        return normalize_email(v)
+
+
+class VerifyPasswordResetOtpRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email_field(cls, v: str) -> str:
+        return normalize_email(v)
+
+
+class ResetPasswordWithOtpRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    new_password: PasswordStr
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email_field(cls, v: str) -> str:
+        return normalize_email(v)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str

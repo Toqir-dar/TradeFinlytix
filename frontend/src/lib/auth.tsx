@@ -9,6 +9,14 @@ type AuthCtx = {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<string>;
+  resendPasswordResetOtp: (email: string) => Promise<string>;
+  verifyPasswordResetOtp: (email: string, otp: string) => Promise<string>;
+  resetPasswordWithOtp: (
+    email: string,
+    otp: string,
+    newPassword: string
+  ) => Promise<string>;
   logout: () => Promise<void>;
   hasRole: (roles: Role[]) => boolean;
 };
@@ -46,6 +54,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setTokens(data.tokens.access_token, data.tokens.refresh_token);
         setUser(data.user);
+      },
+      requestPasswordReset: async (email) => {
+        const { data } = await api.post("/auth/forgot-password", { email });
+        return data.message;
+      },
+      resendPasswordResetOtp: async (email) => {
+        const { data } = await api.post("/auth/forgot-password/resend", { email });
+        return data.message;
+      },
+      verifyPasswordResetOtp: async (email, otp) => {
+        const { data } = await api.post("/auth/forgot-password/verify-otp", {
+          email,
+          otp
+        });
+        return data.message;
+      },
+      resetPasswordWithOtp: async (email, otp, newPassword) => {
+        const { data } = await api.post("/auth/forgot-password/reset", {
+          email,
+          otp,
+          new_password: newPassword
+        });
+        return data.message;
       },
       logout: async () => {
         const refreshToken = localStorage.getItem("tfx_refresh_token");

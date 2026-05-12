@@ -63,7 +63,10 @@ export default function CisoAuditPage() {
   const auditItems = audit?.items ?? [];
   const anomalyItems = anomalies?.items ?? [];
 
-  const EVENT_TYPES = ["all", ...Array.from(new Set(auditItems.map((i: any) => i.event_type)))];
+  const EVENT_TYPES: string[] = [
+    "all",
+    ...Array.from(new Set<string>(auditItems.map((i: any) => String(i.event_type))))
+  ];
 
   const filteredAudit = auditItems.filter((i: any) => {
     const matchFilter = eventFilter === "all" || i.event_type === eventFilter;

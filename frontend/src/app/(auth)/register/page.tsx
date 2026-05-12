@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 
@@ -12,7 +12,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace("/dashboard");
+  }, [user, authLoading, router]);
 
   const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -22,7 +26,7 @@ export default function RegisterPage() {
     setLoading(true); setError("");
     try {
       await register(form.email, form.password, form.name);
-      router.push("/dashboard");
+      router.push("/login");
     } catch {
       setError("Registration failed. Please try again.");
     } finally {
@@ -116,7 +120,7 @@ export default function RegisterPage() {
 
           {error && (
             <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
-              ⚠️ {error}
+              {error}
             </div>
           )}
 
@@ -184,9 +188,8 @@ export default function RegisterPage() {
           </p>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 28, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
-            {[["🔒", "SSL Secure"], ["🛡️", "RBAC Protected"], ["✅", "ISO Aligned"]].map(([icon, label]) => (
+            {[[ "SSL Secure"], ["RBAC Protected"], [ "ISO Aligned"]].map(([label]) => (
               <div key={label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 18 }}>{icon}</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{label}</div>
               </div>
             ))}

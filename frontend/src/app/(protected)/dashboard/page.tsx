@@ -6,6 +6,7 @@ import {
   AreaChart, Area, BarChart, Bar,
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid
 } from "recharts";
+import { motion, type Variants } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 
@@ -43,6 +44,38 @@ const SIGNAL_COLORS: Record<string, { bg: string; color: string }> = {
   SELL: { bg: "#FEE2E2", color: "#991B1B" },
 };
 
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const cardStagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } }
+};
+
+const cardItem: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.42, ease: EASE } }
+};
+
+const listStagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } }
+};
+
+const listItem: Variants = {
+  hidden: { opacity: 0, x: 16 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: EASE } }
+};
+
+const rowStagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
+};
+
+const rowItem: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+};
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -75,34 +108,36 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(" ")[0] ?? (isAdmin ? "Admin" : isCiso ? "CISO" : "Trader");
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35 }}
+      style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
-        .stat-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; transition: all 0.2s; }
-        .stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
-        .signal-row:hover { background: #F9FAFB; }
-        .signal-row { transition: background 0.15s; border-radius: 10px; }
-        .chip { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
         .section-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; }
+        .chip { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
         .trade-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #F3F4F6; align-items: center; font-size: 14px; }
         .trade-row:last-child { border-bottom: none; }
-        .trade-row:hover { background: #F9FAFB; border-radius: 8px; }
-        .quick-action { background: white; border: 1.5px solid #E5E7EB; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: flex; align-items: center; gap: 12px; }
-        .quick-action:hover { border-color: #4ADE80; box-shadow: 0 4px 12px rgba(74,222,128,0.15); transform: translateY(-1px); }
       `}</style>
 
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
+      <motion.div
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        style={{ marginBottom: 28 }}
+      >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#111827", letterSpacing: "-0.5px" }}>
-              {getGreeting()}, {firstName} 👋
+              {getGreeting()}, {firstName}
             </h1>
             <p style={{ fontSize: 14, color: "#6B7280", marginTop: 4 }}>
-              Here's your {user?.role ?? "investor"} overview for today — {new Date().toLocaleDateString("en-PK", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              Here&apos;s your {user?.role ?? "investor"} overview for today — {new Date().toLocaleDateString("en-PK", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
-          {/* Get Signal button only for investor */}
           {isInvestor && (
             <div style={{ display: "flex", gap: 8 }}>
               <Link href="/predict" style={{ background: "#16A34A", color: "white", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
@@ -115,37 +150,49 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* ── INVESTOR VIEW ── */}
       {isInvestor && (
         <>
           {/* Stat Cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+          <motion.div
+            style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
+            variants={cardStagger}
+            initial="hidden"
+            animate="visible"
+          >
             {[
-              { label: "Portfolio Value", value: "PKR 2,79,500", change: "+4.3%", up: true, icon: "💼" },
-              { label: "Today's P&L", value: "+PKR 11,500", change: "+4.3%", up: true, icon: "📈" },
-              { label: "Active Positions", value: "8", change: "2 new today", up: true, icon: "🎯" },
-              { label: "Win Rate", value: "71.4%", change: "+2.1% this week", up: true, icon: "🏆" },
+              { label: "Portfolio Value", value: "PKR 2,79,500", change: "+4.3%", up: true },
+              { label: "Today's P&L", value: "+PKR 11,500", change: "+4.3%", up: true },
+              { label: "Active Positions", value: "8", change: "2 new today", up: true },
+              { label: "Win Rate", value: "71.4%", change: "+2.1% this week", up: true },
             ].map((s) => (
-              <div key={s.label} className="stat-card">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                    <p style={{ fontSize: 22, fontWeight: 800, color: "#111827" }}>{s.value}</p>
-                    <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>
-                      {s.up ? "▲" : "▼"} {s.change}
-                    </p>
-                  </div>
-                  <div style={{ fontSize: 28 }}>{s.icon}</div>
+              <motion.div
+                key={s.label}
+                variants={cardItem}
+                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
+                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
+              >
+                <div>
+                  <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                  <p style={{ fontSize: 22, fontWeight: 800, color: "#111827" }}>{s.value}</p>
+                  <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>
+                    {s.up ? "▲" : "▼"} {s.change}
+                  </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Chart + Signals */}
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 24 }}>
-            <div className="section-card">
+            <motion.div
+              className="section-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.35, ease: EASE }}
+            >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div>
                   <h3 style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>Portfolio Performance</h3>
@@ -168,37 +215,58 @@ export default function DashboardPage() {
                   <Area type="monotone" dataKey="value" stroke="#16A34A" strokeWidth={2.5} fill="url(#colorValue)"/>
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
+            </motion.div>
 
-            <div className="section-card">
+            <motion.div
+              className="section-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.45, ease: EASE }}
+            >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <h3 style={{ fontWeight: 700, fontSize: 16 }}>AI Signals</h3>
                 <Link href="/predict" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <motion.div
+                style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                variants={listStagger}
+                initial="hidden"
+                animate="visible"
+              >
                 {MOCK_SIGNALS.map((s) => (
-                  <Link key={s.symbol} href={`/predict/${s.symbol}`} style={{ textDecoration: "none" }}>
-                    <div className="signal-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 36, height: 36, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11, color: "#16A34A" }}>{s.symbol.slice(0, 3)}</div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{s.symbol}</div>
-                          <div style={{ fontSize: 11, color: "#9CA3AF" }}>{s.price}</div>
+                  <motion.div key={s.symbol} variants={listItem}>
+                    <Link href={`/predict/${s.symbol}`} style={{ textDecoration: "none" }}>
+                      <motion.div
+                        whileHover={{ backgroundColor: "#F9FAFB", x: 2, transition: { duration: 0.12 } }}
+                        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 10, backgroundColor: "transparent" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 36, height: 36, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11, color: "#16A34A" }}>{s.symbol.slice(0, 3)}</div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{s.symbol}</div>
+                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>{s.price}</div>
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span className="chip" style={{ background: SIGNAL_COLORS[s.signal]?.bg, color: SIGNAL_COLORS[s.signal]?.color }}>{s.signal}</span>
-                        <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{s.confidence}% conf.</div>
-                      </div>
-                    </div>
-                  </Link>
+                        <div style={{ textAlign: "right" }}>
+                          <span className="chip" style={{ background: SIGNAL_COLORS[s.signal]?.bg, color: SIGNAL_COLORS[s.signal]?.color }}>{s.signal}</span>
+                          <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{s.confidence}% conf.</div>
+                        </div>
+                      </motion.div>
+                    </Link>
+                  </motion.div>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
 
           {/* Recent Trades */}
-          <div className="section-card" style={{ marginBottom: 24 }}>
+          <motion.div
+            className="section-card"
+            style={{ marginBottom: 24 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.55, ease: EASE }}
+          >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontWeight: 700, fontSize: 16 }}>Recent Trades</h3>
               <Link href="/trades" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
@@ -207,111 +275,172 @@ export default function DashboardPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 <span>Symbol</span><span>Type</span><span>Quantity</span><span>Price</span><span>Time</span><span>P&L</span>
               </div>
-              {MOCK_TRADES.map((t, i) => (
-                <div key={i} className="trade-row">
-                  <span style={{ fontWeight: 700, color: "#111827" }}>{t.symbol}</span>
-                  <span>
-                    <span className="chip" style={{ background: t.type === "BUY" ? "#DCFCE7" : "#FEE2E2", color: t.type === "BUY" ? "#15803D" : "#991B1B" }}>{t.type}</span>
-                  </span>
-                  <span style={{ color: "#374151" }}>{t.qty}</span>
-                  <span style={{ color: "#374151" }}>{t.price}</span>
-                  <span style={{ color: "#9CA3AF" }}>{t.time}</span>
-                  <span style={{ color: "#16A34A", fontWeight: 600 }}>{t.pnl}</span>
-                </div>
-              ))}
+              <motion.div variants={rowStagger} initial="hidden" animate="visible">
+                {MOCK_TRADES.map((t, i) => (
+                  <motion.div
+                    key={i}
+                    className="trade-row"
+                    variants={rowItem}
+                    whileHover={{ backgroundColor: "#F9FAFB", transition: { duration: 0.1 } }}
+                    style={{ backgroundColor: "transparent", borderRadius: 8 }}
+                  >
+                    <span style={{ fontWeight: 700, color: "#111827" }}>{t.symbol}</span>
+                    <span>
+                      <span className="chip" style={{ background: t.type === "BUY" ? "#DCFCE7" : "#FEE2E2", color: t.type === "BUY" ? "#15803D" : "#991B1B" }}>{t.type}</span>
+                    </span>
+                    <span style={{ color: "#374151" }}>{t.qty}</span>
+                    <span style={{ color: "#374151" }}>{t.price}</span>
+                    <span style={{ color: "#9CA3AF" }}>{t.time}</span>
+                    <span style={{ color: "#16A34A", fontWeight: 600 }}>{t.pnl}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick Actions */}
-          <div style={{ marginBottom: 24 }}>
+          <motion.div
+            style={{ marginBottom: 24 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.65, ease: EASE }}
+          >
             <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Quick Actions</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+            <motion.div
+              style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}
+              variants={cardStagger}
+              initial="hidden"
+              animate="visible"
+            >
               {[
-                { href: "/predict", icon: "📊", label: "Get AI Signal", sub: "Any PSX symbol" },
-                { href: "/portfolio", icon: "💼", label: "View Portfolio", sub: "P&L overview" },
-                { href: "/trades", icon: "📋", label: "Trade History", sub: "All transactions" },
-                { href: "/profile", icon: "👤", label: "My Profile", sub: "Account settings" },
+                { href: "/predict", label: "Get AI Signal", sub: "Any PSX symbol" },
+                { href: "/portfolio", label: "View Portfolio", sub: "P&L overview" },
+                { href: "/trades", label: "Trade History", sub: "All transactions" },
+                { href: "/profile", label: "My Profile", sub: "Account settings" },
               ].map((a) => (
-                <Link key={a.href} href={a.href} className="quick-action">
-                  <div style={{ fontSize: 28 }}>{a.icon}</div>
-                  <div>
+                <Link key={a.href} href={a.href} style={{ textDecoration: "none" }}>
+                  <motion.div
+                    variants={cardItem}
+                    whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
+                    style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer" }}
+                  >
                     <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
                     <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
-                  </div>
+                  </motion.div>
                 </Link>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </>
       )}
 
       {/* ── ADMIN VIEW ── */}
       {isAdmin && (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+          <motion.div
+            style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
+            variants={cardStagger}
+            initial="hidden"
+            animate="visible"
+          >
             {[
-              { label: "Total Users", value: "1,284", change: "+12 today", icon: "👥" },
-              { label: "Active Users", value: "1,201", change: "93.5% active", icon: "✅" },
-              { label: "Deactivated", value: "83", change: "6.5% inactive", icon: "🚫" },
-              { label: "New Today", value: "12", change: "+3 from yesterday", icon: "🆕" },
+              { label: "Total Users", value: "1,284", change: "+12 today"},
+              { label: "Active Users", value: "1,201", change: "93.5% active" },
+              { label: "Deactivated", value: "83", change: "6.5% inactive"},
+              { label: "New Today", value: "12", change: "+3 from yesterday"},
             ].map((s) => (
-              <div key={s.label} className="stat-card">
+              <motion.div
+                key={s.label}
+                variants={cardItem}
+                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
+                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
+              >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div>
                     <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>{s.label}</p>
                     <p style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</p>
                     <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{s.change}</p>
                   </div>
-                  <div style={{ fontSize: 28 }}>{s.icon}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
-          <div className="section-card" style={{ marginBottom: 24 }}>
+          </motion.div>
+          <motion.div
+            className="section-card"
+            style={{ marginBottom: 24 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.4, ease: EASE }}
+          >
             <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Quick Actions</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            <motion.div
+              style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
+              variants={cardStagger}
+              initial="hidden"
+              animate="visible"
+            >
               {[
-                { href: "/admin/users", icon: "👥", label: "Manage Users", sub: "View & edit all users" },
-                { href: "/profile", icon: "👤", label: "My Profile", sub: "Account settings" },
-                { href: "/predict", icon: "📊", label: "AI Signals", sub: "View predictions" },
+                { href: "/admin/users", label: "Manage Users", sub: "View & edit all users" },
+                { href: "/profile", label: "My Profile", sub: "Account settings" },
+                { href: "/predict", label: "AI Signals", sub: "View predictions" },
               ].map((a) => (
-                <Link key={a.href} href={a.href} className="quick-action">
-                  <div style={{ fontSize: 28 }}>{a.icon}</div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
-                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
-                  </div>
+                <Link key={a.href} href={a.href} style={{ textDecoration: "none" }}>
+                  <motion.div
+                    variants={cardItem}
+                    whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
+                    style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                    </div>
+                  </motion.div>
                 </Link>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </>
       )}
 
       {/* ── CISO VIEW ── */}
       {isCiso && (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+          <motion.div
+            style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
+            variants={cardStagger}
+            initial="hidden"
+            animate="visible"
+          >
             {[
-              { label: "Audit Events", value: "3,421", change: "+48 today", icon: "🔍" },
-              { label: "Anomalies", value: "7", change: "2 high severity", icon: "⚠️" },
-              { label: "Risk Score", value: "LOW", change: "All systems normal", icon: "🛡️" },
-              { label: "Chain Status", value: "Verified", change: "Last checked 2m ago", icon: "✅" },
+              { label: "Audit Events", value: "3,421", change: "+48 today"},
+              { label: "Anomalies", value: "7", change: "2 high severity"},
+              { label: "Risk Score", value: "LOW", change: "All systems normal" },
+              { label: "Chain Status", value: "Verified", change: "Last checked 2m ago"},
             ].map((s) => (
-              <div key={s.label} className="stat-card">
+              <motion.div
+                key={s.label}
+                variants={cardItem}
+                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
+                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
+              >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <div>
                     <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>{s.label}</p>
                     <p style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</p>
                     <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{s.change}</p>
                   </div>
-                  <div style={{ fontSize: 28 }}>{s.icon}</div>
+
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-            <div className="section-card">
+            <motion.div
+              className="section-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.4, ease: EASE }}
+            >
               <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Risk Trend (7 Days)</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={riskData}>
@@ -322,28 +451,41 @@ export default function DashboardPage() {
                   <Bar dataKey="count" fill="#4ADE80" radius={[6, 6, 0, 0]}/>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-            <div className="section-card">
+            </motion.div>
+            <motion.div
+              className="section-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.5, ease: EASE }}
+            >
               <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Quick Actions</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <motion.div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                variants={cardStagger}
+                initial="hidden"
+                animate="visible"
+              >
                 {[
-                  { href: "/ciso/audit", icon: "🔍", label: "Audit Explorer", sub: "View event stream" },
-                  { href: "/ciso/risk", icon: "📊", label: "Risk Dashboard", sub: "Anomalies & trends" },
-                  { href: "/profile", icon: "👤", label: "My Profile", sub: "Account settings" },
+                  { href: "/ciso/audit", label: "Audit Explorer", sub: "View event stream" },
+                  { href: "/ciso/risk", label: "Risk Dashboard", sub: "Anomalies & trends" },
+                  { href: "/profile", label: "My Profile", sub: "Account settings" },
                 ].map((a) => (
-                  <Link key={a.href} href={a.href} className="quick-action">
-                    <div style={{ fontSize: 24 }}>{a.icon}</div>
-                    <div>
+                  <Link key={a.href} href={a.href} style={{ textDecoration: "none" }}>
+                    <motion.div
+                      variants={cardItem}
+                      whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
+                      style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer" }}
+                    >
                       <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
                       <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
-                    </div>
+                    </motion.div>
                   </Link>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -39,11 +39,11 @@ const MOCK_DATA = {
   }
 };
 
-const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; emoji: string }> = {
-  BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", emoji: "📈" },
-  HOLD: { bg: "#FEF9C3", color: "#854D0E", border: "#FDE68A", label: "Hold Position", emoji: "⏸️" },
-  TRIM: { bg: "#FFEDD5", color: "#9A3412", border: "#FED7AA", label: "Consider Trimming", emoji: "✂️" },
-  SELL: { bg: "#FEE2E2", color: "#991B1B", border: "#FECACA", label: "Exit Position", emoji: "📉" },
+const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string }> = {
+  BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal" },
+  HOLD: { bg: "#FEF9C3", color: "#854D0E", border: "#FDE68A", label: "Hold Position" },
+  TRIM: { bg: "#FFEDD5", color: "#9A3412", border: "#FED7AA", label: "Consider Trimming" },
+  SELL: { bg: "#FEE2E2", color: "#991B1B", border: "#FECACA", label: "Exit Position" },
 };
 
 const RISK_CONFIG: Record<string, { bg: string; color: string }> = {
@@ -109,7 +109,7 @@ export default function PredictSymbolPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ background: sigConfig.color, color: "white", padding: "8px 24px", borderRadius: 12, fontWeight: 800, fontSize: 18, letterSpacing: "1px" }}>
-                  {sigConfig.emoji} {signal}
+                  {signal}
                 </span>
                 <span style={{ fontSize: 15, color: "#6B7280", fontWeight: 500 }}>{sigConfig.label}</span>
               </div>
@@ -152,14 +152,14 @@ export default function PredictSymbolPage() {
       )}
       {error && (
         <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: 16, marginBottom: 20, fontSize: 14, color: "#92400E" }}>
-          ⚠️ Backend offline — showing demo data. Connect backend to see live signals.
+          Backend offline — showing demo data. Connect backend to see live signals.
         </div>
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Execution Levels */}
         <div className="section-card">
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>📊 Execution Levels</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Execution Levels</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[
               { label: "Entry Price", value: data?.prediction?.entry_price ? `PKR ${data.prediction.entry_price}` : "PKR 173.50", sub: "Recommended entry", color: "#16A34A" },
@@ -177,7 +177,7 @@ export default function PredictSymbolPage() {
 
           {/* Rationale */}
           <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 16, marginTop: 16 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>🧠 AI Rationale</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>AI Rationale</p>
             <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.65 }}>
               {data?.prediction?.rationale ?? MOCK_DATA.prediction.rationale}
             </p>
@@ -186,7 +186,7 @@ export default function PredictSymbolPage() {
 
         {/* SHAP Feature Importance */}
         <div className="section-card">
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>⚡ Signal Drivers</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Signal Drivers</h3>
           <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 20 }}>SHAP feature importance</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {features.map((f: any, i: number) => (
@@ -208,7 +208,7 @@ export default function PredictSymbolPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Risk Details */}
         <div className="section-card">
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>🛡️ Risk Assessment</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Risk Assessment</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {[
               { label: "Risk Level", value: riskLevel, highlight: true },
@@ -232,9 +232,8 @@ export default function PredictSymbolPage() {
 
         {/* Integrity */}
         <div className="section-card">
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>🔐 Integrity Verification</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Integrity Verification</h3>
           <div style={{ background: data?.integrity?.verified !== false ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${data?.integrity?.verified !== false ? "#BBF7D0" : "#FECACA"}`, borderRadius: 12, padding: 20, marginBottom: 16, textAlign: "center" }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>{data?.integrity?.verified !== false ? "✅" : "❌"}</div>
             <p style={{ fontWeight: 700, fontSize: 16, color: data?.integrity?.verified !== false ? "#15803D" : "#991B1B" }}>
               {data?.integrity?.verified !== false ? "HMAC Verified" : "Verification Failed"}
             </p>
@@ -266,10 +265,10 @@ export default function PredictSymbolPage() {
           Add to Portfolio
         </Link>
         <Link href="/trades" className="action-btn" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB" }}>
-          📋 Log Trade
+          Log Trade
         </Link>
         <Link href="/predict" className="action-btn" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB" }}>
-          🔍 Another Symbol
+          Another Symbol
         </Link>
       </div>
 

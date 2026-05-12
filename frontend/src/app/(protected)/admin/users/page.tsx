@@ -35,6 +35,7 @@ export default function AdminUsersPage() {
   const items = data?.items?.length ? data.items : MOCK_USERS;
 
   const filtered = items.filter((u: any) => {
+    if (u._id === user?._id || u.email === user?.email) return false;
     const matchSearch = !search || u.full_name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     const matchStatus = statusFilter === "all" || (statusFilter === "active" ? u.is_active : !u.is_active);
@@ -56,7 +57,6 @@ export default function AdminUsersPage() {
 
   if (user?.role !== "admin") return (
     <div style={{ textAlign: "center", padding: 48, color: "#9CA3AF" }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
       <div style={{ fontWeight: 600, fontSize: 18, color: "#374151" }}>Admin Access Required</div>
     </div>
   );
@@ -64,7 +64,6 @@ export default function AdminUsersPage() {
   if (isLoading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: "#9CA3AF" }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
         Loading users...
       </div>
     </div>
@@ -101,10 +100,10 @@ export default function AdminUsersPage() {
       {/* Stat Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Users", value: items.length, icon: "👥", sub: "Registered" },
-          { label: "Active Users", value: totalActive, icon: "✅", sub: "Currently active", color: "#16A34A" },
-          { label: "Deactivated", value: totalInactive, icon: "🚫", sub: "Inactive accounts", color: "#DC2626" },
-          { label: "Admins", value: items.filter((u: any) => u.role === "admin").length, icon: "⚙️", sub: "Admin role", color: "#1D4ED8" },
+          { label: "Total Users", value: items.length, sub: "Registered" },
+          { label: "Active Users", value: totalActive, sub: "Currently active", color: "#16A34A" },
+          { label: "Deactivated", value: totalInactive, sub: "Inactive accounts", color: "#DC2626" },
+          { label: "Admins", value: items.filter((u: any) => u.role === "admin").length, sub: "Admin role", color: "#1D4ED8" },
         ].map(s => (
           <div key={s.label} className="stat-card">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -113,7 +112,6 @@ export default function AdminUsersPage() {
                 <p style={{ fontSize: 24, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
                 <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
               </div>
-              <div style={{ fontSize: 28 }}>{s.icon}</div>
             </div>
           </div>
         ))}
@@ -209,7 +207,6 @@ export default function AdminUsersPage() {
 
         {filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
             <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No users found</div>
             <div style={{ fontSize: 14, marginTop: 4 }}>Try a different search or filter</div>
           </div>

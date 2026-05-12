@@ -158,7 +158,6 @@ export default function PredictPage() {
 
           {filtered.length === 0 && (
             <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
               <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No symbols found</div>
               <div style={{ fontSize: 14, marginTop: 4 }}>Try searching directly above</div>
             </div>
@@ -169,8 +168,8 @@ export default function PredictPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Recent */}
           <div style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 20 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>🕐</span> Recent Signals
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>
+              Recent Signals
             </h3>
             {MOCK_RECENT.map((r, i) => (
               <div key={i} className="recent-row" onClick={() => router.push(`/predict/${r.symbol}`)}>
@@ -195,7 +194,7 @@ export default function PredictPage() {
 
           {/* How it works */}
           <div style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 20 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>⚡ How it works</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>How it works</h3>
             {[
               { num: "1", text: "Enter any PSX symbol (.KA ticker)" },
               { num: "2", text: "AI ensemble runs XGBoost + LightGBM + LSTM" },
@@ -214,7 +213,7 @@ export default function PredictPage() {
           {/* Disclaimer */}
           <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: 16 }}>
             <div style={{ fontSize: 12, color: "#92400E", lineHeight: 1.6 }}>
-              ⚠️ <strong>Disclaimer:</strong> AI signals are for informational purposes only. Always do your own research before trading.
+              <strong>Disclaimer:</strong> AI signals are for informational purposes only. Always do your own research before trading.
             </div>
           </div>
         </div>

@@ -27,15 +27,15 @@ const MOCK_ANOMALIES = {
   total: 7, skip: 0, limit: 50
 };
 
-const EVENT_CONFIG: Record<string, { bg: string; color: string; icon: string }> = {
-  login_success:    { bg: "#DCFCE7", color: "#15803D", icon: "🔐" },
-  login_failed:     { bg: "#FEE2E2", color: "#991B1B", icon: "❌" },
-  predict_request:  { bg: "#EFF6FF", color: "#1D4ED8", icon: "📊" },
-  portfolio_update: { bg: "#F0FDF4", color: "#16A34A", icon: "💼" },
-  admin_deactivate: { bg: "#FEF3C7", color: "#92400E", icon: "🚫" },
-  admin_activate:   { bg: "#DCFCE7", color: "#15803D", icon: "✅" },
-  logout:           { bg: "#F3F4F6", color: "#374151", icon: "🚪" },
-  default:          { bg: "#F3F4F6", color: "#374151", icon: "📌" },
+const EVENT_CONFIG: Record<string, { bg: string; color: string }> = {
+  login_success:    { bg: "#DCFCE7", color: "#15803D" },
+  login_failed:     { bg: "#FEE2E2", color: "#991B1B" },
+  predict_request:  { bg: "#EFF6FF", color: "#1D4ED8" },
+  portfolio_update: { bg: "#F0FDF4", color: "#16A34A" },
+  admin_deactivate: { bg: "#FEF3C7", color: "#92400E" },
+  admin_activate:   { bg: "#DCFCE7", color: "#15803D" },
+  logout:           { bg: "#F3F4F6", color: "#374151" },
+  default:          { bg: "#F3F4F6", color: "#374151" },
 };
 
 const ANOMALY_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
@@ -85,7 +85,6 @@ export default function CisoAuditPage() {
 
   if (user?.role !== "ciso") return (
     <div style={{ textAlign: "center", padding: 48 }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
       <div style={{ fontWeight: 600, fontSize: 18, color: "#374151" }}>CISO Access Required</div>
     </div>
   );
@@ -123,14 +122,13 @@ export default function CisoAuditPage() {
           style={{ background: verifyResult?.ok ? "#16A34A" : "#111827", color: "white", border: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, opacity: verifying ? 0.7 : 1, transition: "all 0.2s" }}>
           {verifying ? (
             <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/></svg>Verifying...</>
-          ) : verifyResult?.ok ? "✅ Chain Verified" : "🔐 Verify Chain"}
+          ) : verifyResult?.ok ? "Chain Verified" : "Verify Chain"}
         </button>
       </div>
 
       {/* Chain Verify Result */}
       {verifyResult && (
         <div style={{ background: verifyResult.ok ? "#F0FDF4" : "#FEF2F2", border: `1.5px solid ${verifyResult.ok ? "#BBF7D0" : "#FECACA"}`, borderRadius: 14, padding: 20, marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ fontSize: 36 }}>{verifyResult.ok ? "✅" : "❌"}</div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 16, color: verifyResult.ok ? "#15803D" : "#991B1B" }}>
               {verifyResult.ok ? "Audit Chain Verified — Tamper-Free" : "Chain Verification Failed!"}
@@ -146,19 +144,16 @@ export default function CisoAuditPage() {
       {/* Stat Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Events", value: audit?.total?.toLocaleString() ?? "3,421", icon: "📋", sub: "All time" },
-          { label: "Anomalies", value: anomalies?.total ?? 7, icon: "⚠️", sub: "Detected", color: "#DC2626" },
-          { label: "Chain Status", value: verifyResult ? (verifyResult.ok ? "Verified" : "Failed") : "Pending", icon: "🔐", sub: "HMAC integrity", color: verifyResult?.ok === false ? "#DC2626" : "#16A34A" },
-          { label: "Event Types", value: EVENT_TYPES.length - 1, icon: "🏷️", sub: "Distinct types" },
+          { label: "Total Events", value: audit?.total?.toLocaleString() ?? "3,421", sub: "All time" },
+          { label: "Anomalies", value: anomalies?.total ?? 7, sub: "Detected", color: "#DC2626" },
+          { label: "Chain Status", value: verifyResult ? (verifyResult.ok ? "Verified" : "Failed") : "Pending", sub: "HMAC integrity", color: verifyResult?.ok === false ? "#DC2626" : "#16A34A" },
+          { label: "Event Types", value: EVENT_TYPES.length - 1, sub: "Distinct types" },
         ].map(s => (
           <div key={s.label} className="stat-card">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                <p style={{ fontSize: 22, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
-                <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
-              </div>
-              <div style={{ fontSize: 28 }}>{s.icon}</div>
+            <div>
+              <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+              <p style={{ fontSize: 22, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
+              <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
             </div>
           </div>
         ))}
@@ -170,7 +165,7 @@ export default function CisoAuditPage() {
           <button key={tab} className="tab-btn"
             onClick={() => setActiveTab(tab)}
             style={{ background: activeTab === tab ? "#111827" : "white", color: activeTab === tab ? "white" : "#374151", border: activeTab === tab ? "none" : "1.5px solid #E5E7EB" }}>
-            {tab === "events" ? `📋 Audit Events (${auditItems.length})` : `⚠️ Anomalies (${anomalyItems.length})`}
+            {tab === "events" ? `Audit Events (${auditItems.length})` : `Anomalies (${anomalyItems.length})`}
           </button>
         ))}
       </div>
@@ -208,7 +203,6 @@ export default function CisoAuditPage() {
             <div style={{ textAlign: "center", padding: "32px", color: "#9CA3AF" }}>Loading audit events...</div>
           ) : filteredAudit.length === 0 ? (
             <div style={{ textAlign: "center", padding: "48px", color: "#9CA3AF" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
               <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No events found</div>
             </div>
           ) : (
@@ -217,9 +211,7 @@ export default function CisoAuditPage() {
               return (
                 <div key={item._id} className="audit-row">
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, background: cfg.bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
-                      {cfg.icon}
-                    </div>
+                    <div style={{ width: 34, height: 34, background: cfg.bg, borderRadius: 8, flexShrink: 0 }}/>
                     <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>
                       {item.event_type?.replace(/_/g, " ")}
                     </span>
@@ -256,7 +248,6 @@ export default function CisoAuditPage() {
 
           {anomalyItems.length === 0 ? (
             <div style={{ textAlign: "center", padding: "48px", color: "#9CA3AF" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
               <div style={{ fontWeight: 600, color: "#374151" }}>No anomalies detected</div>
             </div>
           ) : (
@@ -266,7 +257,7 @@ export default function CisoAuditPage() {
                 <div key={a._id} className="anomaly-row">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      <div style={{ width: 40, height: 40, background: cfg.bg, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>⚠️</div>
+                      <div style={{ width: 40, height: 40, background: cfg.bg, borderRadius: 10, flexShrink: 0 }}/>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                           <span style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>

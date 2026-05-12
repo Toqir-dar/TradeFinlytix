@@ -91,7 +91,7 @@ export default function TradesPage() {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Trade History</h1>
           <p style={{ fontSize: 14, color: "#6B7280" }}>All your PSX buy and sell transactions</p>
@@ -106,7 +106,7 @@ export default function TradesPage() {
       {showForm && (
         <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>Log New Trade</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+          <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Symbol</label>
               <input className="input-field" placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
@@ -140,7 +140,7 @@ export default function TradesPage() {
       )}
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Trades", value: items.length, sub: "All time" },
           { label: "Buy Orders", value: totalBuy, sub: "Purchases", color: "#16A34A" },
@@ -158,7 +158,7 @@ export default function TradesPage() {
       </div>
 
       {/* Chart + Table */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20, marginBottom: 24 }}>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20, marginBottom: 24 }}>
         {/* Activity Chart */}
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Trade Activity</h3>
@@ -225,45 +225,49 @@ export default function TradesPage() {
           </div>
         </div>
 
-        {/* Table Header */}
-        <div className="trade-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
-          {["Date & Time", "Symbol", "Side", "Quantity", "Price", "Total"].map(h => (
-            <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
-          ))}
-        </div>
-
-        {filtered.map((t: any) => {
-          const total = t.trade.quantity * t.trade.price;
-          return (
-            <div key={t._id} className="trade-row">
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>{new Date(t.timestamp).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" })}</div>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(t.timestamp).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 32, height: 32, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, color: "#16A34A" }}>
-                  {t.trade.symbol.slice(0, 3)}
-                </div>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{t.trade.symbol}</span>
-              </div>
-              <span>
-                <span className="chip" style={{ background: t.trade.side === "buy" ? "#DCFCE7" : "#FEE2E2", color: t.trade.side === "buy" ? "#15803D" : "#991B1B" }}>
-                  {t.trade.side}
-                </span>
-              </span>
-              <span style={{ fontSize: 14, color: "#374151", fontWeight: 500 }}>{t.trade.quantity.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#374151" }}>PKR {t.trade.price.toFixed(2)}</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>PKR {total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+        <div className="table-scroll">
+          <div className="table-min">
+            {/* Table Header */}
+            <div className="trade-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
+              {["Date & Time", "Symbol", "Side", "Quantity", "Price", "Total"].map(h => (
+                <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
+              ))}
             </div>
-          );
-        })}
 
-        {filtered.length === 0 && (
-          <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No trades found</div>
-            <div style={{ fontSize: 14, marginTop: 4 }}>Try a different filter or log a new trade</div>
+            {filtered.map((t: any) => {
+              const total = t.trade.quantity * t.trade.price;
+              return (
+                <div key={t._id} className="trade-row">
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>{new Date(t.timestamp).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" })}</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(t.timestamp).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 32, height: 32, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, color: "#16A34A" }}>
+                      {t.trade.symbol.slice(0, 3)}
+                    </div>
+                    <span style={{ fontWeight: 700, fontSize: 14 }}>{t.trade.symbol}</span>
+                  </div>
+                  <span>
+                    <span className="chip" style={{ background: t.trade.side === "buy" ? "#DCFCE7" : "#FEE2E2", color: t.trade.side === "buy" ? "#15803D" : "#991B1B" }}>
+                      {t.trade.side}
+                    </span>
+                  </span>
+                  <span style={{ fontSize: 14, color: "#374151", fontWeight: 500 }}>{t.trade.quantity.toLocaleString()}</span>
+                  <span style={{ fontSize: 14, color: "#374151" }}>PKR {t.trade.price.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>PKR {total.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                </div>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
+                <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No trades found</div>
+                <div style={{ fontSize: 14, marginTop: 4 }}>Try a different filter or log a new trade</div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

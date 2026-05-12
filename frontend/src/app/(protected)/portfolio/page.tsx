@@ -89,14 +89,14 @@ export default function PortfolioPage() {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>
             My Portfolio
           </h1>
           <p style={{ fontSize: 14, color: "#6B7280" }}>Track your PSX positions, P&L, and allocation</p>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/trades" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
             Trade History
           </Link>
@@ -111,7 +111,7 @@ export default function PortfolioPage() {
       {showForm && (
         <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>Add New Position</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
+          <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Symbol</label>
               <input className="input-field" placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
@@ -137,7 +137,7 @@ export default function PortfolioPage() {
       )}
 
       {/* Stat Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Value", value: `PKR ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${Number(totalPnLPct) >= 0 ? "▲" : "▼"} ${Math.abs(Number(totalPnLPct))}%`, up: Number(totalPnLPct) >= 0 },
           { label: "Total P&L", value: `${totalPnL >= 0 ? "+" : ""}PKR ${Math.abs(totalPnL).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${totalPnL >= 0 ? "Profit" : "Loss"} overall`, up: totalPnL >= 0 },
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
       </div>
 
       {/* Chart + Pie */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 24 }}>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 24 }}>
         {/* Performance Chart */}
         <div className="section-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -214,51 +214,55 @@ export default function PortfolioPage() {
           <span style={{ fontSize: 13, color: "#9CA3AF" }}>{rows.length} holdings</span>
         </div>
 
-        {/* Table Header */}
-        <div className="position-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
-          {["Symbol", "Quantity", "Avg Price", "Current", "Value", "P&L"].map(h => (
-            <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
-          ))}
-        </div>
-
-        {rows.map((p: any, i: number) => {
-          const current = p.current_price ?? p.avg_price;
-          const value = p.quantity * current;
-          const pnl = (current - p.avg_price) * p.quantity;
-          const pnlPct = (((current - p.avg_price) / p.avg_price) * 100).toFixed(1);
-          return (
-            <div key={p.symbol} className="position-row">
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 36, height: 36, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 11, color: "#16A34A" }}>
-                  {p.symbol.slice(0, 3)}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{p.symbol}</div>
-                  <div style={{ fontSize: 11, color: "#9CA3AF" }}>{p.sector ?? "PSX"}</div>
-                </div>
-              </div>
-              <span style={{ fontSize: 14, color: "#374151", fontWeight: 500 }}>{p.quantity.toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: "#374151" }}>PKR {p.avg_price.toFixed(2)}</span>
-              <span style={{ fontSize: 14, color: "#374151" }}>PKR {current.toFixed(2)}</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>PKR {value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: pnl >= 0 ? "#16A34A" : "#DC2626" }}>
-                  {pnl >= 0 ? "+" : ""}PKR {Math.abs(pnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </div>
-                <div style={{ fontSize: 11, color: pnl >= 0 ? "#16A34A" : "#DC2626" }}>
-                  {pnl >= 0 ? "▲" : "▼"} {Math.abs(Number(pnlPct))}%
-                </div>
-              </div>
+        <div className="table-scroll">
+          <div className="table-min">
+            {/* Table Header */}
+            <div className="position-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
+              {["Symbol", "Quantity", "Avg Price", "Current", "Value", "P&L"].map(h => (
+                <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
+              ))}
             </div>
-          );
-        })}
 
-        {rows.length === 0 && (
-          <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No positions yet</div>
-            <div style={{ fontSize: 14, marginTop: 4 }}>Click "Add Position" to get started</div>
+            {rows.map((p: any, i: number) => {
+              const current = p.current_price ?? p.avg_price;
+              const value = p.quantity * current;
+              const pnl = (current - p.avg_price) * p.quantity;
+              const pnlPct = (((current - p.avg_price) / p.avg_price) * 100).toFixed(1);
+              return (
+                <div key={p.symbol} className="position-row">
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 36, height: 36, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 11, color: "#16A34A" }}>
+                      {p.symbol.slice(0, 3)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14 }}>{p.symbol}</div>
+                      <div style={{ fontSize: 11, color: "#9CA3AF" }}>{p.sector ?? "PSX"}</div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 14, color: "#374151", fontWeight: 500 }}>{p.quantity.toLocaleString()}</span>
+                  <span style={{ fontSize: 14, color: "#374151" }}>PKR {p.avg_price.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, color: "#374151" }}>PKR {current.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>PKR {value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: pnl >= 0 ? "#16A34A" : "#DC2626" }}>
+                      {pnl >= 0 ? "+" : ""}PKR {Math.abs(pnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </div>
+                    <div style={{ fontSize: 11, color: pnl >= 0 ? "#16A34A" : "#DC2626" }}>
+                      {pnl >= 0 ? "▲" : "▼"} {Math.abs(Number(pnlPct))}%
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {rows.length === 0 && (
+              <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
+                <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No positions yet</div>
+                <div style={{ fontSize: 14, marginTop: 4 }}>Click "Add Position" to get started</div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

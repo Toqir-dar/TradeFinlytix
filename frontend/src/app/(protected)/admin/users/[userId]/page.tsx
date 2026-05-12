@@ -131,7 +131,7 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 16 }}>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 16 }}>
         {/* Account Info */}
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Account Details</h3>

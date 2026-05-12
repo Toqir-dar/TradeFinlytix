@@ -57,6 +57,10 @@ export default function ProfilePage() {
         .btn-danger:hover { background: #FEF2F2; border-color: #FCA5A5; }
         .info-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
         .info-row:last-child { border-bottom: none; }
+        @media (max-width: 640px) {
+          .profile-header { flex-direction: column; align-items: flex-start; }
+          .info-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+        }
       `}</style>
 
       {/* Header */}
@@ -76,7 +80,7 @@ export default function ProfilePage() {
 
       {/* Profile Card */}
       <div className="section-card">
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div className="profile-header" style={{ display: "flex", alignItems: "center", gap: 20 }}>
           {/* Avatar */}
           <div style={{ width: 80, height: 80, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 800, color: "white", flexShrink: 0, boxShadow: "0 8px 20px rgba(74,222,128,0.3)" }}>
             {initials}
@@ -127,7 +131,7 @@ export default function ProfilePage() {
 
         {/* Change Password */}
         <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 20, marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
               <p style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>Password</p>
               <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Last changed recently</p>
@@ -168,7 +172,7 @@ export default function ProfilePage() {
 
         {/* Sessions */}
         <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
               <p style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>Active Sessions</p>
               <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Logout from all devices</p>

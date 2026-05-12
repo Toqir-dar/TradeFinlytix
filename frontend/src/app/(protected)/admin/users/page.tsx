@@ -98,7 +98,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Stat Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Users", value: items.length, sub: "Registered" },
           { label: "Active Users", value: totalActive, sub: "Currently active", color: "#16A34A" },
@@ -144,73 +144,77 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        {/* Table Header */}
-        <div className="user-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
-          {["User", "Email", "Role", "Status", "Actions"].map(h => (
-            <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
-          ))}
-        </div>
+        <div className="table-scroll">
+          <div className="table-min">
+            {/* Table Header */}
+            <div className="user-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
+              {["User", "Email", "Role", "Status", "Actions"].map(h => (
+                <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
+              ))}
+            </div>
 
-        {filtered.map((u: any) => (
-          <div key={u._id} className="user-row">
-            {/* Name */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>
-                {u.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <Link href={`/admin/users/${u._id}`} style={{ fontWeight: 700, fontSize: 14, color: "#111827", textDecoration: "none" }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#16A34A"}
-                  onMouseLeave={e => e.currentTarget.style.color = "#111827"}>
-                  {u.full_name}
-                </Link>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>
-                  {u.created_at ? new Date(u.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+            {filtered.map((u: any) => (
+              <div key={u._id} className="user-row">
+                {/* Name */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>
+                    {u.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <Link href={`/admin/users/${u._id}`} style={{ fontWeight: 700, fontSize: 14, color: "#111827", textDecoration: "none" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "#16A34A"}
+                      onMouseLeave={e => e.currentTarget.style.color = "#111827"}>
+                      {u.full_name}
+                    </Link>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <span style={{ fontSize: 13, color: "#6B7280" }}>{u.email}</span>
+
+                {/* Role */}
+                <span className="chip" style={{ background: ROLE_CONFIG[u.role]?.bg ?? "#F3F4F6", color: ROLE_CONFIG[u.role]?.color ?? "#374151" }}>
+                  {u.role}
+                </span>
+
+                {/* Status */}
+                <span className="chip" style={{ background: u.is_active ? "#DCFCE7" : "#FEE2E2", color: u.is_active ? "#15803D" : "#991B1B" }}>
+                  {u.is_active ? "Active" : "Inactive"}
+                </span>
+
+                {/* Actions */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <Link href={`/admin/users/${u._id}`}
+                    style={{ padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#F9FAFB", color: "#374151", border: "1.5px solid #E5E7EB", textDecoration: "none", transition: "all 0.2s" }}>
+                    View
+                  </Link>
+                  <button className="action-btn"
+                    style={{ background: u.is_active ? "#FEF2F2" : "#F0FDF4", color: u.is_active ? "#DC2626" : "#16A34A", borderColor: u.is_active ? "#FECACA" : "#BBF7D0" }}
+                    onClick={() => toggleUser.mutate({ id: u._id, active: u.is_active })}
+                    disabled={toggleUser.isPending}>
+                    {u.is_active ? "Deactivate" : "Activate"}
+                  </button>
+                  <button className="action-btn"
+                    style={{ background: "#FFFBEB", color: "#92400E", borderColor: "#FDE68A" }}
+                    onClick={() => resetPassword.mutate(u._id)}
+                    disabled={resetPassword.isPending}>
+                    Reset PW
+                  </button>
                 </div>
               </div>
-            </div>
+            ))}
 
-            {/* Email */}
-            <span style={{ fontSize: 13, color: "#6B7280" }}>{u.email}</span>
-
-            {/* Role */}
-            <span className="chip" style={{ background: ROLE_CONFIG[u.role]?.bg ?? "#F3F4F6", color: ROLE_CONFIG[u.role]?.color ?? "#374151" }}>
-              {u.role}
-            </span>
-
-            {/* Status */}
-            <span className="chip" style={{ background: u.is_active ? "#DCFCE7" : "#FEE2E2", color: u.is_active ? "#15803D" : "#991B1B" }}>
-              {u.is_active ? "Active" : "Inactive"}
-            </span>
-
-            {/* Actions */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <Link href={`/admin/users/${u._id}`}
-                style={{ padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#F9FAFB", color: "#374151", border: "1.5px solid #E5E7EB", textDecoration: "none", transition: "all 0.2s" }}>
-                View
-              </Link>
-              <button className="action-btn"
-                style={{ background: u.is_active ? "#FEF2F2" : "#F0FDF4", color: u.is_active ? "#DC2626" : "#16A34A", borderColor: u.is_active ? "#FECACA" : "#BBF7D0" }}
-                onClick={() => toggleUser.mutate({ id: u._id, active: u.is_active })}
-                disabled={toggleUser.isPending}>
-                {u.is_active ? "Deactivate" : "Activate"}
-              </button>
-              <button className="action-btn"
-                style={{ background: "#FFFBEB", color: "#92400E", borderColor: "#FDE68A" }}
-                onClick={() => resetPassword.mutate(u._id)}
-                disabled={resetPassword.isPending}>
-                Reset PW
-              </button>
-            </div>
+            {filtered.length === 0 && (
+              <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
+                <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No users found</div>
+                <div style={{ fontSize: 14, marginTop: 4 }}>Try a different search or filter</div>
+              </div>
+            )}
           </div>
-        ))}
-
-        {filtered.length === 0 && (
-          <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No users found</div>
-            <div style={{ fontSize: 14, marginTop: 4 }}>Try a different search or filter</div>
-          </div>
-        )}
+        </div>
 
         {/* Footer */}
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F3F4F6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>

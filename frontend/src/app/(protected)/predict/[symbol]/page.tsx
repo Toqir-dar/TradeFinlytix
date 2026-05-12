@@ -156,11 +156,11 @@ export default function PredictSymbolPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Execution Levels */}
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Execution Levels</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[
               { label: "Entry Price", value: data?.prediction?.entry_price ? `PKR ${data.prediction.entry_price}` : "PKR 173.50", sub: "Recommended entry", color: "#16A34A" },
               { label: "Target Price", value: data?.prediction?.target_price ? `PKR ${data.prediction.target_price}` : "PKR 127.50", sub: "Upside target", color: "#16A34A" },
@@ -205,11 +205,11 @@ export default function PredictSymbolPage() {
       </div>
 
       {/* Risk & Integrity */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Risk Details */}
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Risk Assessment</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {[
               { label: "Risk Level", value: riskLevel, highlight: true },
               { label: "Risk Score", value: (data?.risk?.score ?? 0.24).toFixed(2) },

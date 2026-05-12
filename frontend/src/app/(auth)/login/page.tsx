@@ -54,10 +54,19 @@ export default function LoginPage() {
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9CA3AF; padding: 0; }
         .eye-btn:hover { color: #6B7280; }
+        .auth-left { width: 50%; background: linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 48px; position: relative; overflow: hidden; }
+        .auth-right { width: 50%; display: flex; flex-direction: column; justify-content: center; padding: 60px 64px; background: #FAFAFA; }
+        @media (max-width: 768px) {
+          .auth-left { display: none !important; }
+          .auth-right { width: 100% !important; padding: 40px 24px !important; }
+        }
+        @media (max-width: 480px) {
+          .auth-right { padding: 32px 16px !important; }
+        }
       `}</style>
 
       {/* Left Panel */}
-      <div style={{ width: "50%", background: "linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%)", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "40px 48px", position: "relative", overflow: "hidden" }}>
+      <div className="auth-left">
         {/* Background pattern */}
         <div style={{ position: "absolute", inset: 0, opacity: 0.07 }}>
           <svg width="100%" height="100%">
@@ -147,7 +156,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel — Login Form */}
-      <div style={{ width: "50%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", background: "#FAFAFA" }}>
+      <div className="auth-right">
         <div style={{ maxWidth: 400, width: "100%" }} className="fade-in">
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "#111827", marginBottom: 8, letterSpacing: "-0.5px" }}>
             Welcome back

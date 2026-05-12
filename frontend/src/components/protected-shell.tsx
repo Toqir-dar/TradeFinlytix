@@ -133,6 +133,21 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         .alerts-panel { animation: slideDown 0.2s ease; }
         .mobile-menu { animation: slideDown 0.2s ease; }
+        .shell-desktop-nav { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; flex-wrap: nowrap; overflow: hidden; }
+        .shell-right-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .shell-mobile-btn { display: none; background: white; border: 1.5px solid #E5E7EB; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
+        .shell-mobile-nav { background: white; border-bottom: 1px solid #E5E7EB; padding: 12px 16px 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); animation: slideDown 0.2s ease; }
+        .shell-mobile-nav-link { display: block; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: #374151; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
+        .shell-mobile-nav-link:hover { background: #F0FDF4; color: #16A34A; }
+        .shell-mobile-nav-link.active { background: #DCFCE7; color: #15803D; font-weight: 600; }
+        .shell-user-name { font-size: 13px; font-weight: 600; color: #111827; line-height: 1.2; }
+        @media (max-width: 860px) {
+          .shell-desktop-nav { display: none !important; }
+          .shell-mobile-btn { display: flex !important; }
+        }
+        @media (max-width: 520px) {
+          .shell-user-name { display: none; }
+        }
       `}</style>
 
       {/* Navbar */}
@@ -152,7 +167,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, justifyContent: "center", flexWrap: "nowrap", overflow: "hidden" }}>
+          <nav className="shell-desktop-nav">
             {visibleLinks.map((l) => {
               const isActive = pathname === l.href || pathname.startsWith(`${l.href}/`);
               return (
@@ -164,7 +179,16 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Right side */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div className="shell-right-controls">
+            {/* Mobile Menu Toggle */}
+            <button className="shell-mobile-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                {mobileOpen
+                  ? <path d="M4 4l12 12M4 16L16 4" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+                  : <path d="M3 5h14M3 10h14M3 15h14" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+                }
+              </svg>
+            </button>
 
             {/* Alerts Bell */}
             <div style={{ position: "relative" }}>
@@ -234,10 +258,10 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: "1.5px solid #E5E7EB", borderRadius: 12, background: "white", textDecoration: "none", transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; }}>
-              <div style={{ width: 30, height: 30, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "white" }}>
+              <div style={{ width: 30, height: 30, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "white", flexShrink: 0 }}>
                 {initials}
               </div>
-              <div>
+              <div className="shell-user-name">
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>
                   {user.full_name?.split(" ")[0] ?? "User"}
                 </div>
@@ -264,6 +288,25 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
+
+      {/* Mobile Nav */}
+      {mobileOpen && (
+        <div className="shell-mobile-nav">
+          {visibleLinks.map((l) => {
+            const isActive = pathname === l.href || pathname.startsWith(`${l.href}/`);
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`shell-mobile-nav-link${isActive ? " active" : ""}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* Main Content */}
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 24px" }}>

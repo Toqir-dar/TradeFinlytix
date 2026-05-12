@@ -53,10 +53,19 @@ export default function RegisterPage() {
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9CA3AF; padding: 0; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .auth-left { width: 50%; background: linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 48px; position: relative; overflow: hidden; }
+        .auth-right { width: 50%; display: flex; flex-direction: column; justify-content: center; padding: 60px 64px; background: #FAFAFA; overflow-y: auto; }
+        @media (max-width: 768px) {
+          .auth-left { display: none !important; }
+          .auth-right { width: 100% !important; padding: 40px 24px !important; }
+        }
+        @media (max-width: 480px) {
+          .auth-right { padding: 32px 16px !important; }
+        }
       `}</style>
 
       {/* Left Panel */}
-      <div style={{ width: "50%", background: "linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%)", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "40px 48px", position: "relative", overflow: "hidden" }}>
+      <div className="auth-left">
         <div style={{ position: "absolute", inset: 0, opacity: 0.07 }}>
           <svg width="100%" height="100%">
             <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/></pattern></defs>
@@ -108,7 +117,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel */}
-      <div style={{ width: "50%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", background: "#FAFAFA", overflowY: "auto" }}>
+      <div className="auth-right">
         <div style={{ maxWidth: 400, width: "100%" }} className="fade-in">
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 34, color: "#111827", marginBottom: 8, letterSpacing: "-0.5px" }}>
             Create your account

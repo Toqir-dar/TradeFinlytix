@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 
@@ -13,7 +13,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace("/dashboard");
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +85,7 @@ export default function LoginPage() {
         {/* Center Content */}
         <div style={{ position: "relative", zIndex: 1 }} className="fade-in">
           <div style={{ display: "inline-block", background: "rgba(74,222,128,0.2)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ADE80", padding: "6px 14px", borderRadius: 100, fontSize: 12, fontWeight: 600, marginBottom: 24 }}>
-            🇵🇰 Pakistan Stock Exchange
+            Pakistan Stock Exchange
           </div>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: "white", lineHeight: 1.2, marginBottom: 16 }}>
             Your edge in<br/>PSX markets
@@ -157,7 +161,7 @@ export default function LoginPage() {
 
           {error && (
             <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
-              ⚠️ {error}
+              {error}
             </div>
           )}
 
@@ -238,9 +242,8 @@ export default function LoginPage() {
 
           {/* Trust badges */}
           <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 36, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
-            {[["🔒", "SSL Secure"], ["🛡️", "RBAC Protected"], ["✅", "ISO Aligned"]].map(([icon, label]) => (
+            { [["SSL Secure"], ["RBAC Protected"], ["ISO Aligned"] ].map(([label]) => (
               <div key={label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 18 }}>{icon}</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{label}</div>
               </div>
             ))}

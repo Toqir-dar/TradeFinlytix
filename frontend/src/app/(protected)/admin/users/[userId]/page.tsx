@@ -27,13 +27,13 @@ const ROLE_CONFIG: Record<string, { bg: string; color: string }> = {
   ciso:     { bg: "#FEF3C7", color: "#92400E" },
 };
 
-const ACTION_CONFIG: Record<string, { bg: string; color: string; icon: string }> = {
-  login:            { bg: "#DCFCE7", color: "#15803D", icon: "🔐" },
-  predict:          { bg: "#EFF6FF", color: "#1D4ED8", icon: "📊" },
-  portfolio_update: { bg: "#F0FDF4", color: "#16A34A", icon: "💼" },
-  trade_log:        { bg: "#FEF9C3", color: "#854D0E", icon: "📋" },
-  logout:           { bg: "#FEE2E2", color: "#991B1B", icon: "🚪" },
-  default:          { bg: "#F3F4F6", color: "#374151", icon: "📌" },
+const ACTION_CONFIG: Record<string, { bg: string; color: string }> = {
+  login:            { bg: "#DCFCE7", color: "#15803D" },
+  predict:          { bg: "#EFF6FF", color: "#1D4ED8" },
+  portfolio_update: { bg: "#F0FDF4", color: "#16A34A" },
+  trade_log:        { bg: "#FEF9C3", color: "#854D0E" },
+  logout:           { bg: "#FEE2E2", color: "#991B1B" },
+  default:          { bg: "#F3F4F6", color: "#374151" },
 };
 
 export default function AdminUserDetailPage() {
@@ -97,7 +97,7 @@ export default function AdminUserDetailPage() {
                   {data?.role ?? "investor"}
                 </span>
                 <span className="chip" style={{ background: data?.is_active ? "#DCFCE7" : "#FEE2E2", color: data?.is_active ? "#15803D" : "#991B1B" }}>
-                  {data?.is_active ? "✓ Active" : "✗ Inactive"}
+                  {data?.is_active ? "Active" : "Inactive"}
                 </span>
               </div>
               <p style={{ fontSize: 14, color: "#6B7280" }}>{data?.email}</p>
@@ -113,19 +113,19 @@ export default function AdminUserDetailPage() {
               style={{ background: "#F0FDF4", color: "#16A34A", borderColor: "#BBF7D0" }}
               onClick={() => action.mutate(`/admin/users/${userId}/activate`)}
               disabled={action.isPending || data?.is_active}>
-              ✅ Activate
+              Activate
             </button>
             <button className="action-btn"
               style={{ background: "#FEF2F2", color: "#DC2626", borderColor: "#FECACA" }}
               onClick={() => action.mutate(`/admin/users/${userId}/deactivate`)}
               disabled={action.isPending || !data?.is_active}>
-              🚫 Deactivate
+             Deactivate
             </button>
             <button className="action-btn"
               style={{ background: "#FFFBEB", color: "#92400E", borderColor: "#FDE68A" }}
               onClick={() => action.mutate(`/admin/users/${userId}/reset-password`)}
               disabled={action.isPending}>
-              🔑 Reset Password
+              Reset Password
             </button>
           </div>
         </div>
@@ -159,7 +159,6 @@ export default function AdminUserDetailPage() {
 
           {activityItems.length === 0 ? (
             <div style={{ textAlign: "center", padding: "32px 0", color: "#9CA3AF" }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
               <div>No activity recorded</div>
             </div>
           ) : (
@@ -167,9 +166,7 @@ export default function AdminUserDetailPage() {
               const cfg = ACTION_CONFIG[item.action] ?? ACTION_CONFIG.default;
               return (
                 <div key={item._id} className="activity-row">
-                  <div style={{ width: 36, height: 36, background: cfg.bg, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
-                    {cfg.icon}
-                  </div>
+                  <div style={{ width: 36, height: 36, background: cfg.bg, borderRadius: 10, flexShrink: 0 }}/>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>

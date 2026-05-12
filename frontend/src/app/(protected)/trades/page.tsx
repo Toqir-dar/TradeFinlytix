@@ -62,7 +62,6 @@ export default function TradesPage() {
   if (isLoading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: "#9CA3AF" }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
         Loading trades...
       </div>
     </div>
@@ -106,7 +105,7 @@ export default function TradesPage() {
       {/* Add Trade Form */}
       {showForm && (
         <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 16, padding: 24, marginBottom: 24 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>📝 Log New Trade</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>Log New Trade</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Symbol</label>
@@ -134,7 +133,7 @@ export default function TradesPage() {
               <button className="add-btn" onClick={() => addTrade.mutate()} disabled={!symbol || !quantity || !price || addTrade.isPending}>
                 {addTrade.isPending ? "Saving..." : "Save"}
               </button>
-              <button onClick={() => setShowForm(false)} style={{ background: "white", border: "1.5px solid #E5E7EB", color: "#6B7280", padding: "11px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>✕</button>
+              <button onClick={() => setShowForm(false)} style={{ background: "white", border: "1.5px solid #E5E7EB", color: "#6B7280", padding: "11px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>Cancel</button>
             </div>
           </div>
         </div>
@@ -143,19 +142,16 @@ export default function TradesPage() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Trades", value: items.length, icon: "📋", sub: "All time" },
-          { label: "Buy Orders", value: totalBuy, icon: "📈", sub: "Purchases", color: "#16A34A" },
-          { label: "Sell Orders", value: totalSell, icon: "📉", sub: "Exits", color: "#DC2626" },
-          { label: "Total Volume", value: `PKR ${(totalVolume/1000).toFixed(0)}K`, icon: "💰", sub: "Traded" },
+          { label: "Total Trades", value: items.length, sub: "All time" },
+          { label: "Buy Orders", value: totalBuy, sub: "Purchases", color: "#16A34A" },
+          { label: "Sell Orders", value: totalSell, sub: "Exits", color: "#DC2626" },
+          { label: "Total Volume", value: `PKR ${(totalVolume/1000).toFixed(0)}K`, sub: "Traded" },
         ].map(s => (
           <div key={s.label} className="stat-card">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                <p style={{ fontSize: 24, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
-                <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
-              </div>
-              <div style={{ fontSize: 28 }}>{s.icon}</div>
+            <div>
+              <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+              <p style={{ fontSize: 24, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
+              <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
             </div>
           </div>
         ))}
@@ -264,7 +260,6 @@ export default function TradesPage() {
 
         {filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
             <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No trades found</div>
             <div style={{ fontSize: 14, marginTop: 4 }}>Try a different filter or log a new trade</div>
           </div>

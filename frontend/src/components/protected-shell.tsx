@@ -10,14 +10,14 @@ import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
 
 const links = [
-  { href: "/dashboard", label: "Dashboard", icon: "🏠", roles: ["investor", "admin", "ciso"] as Role[] },
-  { href: "/predict", label: "Predictions", icon: "📊", roles: ["investor", "admin", "ciso"] as Role[] },
-  { href: "/portfolio", label: "Portfolio", icon: "💼", roles: ["investor"] as Role[] },
-  { href: "/trades", label: "Trades", icon: "📋", roles: ["investor"] as Role[] },
-  { href: "/admin/users", label: "Users", icon: "👥", roles: ["admin"] as Role[] },
-  { href: "/ciso/audit", label: "Audit", icon: "🔍", roles: ["ciso"] as Role[] },
-  { href: "/ciso/risk", label: "Risk", icon: "🛡️", roles: ["ciso"] as Role[] },
-  { href: "/profile", label: "Profile", icon: "👤", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/predict", label: "Predictions", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/portfolio", label: "Portfolio", roles: ["investor"] as Role[] },
+  { href: "/trades", label: "Trades", roles: ["investor"] as Role[] },
+  { href: "/admin/users", label: "Users", roles: ["admin"] as Role[] },
+  { href: "/ciso/audit", label: "Audit", roles: ["ciso"] as Role[] },
+  { href: "/ciso/risk", label: "Risk", roles: ["ciso"] as Role[] },
+  { href: "/profile", label: "Profile", roles: ["investor", "admin", "ciso"] as Role[] },
 ] as const;
 
 const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
@@ -157,7 +157,6 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
               const isActive = pathname === l.href || pathname.startsWith(`${l.href}/`);
               return (
                 <Link key={l.href} href={l.href} className={`nav-link ${isActive ? "active" : ""}`}>
-                  <span style={{ fontSize: 14 }}>{l.icon}</span>
                   {l.label}
                 </Link>
               );
@@ -190,13 +189,12 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
               {showAlerts && (
                 <div id="alerts-panel" className="alerts-panel" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 360, background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 100 }}>
                   <div style={{ padding: "14px 16px", borderBottom: "1px solid #F3F4F6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontWeight: 700, fontSize: 15 }}>🔔 Notifications</span>
+                    <span style={{ fontWeight: 700, fontSize: 15 }}>Notifications</span>
                     <span style={{ fontSize: 12, color: "#9CA3AF" }}>{unreadCount} unread</span>
                   </div>
 
                   {alerts.length === 0 ? (
                     <div style={{ padding: "32px 16px", textAlign: "center", color: "#9CA3AF" }}>
-                      <div style={{ fontSize: 32, marginBottom: 8 }}>🔕</div>
                       <div style={{ fontSize: 14 }}>No notifications yet</div>
                     </div>
                   ) : (

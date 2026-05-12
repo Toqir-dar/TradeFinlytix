@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { motion, type Variants } from "framer-motion";
 
 function useCountUp(end: number, duration = 2000) {
   const [value, setValue] = useState(0);
@@ -97,6 +98,18 @@ const TESTIMONIALS = [
   { quote: "Having prediction detail and portfolio in one place is exactly what our analysts needed.", name: "Usman T.", role: "Portfolio Lead, Alpha Horizon" }
 ];
 
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } }
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } }
+};
+
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -117,14 +130,6 @@ export default function HomePage() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        .fade-in { animation: fadeUp 0.7s ease both; }
-        .fade-in-2 { animation: fadeUp 0.7s 0.15s ease both; }
-        .fade-in-3 { animation: fadeUp 0.7s 0.3s ease both; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        .float { animation: float 4s ease-in-out infinite; }
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .feature-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(74,222,128,0.15); }
-        .feature-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .btn-primary { background: #16A34A; color: white; border: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
         .btn-primary:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
         .btn-outline { background: transparent; color: #16A34A; border: 1.5px solid #16A34A; padding: 13px 28px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
@@ -135,8 +140,6 @@ export default function HomePage() {
         .step-num { font-family: 'DM Serif Display', serif; font-size: 56px; color: #BBF7D0; line-height: 1; }
         .nav-link { color: #374151; text-decoration: none; font-weight: 500; font-size: 14px; transition: color 0.2s; }
         .nav-link:hover { color: #16A34A; }
-        .testi-card:hover { box-shadow: 0 12px 32px rgba(74,222,128,0.12); transform: translateY(-3px); }
-        .testi-card { transition: all 0.3s ease; }
         a { text-decoration: none; }
       `}</style>
 
@@ -182,8 +185,12 @@ export default function HomePage() {
       <main style={{ paddingTop: 104 }}>
         {/* Hero */}
         <section style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-          <div className="fade-in">
-            <span className="chip">🇵🇰 Built for Pakistan Stock Exchange</span>
+          <motion.div
+            initial={{ opacity: 0, y: 36 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: EASE }}
+          >
+            <span className="chip">Built for Pakistan Stock Exchange</span>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 58, lineHeight: 1.1, letterSpacing: "-1px", color: "#111827", marginTop: 20 }}>
               Trade Smarter<br />
               <span style={{ color: "#16A34A" }}>with AI-Backed</span><br />
@@ -211,102 +218,155 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Hero Card */}
-          <div className="fade-in-2 float" style={{ background: "#FAFFF7", border: "1.5px solid #BBF7D0", borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 60px rgba(74,222,128,0.15)" }}>
-            <div style={{ background: "#F0FDF4", padding: "14px 20px", borderBottom: "1px solid #BBF7D0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: 600, fontSize: 14, color: "#15803D" }}>📊 Live Signal Panel</span>
-              <span style={{ background: "#4ADE80", color: "#14532D", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>LIVE</span>
-            </div>
-            <div style={{ padding: 20 }}>
-              <div style={{ background: "white", borderRadius: 14, border: "1px solid #E5E7EB", padding: 16, marginBottom: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>OGDC</div>
-                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>Oil & Gas Dev. Corp</div>
-                  </div>
-                  <div style={{ background: "#DCFCE7", color: "#15803D", padding: "6px 16px", borderRadius: 8, fontWeight: 700, fontSize: 13 }}>BUY</div>
-                </div>
-                <svg viewBox="0 0 340 100" style={{ width: "100%", height: 80 }}>
-                  <defs>
-                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4ADE80" stopOpacity="0.3"/>
-                      <stop offset="100%" stopColor="#4ADE80" stopOpacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,80 L0,70 C20,65 30,72 50,60 C70,48 80,55 100,42 C120,30 130,38 150,25 C170,14 185,20 200,12 C215,5 230,15 250,8 C270,2 290,10 310,5 L340,2 L340,100 L0,100 Z" fill="url(#g1)"/>
-                  <path d="M0,70 C20,65 30,72 50,60 C70,48 80,55 100,42 C120,30 130,38 150,25 C170,14 185,20 200,12 C215,5 230,15 250,8 C270,2 290,10 310,5 L340,2" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round"/>
-                </svg>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
-                  {[["Confidence", "81.4%"], ["Target", "PKR 127.5"], ["Risk", "Medium"]].map(([k, v]) => (
-                    <div key={k} style={{ background: "#F9FAFB", borderRadius: 8, padding: "8px 10px", border: "1px solid #F3F4F6" }}>
-                      <div style={{ fontSize: 10, color: "#9CA3AF" }}>{k}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginTop: 2 }}>{v}</div>
-                    </div>
-                  ))}
-                </div>
+          <motion.div
+            initial={{ opacity: 0, x: 48 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.18, ease: EASE }}
+          >
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.9 }}
+              style={{ background: "#FAFFF7", border: "1.5px solid #BBF7D0", borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 60px rgba(74,222,128,0.15)" }}
+            >
+              <div style={{ background: "#F0FDF4", padding: "14px 20px", borderBottom: "1px solid #BBF7D0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 600, fontSize: 14, color: "#15803D" }}>Live Signal Panel</span>
+                <span style={{ background: "#4ADE80", color: "#14532D", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>LIVE</span>
               </div>
-              {/* Mini signal list */}
-              {[["HBL", "+1.1%", "HOLD", "#FEF3C7", "#92400E"], ["ENGRO", "+0.8%", "BUY", "#DCFCE7", "#15803D"]].map(([sym, chg, sig, bg, col]) => (
-                <div key={sym} style={{ background: "white", border: "1px solid #F3F4F6", borderRadius: 10, padding: "10px 14px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{sym}</div>
-                  <div style={{ fontSize: 13, color: "#16A34A", fontWeight: 500 }}>{chg}</div>
-                  <div style={{ background: bg, color: col, fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 6 }}>{sig}</div>
+              <div style={{ padding: 20 }}>
+                <div style={{ background: "white", borderRadius: 14, border: "1px solid #E5E7EB", padding: 16, marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>OGDC</div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>Oil & Gas Dev. Corp</div>
+                    </div>
+                    <div style={{ background: "#DCFCE7", color: "#15803D", padding: "6px 16px", borderRadius: 8, fontWeight: 700, fontSize: 13 }}>BUY</div>
+                  </div>
+                  <svg viewBox="0 0 340 100" style={{ width: "100%", height: 80 }}>
+                    <defs>
+                      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#4ADE80" stopOpacity="0.3"/>
+                        <stop offset="100%" stopColor="#4ADE80" stopOpacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,80 L0,70 C20,65 30,72 50,60 C70,48 80,55 100,42 C120,30 130,38 150,25 C170,14 185,20 200,12 C215,5 230,15 250,8 C270,2 290,10 310,5 L340,2 L340,100 L0,100 Z" fill="url(#g1)"/>
+                    <path d="M0,70 C20,65 30,72 50,60 C70,48 80,55 100,42 C120,30 130,38 150,25 C170,14 185,20 200,12 C215,5 230,15 250,8 C270,2 290,10 310,5 L340,2" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
+                    {[["Confidence", "81.4%"], ["Target", "PKR 127.5"], ["Risk", "Medium"]].map(([k, v]) => (
+                      <div key={k} style={{ background: "#F9FAFB", borderRadius: 8, padding: "8px 10px", border: "1px solid #F3F4F6" }}>
+                        <div style={{ fontSize: 10, color: "#9CA3AF" }}>{k}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginTop: 2 }}>{v}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                {[["HBL", "+1.1%", "HOLD", "#FEF3C7", "#92400E"], ["ENGRO", "+0.8%", "BUY", "#DCFCE7", "#15803D"]].map(([sym, chg, sig, bg, col]) => (
+                  <div key={sym} style={{ background: "white", border: "1px solid #F3F4F6", borderRadius: 10, padding: "10px 14px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{sym}</div>
+                    <div style={{ fontSize: 13, color: "#16A34A", fontWeight: 500 }}>{chg}</div>
+                    <div style={{ background: bg, color: col, fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 6 }}>{sig}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* Stats */}
         <section style={{ background: "#F0FDF4", borderTop: "1px solid #BBF7D0", borderBottom: "1px solid #BBF7D0", padding: "48px 24px" }}>
-          <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, textAlign: "center" }}>
+          <motion.div
+            style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, textAlign: "center" }}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+          >
             {[
               { ref: investors.ref, value: investors.value, suffix: "+", label: "Active Investors", sub: "on the platform" },
               { ref: symbols.ref, value: symbols.value, suffix: "+", label: "PSX Symbols", sub: "covered by AI" },
               { ref: uptime.ref, value: uptime.value, suffix: ".9%", label: "Platform Uptime", sub: "SLA guaranteed" }
             ].map((s, i) => (
-              <div key={i} ref={s.ref} style={{ padding: "0 32px", borderRight: i < 2 ? "1px solid #BBF7D0" : "none" }}>
+              <motion.div
+                key={i}
+                ref={s.ref}
+                variants={fadeUp}
+                style={{ padding: "0 32px", borderRight: i < 2 ? "1px solid #BBF7D0" : "none" }}
+              >
                 <div style={{ fontSize: 44, fontWeight: 800, color: "#15803D", fontFamily: "'DM Serif Display', serif" }}>
                   {s.value.toLocaleString()}{s.suffix}
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginTop: 4 }}>{s.label}</div>
                 <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>{s.sub}</div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         {/* Features */}
         <section id="features" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px" }}>
-          <div style={{ textAlign: "center", marginBottom: 60 }}>
+          <motion.div
+            style={{ textAlign: "center", marginBottom: 60 }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.55, ease: EASE }}
+          >
             <span className="chip">Platform Features</span>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16, letterSpacing: "-0.5px" }}>Everything you need to trade intelligently</h2>
             <p style={{ fontSize: 16, color: "#6B7280", marginTop: 12, maxWidth: 500, margin: "12px auto 0" }}>Built for investors, admins, and security teams — all in one unified platform.</p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
+          </motion.div>
+          <motion.div
+            style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+          >
             {FEATURES.map((f) => (
-              <div key={f.title} className="feature-card" style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28 }}>
+              <motion.div
+                key={f.title}
+                variants={fadeUp}
+                whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(74,222,128,0.18)", transition: { duration: 0.2 } }}
+                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28, cursor: "default" }}
+              >
                 <div style={{ marginBottom: 16 }}>{f.icon}</div>
                 <span className="chip" style={{ marginBottom: 12, display: "inline-block" }}>{f.badge}</span>
                 <h3 style={{ fontWeight: 700, fontSize: 17, color: "#111827", marginBottom: 10 }}>{f.title}</h3>
                 <p style={{ fontSize: 13.5, color: "#6B7280", lineHeight: 1.65 }}>{f.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         {/* How it works */}
         <section id="how-it-works" style={{ background: "#F9FAFB", padding: "100px 24px" }}>
           <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-            <div style={{ textAlign: "center", marginBottom: 64 }}>
+            <motion.div
+              style={{ textAlign: "center", marginBottom: 64 }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.55, ease: EASE }}
+            >
               <span className="chip">Simple Process</span>
               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16 }}>How TradeFinlytix works</h2>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 48, position: "relative" }}>
+            </motion.div>
+            <motion.div
+              style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 48, position: "relative" }}
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+            >
               {STEPS.map((s, i) => (
-                <div key={i} style={{ textAlign: "center" }}>
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  style={{ textAlign: "center" }}
+                >
                   <div className="step-num">{s.num}</div>
                   <div style={{ width: 56, height: 56, background: "#4ADE80", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "12px auto 16px", boxShadow: "0 8px 20px rgba(74,222,128,0.3)" }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -317,35 +377,58 @@ export default function HomePage() {
                   </div>
                   <h3 style={{ fontWeight: 700, fontSize: 18, color: "#111827", marginBottom: 10 }}>{s.title}</h3>
                   <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.65 }}>{s.desc}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* Testimonials */}
         <section style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px" }}>
-          <div style={{ textAlign: "center", marginBottom: 60 }}>
+          <motion.div
+            style={{ textAlign: "center", marginBottom: 60 }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.55, ease: EASE }}
+          >
             <span className="chip">Testimonials</span>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16 }}>Trusted by trading teams across Pakistan</h2>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }}>
+          </motion.div>
+          <motion.div
+            style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+          >
             {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="testi-card" style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28 }}>
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(74,222,128,0.14)", transition: { duration: 0.2 } }}
+                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28 }}
+              >
                 <div style={{ fontSize: 36, color: "#4ADE80", lineHeight: 1, marginBottom: 16, fontFamily: "serif" }}>"</div>
                 <p style={{ fontSize: 14.5, color: "#374151", lineHeight: 1.7, marginBottom: 20 }}>{t.quote}</p>
                 <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 16 }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{t.name}</div>
                   <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{t.role}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         {/* CTA */}
         <section id="pricing" style={{ padding: "0 24px 100px" }}>
-          <div style={{ maxWidth: 900, margin: "0 auto", background: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)", borderRadius: 28, padding: "64px 48px", textAlign: "center", boxShadow: "0 32px 80px rgba(22,163,74,0.3)" }}>
+          <motion.div
+            style={{ maxWidth: 900, margin: "0 auto", background: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)", borderRadius: 28, padding: "64px 48px", textAlign: "center", boxShadow: "0 32px 80px rgba(22,163,74,0.3)" }}
+            initial={{ opacity: 0, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: EASE }}
+          >
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, color: "white", letterSpacing: "-0.5px", marginBottom: 16 }}>Start trading smarter today</h2>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", marginBottom: 36 }}>Join hundreds of PSX investors using AI-backed signals and institutional-grade security.</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
@@ -357,12 +440,18 @@ export default function HomePage() {
                 Login
               </Link>
             </div>
-          </div>
+          </motion.div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer style={{ background: "#111827", color: "white", padding: "64px 24px 32px" }}>
+      <motion.footer
+        style={{ background: "#111827", color: "white", padding: "64px 24px 32px" }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6 }}
+      >
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 48 }}>
             <div>
@@ -391,10 +480,10 @@ export default function HomePage() {
           </div>
           <div style={{ borderTop: "1px solid #374151", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 13, color: "#6B7280" }}>© {new Date().getFullYear()} TradeFinlytix. All rights reserved.</span>
-            <span style={{ fontSize: 13, color: "#6B7280" }}>Built for PSX 🇵🇰</span>
+            <span style={{ fontSize: 13, color: "#6B7280" }}>Built for PSX</span>
           </div>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 }

@@ -30,10 +30,10 @@ export default function ProfilePage() {
     }
   });
 
-  const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string; emoji: string }> = {
-    investor: { bg: "#DCFCE7", color: "#15803D", label: "Investor", emoji: "📈" },
-    admin:    { bg: "#EFF6FF", color: "#1D4ED8", label: "Admin", emoji: "⚙️" },
-    ciso:     { bg: "#FEF3C7", color: "#92400E", label: "CISO", emoji: "🛡️" },
+  const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
+    investor: { bg: "#DCFCE7", color: "#15803D", label: "Investor" },
+    admin:    { bg: "#EFF6FF", color: "#1D4ED8", label: "Admin" },
+    ciso:     { bg: "#FEF3C7", color: "#92400E", label: "CISO" },
   };
   const roleConfig = ROLE_CONFIG[user?.role ?? "investor"] ?? ROLE_CONFIG.investor;
   const initials = user?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) ?? "TF";
@@ -70,7 +70,7 @@ export default function ProfilePage() {
       {/* Success Message */}
       {successMsg && (
         <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 14, color: "#15803D", display: "flex", alignItems: "center", gap: 8 }}>
-          ✅ {successMsg}
+          {successMsg}
         </div>
       )}
 
@@ -87,7 +87,7 @@ export default function ProfilePage() {
                 {user?.full_name ?? "TradeFinlytix User"}
               </h2>
               <span style={{ background: roleConfig.bg, color: roleConfig.color, padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 700 }}>
-                {roleConfig.emoji} {roleConfig.label}
+                {roleConfig.label}
               </span>
               {user?.is_active !== false && (
                 <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 700 }}>
@@ -122,7 +122,7 @@ export default function ProfilePage() {
 
       {/* Security */}
       <div className="section-card">
-        <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>🔐 Security Settings</h3>
+        <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Security Settings</h3>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 20 }}>Manage your password and sessions</p>
 
         {/* Change Password */}
@@ -174,7 +174,7 @@ export default function ProfilePage() {
               <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Logout from all devices</p>
             </div>
             <button className="btn-danger" onClick={() => setShowLogoutConfirm(true)}>
-              🚪 Logout All Sessions
+              Logout All Sessions
             </button>
           </div>
         </div>
@@ -182,15 +182,15 @@ export default function ProfilePage() {
 
       {/* Danger Zone */}
       <div className="section-card" style={{ border: "1.5px solid #FECACA" }}>
-        <h3 style={{ fontWeight: 700, fontSize: 16, color: "#DC2626", marginBottom: 4 }}>⚠️ Session Management</h3>
+        <h3 style={{ fontWeight: 700, fontSize: 16, color: "#DC2626", marginBottom: 4 }}>Session Management</h3>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 20 }}>Manage your current login session</p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <button className="btn-outline" onClick={() => logout()}>
-            🚪 Logout Current Session
+            Logout Current Session
           </button>
           <button className="btn-danger" onClick={() => setShowLogoutConfirm(true)}
             disabled={logoutAll.isPending}>
-            {logoutAll.isPending ? "Logging out..." : "🔴 Logout All Devices"}
+            {logoutAll.isPending ? "Logging out..." : "Logout All Devices"}
           </button>
         </div>
       </div>
@@ -199,7 +199,6 @@ export default function ProfilePage() {
       {showLogoutConfirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 24 }}>
           <div style={{ background: "white", borderRadius: 20, padding: 32, maxWidth: 420, width: "100%", boxShadow: "0 24px 60px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 48, textAlign: "center", marginBottom: 16 }}>🚪</div>
             <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, textAlign: "center", marginBottom: 8 }}>Logout All Sessions?</h3>
             <p style={{ fontSize: 14, color: "#6B7280", textAlign: "center", marginBottom: 24, lineHeight: 1.6 }}>
               You will be logged out from all devices including this one. You'll need to login again.

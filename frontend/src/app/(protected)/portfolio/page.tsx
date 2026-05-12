@@ -64,7 +64,6 @@ export default function PortfolioPage() {
   if (isLoading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: "#9CA3AF", fontSize: 15 }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
         Loading portfolio...
       </div>
     </div>
@@ -111,7 +110,7 @@ export default function PortfolioPage() {
       {/* Add Position Form */}
       {showForm && (
         <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 16, padding: 24, marginBottom: 24 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>➕ Add New Position</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>Add New Position</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Symbol</label>
@@ -140,19 +139,16 @@ export default function PortfolioPage() {
       {/* Stat Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Value", value: `PKR ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${Number(totalPnLPct) >= 0 ? "▲" : "▼"} ${Math.abs(Number(totalPnLPct))}%`, up: Number(totalPnLPct) >= 0, icon: "💼" },
-          { label: "Total P&L", value: `${totalPnL >= 0 ? "+" : ""}PKR ${Math.abs(totalPnL).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${totalPnL >= 0 ? "Profit" : "Loss"} overall`, up: totalPnL >= 0, icon: "📈" },
-          { label: "Positions", value: `${rows.length}`, change: "Active holdings", up: true, icon: "🎯" },
-          { label: "Cost Basis", value: `PKR ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: "Total invested", up: true, icon: "💰" },
+          { label: "Total Value", value: `PKR ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${Number(totalPnLPct) >= 0 ? "▲" : "▼"} ${Math.abs(Number(totalPnLPct))}%`, up: Number(totalPnLPct) >= 0 },
+          { label: "Total P&L", value: `${totalPnL >= 0 ? "+" : ""}PKR ${Math.abs(totalPnL).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${totalPnL >= 0 ? "Profit" : "Loss"} overall`, up: totalPnL >= 0 },
+          { label: "Positions", value: `${rows.length}`, change: "Active holdings", up: true },
+          { label: "Cost Basis", value: `PKR ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: "Total invested", up: true },
         ].map(s => (
           <div key={s.label} className="stat-card">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                <p style={{ fontSize: 20, fontWeight: 800, color: "#111827" }}>{s.value}</p>
-                <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>{s.change}</p>
-              </div>
-              <div style={{ fontSize: 28 }}>{s.icon}</div>
+            <div>
+              <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+              <p style={{ fontSize: 20, fontWeight: 800, color: "#111827" }}>{s.value}</p>
+              <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>{s.change}</p>
             </div>
           </div>
         ))}
@@ -259,7 +255,6 @@ export default function PortfolioPage() {
 
         {rows.length === 0 && (
           <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
             <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No positions yet</div>
             <div style={{ fontSize: 14, marginTop: 4 }}>Click "Add Position" to get started</div>
           </div>

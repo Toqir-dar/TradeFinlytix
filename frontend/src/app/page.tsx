@@ -141,6 +141,35 @@ export default function HomePage() {
         .nav-link { color: #374151; text-decoration: none; font-weight: 500; font-size: 14px; transition: color 0.2s; }
         .nav-link:hover { color: #16A34A; }
         a { text-decoration: none; }
+        .desktop-nav { display: flex; gap: 32px; align-items: center; }
+        .desktop-auth { display: flex; gap: 10px; align-items: center; }
+        .mobile-menu-btn { display: none; background: white; border: 1.5px solid #E5E7EB; border-radius: 8px; width: 40px; height: 40px; cursor: pointer; align-items: center; justify-content: center; }
+        .mobile-nav { background: white; padding: 16px 24px 24px; border-top: 1px solid #E5E7EB; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .mobile-nav-link { display: block; color: #374151; text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 12px; border-radius: 8px; transition: all 0.15s; margin-bottom: 2px; }
+        .mobile-nav-link:hover { background: #F0FDF4; color: #16A34A; }
+        @media (max-width: 900px) {
+          .desktop-nav { display: none !important; }
+          .desktop-auth { display: none !important; }
+          .mobile-menu-btn { display: flex !important; }
+          .hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .hero-card-col { display: none !important; }
+          .hero-h1 { font-size: 44px !important; }
+          .stats-grid { grid-template-columns: 1fr !important; }
+          .stats-grid-item { border-right: none !important; padding: 24px 0 !important; border-bottom: 1px solid #BBF7D0; }
+          .stats-grid-item:last-child { border-bottom: none !important; }
+          .features-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .steps-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .testimonials-grid { grid-template-columns: 1fr !important; }
+          .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
+          .cta-box { padding: 48px 28px !important; border-radius: 20px !important; }
+          .cta-h2 { font-size: 34px !important; }
+        }
+        @media (max-width: 600px) {
+          .features-grid { grid-template-columns: 1fr !important; }
+          .footer-grid { grid-template-columns: 1fr !important; }
+          .hero-h1 { font-size: 36px !important; }
+          .cta-h2 { font-size: 28px !important; }
+        }
       `}</style>
 
       {/* Navbar */}
@@ -157,20 +186,42 @@ export default function HomePage() {
             <span style={{ fontWeight: 700, fontSize: 18, color: "#111827", letterSpacing: "-0.3px" }}>TradeFinlytix</span>
           </Link>
 
-          <nav style={{ display: "flex", gap: 32, alignItems: "center" }}>
+          <nav className="desktop-nav">
             {NAV_LINKS.map(link => (
               <a key={link} href={`#${link.toLowerCase().replace(/ /g, "-")}`} className="nav-link">{link}</a>
             ))}
           </nav>
 
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="desktop-auth">
             <Link href="/login" className="btn-outline" style={{ padding: "10px 20px", fontSize: 14 }}>Login</Link>
             <Link href="/register" className="btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>
               Get Started
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </Link>
           </div>
+
+          <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              {mobileOpen
+                ? <path d="M4 4l12 12M4 16L16 4" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+                : <path d="M3 5h14M3 10h14M3 15h14" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+              }
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileOpen && (
+          <div className="mobile-nav">
+            {NAV_LINKS.map(link => (
+              <a key={link} href={`#${link.toLowerCase().replace(/ /g, "-")}`} className="mobile-nav-link" onClick={() => setMobileOpen(false)}>{link}</a>
+            ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid #E5E7EB" }}>
+              <Link href="/login" className="btn-outline" onClick={() => setMobileOpen(false)} style={{ justifyContent: "center" }}>Login</Link>
+              <Link href="/register" className="btn-primary" onClick={() => setMobileOpen(false)} style={{ justifyContent: "center" }}>Get Started</Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Ticker */}
@@ -184,14 +235,14 @@ export default function HomePage() {
 
       <main style={{ paddingTop: 104 }}>
         {/* Hero */}
-        <section style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+        <section className="hero-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: EASE }}
           >
             <span className="chip">Built for Pakistan Stock Exchange</span>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 58, lineHeight: 1.1, letterSpacing: "-1px", color: "#111827", marginTop: 20 }}>
+            <h1 className="hero-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 58, lineHeight: 1.1, letterSpacing: "-1px", color: "#111827", marginTop: 20 }}>
               Trade Smarter<br />
               <span style={{ color: "#16A34A" }}>with AI-Backed</span><br />
               Intelligence
@@ -222,6 +273,7 @@ export default function HomePage() {
 
           {/* Hero Card */}
           <motion.div
+            className="hero-card-col"
             initial={{ opacity: 0, x: 48 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.18, ease: EASE }}
@@ -278,6 +330,7 @@ export default function HomePage() {
         {/* Stats */}
         <section style={{ background: "#F0FDF4", borderTop: "1px solid #BBF7D0", borderBottom: "1px solid #BBF7D0", padding: "48px 24px" }}>
           <motion.div
+            className="stats-grid"
             style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, textAlign: "center" }}
             variants={staggerContainer}
             initial="hidden"
@@ -293,6 +346,7 @@ export default function HomePage() {
                 key={i}
                 ref={s.ref}
                 variants={fadeUp}
+                className="stats-grid-item"
                 style={{ padding: "0 32px", borderRight: i < 2 ? "1px solid #BBF7D0" : "none" }}
               >
                 <div style={{ fontSize: 44, fontWeight: 800, color: "#15803D", fontFamily: "'DM Serif Display', serif" }}>
@@ -319,6 +373,7 @@ export default function HomePage() {
             <p style={{ fontSize: 16, color: "#6B7280", marginTop: 12, maxWidth: 500, margin: "12px auto 0" }}>Built for investors, admins, and security teams — all in one unified platform.</p>
           </motion.div>
           <motion.div
+            className="features-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}
             variants={staggerContainer}
             initial="hidden"
@@ -355,6 +410,7 @@ export default function HomePage() {
               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16 }}>How TradeFinlytix works</h2>
             </motion.div>
             <motion.div
+              className="steps-grid"
               style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 48, position: "relative" }}
               variants={staggerContainer}
               initial="hidden"
@@ -396,6 +452,7 @@ export default function HomePage() {
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16 }}>Trusted by trading teams across Pakistan</h2>
           </motion.div>
           <motion.div
+            className="testimonials-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }}
             variants={staggerContainer}
             initial="hidden"
@@ -423,13 +480,14 @@ export default function HomePage() {
         {/* CTA */}
         <section id="pricing" style={{ padding: "0 24px 100px" }}>
           <motion.div
+            className="cta-box"
             style={{ maxWidth: 900, margin: "0 auto", background: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)", borderRadius: 28, padding: "64px 48px", textAlign: "center", boxShadow: "0 32px 80px rgba(22,163,74,0.3)" }}
             initial={{ opacity: 0, scale: 0.97 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, ease: EASE }}
           >
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, color: "white", letterSpacing: "-0.5px", marginBottom: 16 }}>Start trading smarter today</h2>
+            <h2 className="cta-h2" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, color: "white", letterSpacing: "-0.5px", marginBottom: 16 }}>Start trading smarter today</h2>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", marginBottom: 36 }}>Join hundreds of PSX investors using AI-backed signals and institutional-grade security.</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/register" style={{ background: "white", color: "#16A34A", padding: "14px 32px", borderRadius: 10, fontWeight: 700, fontSize: 15, display: "inline-flex", alignItems: "center", gap: 8 }}>
@@ -453,7 +511,7 @@ export default function HomePage() {
         transition={{ duration: 0.6 }}
       >
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 48 }}>
+          <div className="footer-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 48 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                 <Image src="/logo.png" alt="TradeFinlytix Logo" width={40} height={40} style={{ objectFit: "contain" }} />

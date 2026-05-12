@@ -120,6 +120,27 @@ export default function DashboardPage() {
         .chip { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
         .trade-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #F3F4F6; align-items: center; font-size: 14px; }
         .trade-row:last-child { border-bottom: none; }
+        .dash-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .dash-two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .dash-two-col-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .dash-quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .dash-admin-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .dash-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        @media (max-width: 1024px) {
+          .dash-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-admin-actions { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+          .dash-two-col { grid-template-columns: 1fr !important; }
+          .dash-two-col-equal { grid-template-columns: 1fr !important; }
+          .dash-header { flex-direction: column; gap: 16px; }
+        }
+        @media (max-width: 600px) {
+          .dash-stat-grid { grid-template-columns: 1fr !important; }
+          .dash-quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-admin-actions { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -129,7 +150,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.5, ease: EASE }}
         style={{ marginBottom: 28 }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div className="dash-header">
           <div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#111827", letterSpacing: "-0.5px" }}>
               {getGreeting()}, {firstName}
@@ -157,6 +178,7 @@ export default function DashboardPage() {
         <>
           {/* Stat Cards */}
           <motion.div
+            className="dash-stat-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
             variants={cardStagger}
             initial="hidden"
@@ -186,7 +208,7 @@ export default function DashboardPage() {
           </motion.div>
 
           {/* Chart + Signals */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 24 }}>
+          <div className="dash-two-col">
             <motion.div
               className="section-card"
               initial={{ opacity: 0, y: 20 }}
@@ -307,6 +329,7 @@ export default function DashboardPage() {
           >
             <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Quick Actions</h3>
             <motion.div
+              className="dash-quick-actions"
               style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}
               variants={cardStagger}
               initial="hidden"
@@ -338,6 +361,7 @@ export default function DashboardPage() {
       {isAdmin && (
         <>
           <motion.div
+            className="dash-stat-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
             variants={cardStagger}
             initial="hidden"
@@ -374,6 +398,7 @@ export default function DashboardPage() {
           >
             <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Quick Actions</h3>
             <motion.div
+              className="dash-admin-actions"
               style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
               variants={cardStagger}
               initial="hidden"
@@ -406,6 +431,7 @@ export default function DashboardPage() {
       {isCiso && (
         <>
           <motion.div
+            className="dash-stat-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
             variants={cardStagger}
             initial="hidden"
@@ -434,7 +460,7 @@ export default function DashboardPage() {
               </motion.div>
             ))}
           </motion.div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+          <div className="dash-two-col-equal">
             <motion.div
               className="section-card"
               initial={{ opacity: 0, y: 20 }}

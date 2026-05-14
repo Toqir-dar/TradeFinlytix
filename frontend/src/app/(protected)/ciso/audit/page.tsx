@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { useAnomalies, useAudit, useAuditVerify } from "@/lib/queries";
+import { useAnomalies, useAudit } from "@/lib/queries";
 import { api } from "@/lib/api";
-import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX } from "lucide-react";
+import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX, Sparkles, Bot, ArrowRight } from "lucide-react";
 
 const MOCK_AUDIT = {
   items: [
@@ -64,12 +64,19 @@ const ANOMALY_ICONS: Record<string, any> = {
 
 export default function CisoAuditPage() {
   const { user } = useAuth();
-  const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"events" | "anomalies">("events");
+  const [activeTab, setActiveTab] = useState<"events" | "anomalies" | "ai">("events");
   const [eventFilter, setEventFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [ragQuestion, setRagQuestion] = useState("");
+  const [ragResult, setRagResult] = useState<{ answer: string; sources: any[] } | null>(null);
+
+  const ragMutation = useMutation({
+    mutationFn: async (question: string) =>
+      (await api.post("/ciso/audit/search", { question })).data,
+    onSuccess: (data) => setRagResult(data),
+  });
 
   const { data: auditRaw, isLoading } = useAudit();
   const { data: anomalyRaw } = useAnomalies();
@@ -135,7 +142,7 @@ export default function CisoAuditPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Audit Explorer</h1>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Audit Explorer</h1>
           <p style={{ fontSize: 14, color: "#6B7280" }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
         </div>
         <button onClick={handleVerify} disabled={verifying}
@@ -189,14 +196,19 @@ export default function CisoAuditPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        {(["events", "anomalies"] as const).map(tab => (
-          <button key={tab} className="tab-btn"
-            onClick={() => setActiveTab(tab)}
-            style={{ background: activeTab === tab ? "#111827" : "white", color: activeTab === tab ? "white" : "#374151", border: activeTab === tab ? "none" : "1.5px solid #E5E7EB" }}>
-            {tab === "events" ? `Audit Events (${auditItems.length})` : `Anomalies (${anomalyItems.length})`}
-          </button>
-        ))}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        <button className="tab-btn" onClick={() => setActiveTab("events")}
+          style={{ background: activeTab === "events" ? "#111827" : "white", color: activeTab === "events" ? "white" : "#374151", border: activeTab === "events" ? "none" : "1.5px solid #E5E7EB" }}>
+          Audit Events ({auditItems.length})
+        </button>
+        <button className="tab-btn" onClick={() => setActiveTab("anomalies")}
+          style={{ background: activeTab === "anomalies" ? "#111827" : "white", color: activeTab === "anomalies" ? "white" : "#374151", border: activeTab === "anomalies" ? "none" : "1.5px solid #E5E7EB" }}>
+          Anomalies ({anomalyItems.length})
+        </button>
+        <button className="tab-btn" onClick={() => setActiveTab("ai")}
+          style={{ background: activeTab === "ai" ? "#16A34A" : "white", color: activeTab === "ai" ? "white" : "#374151", border: activeTab === "ai" ? "none" : "1.5px solid #E5E7EB", display: "flex", alignItems: "center", gap: 6 }}>
+          <Sparkles size={14} strokeWidth={2} />AI Search
+        </button>
       </div>
 
       {/* Audit Events Tab */}
@@ -319,6 +331,109 @@ export default function CisoAuditPage() {
           )}
         </div>
       )}
+      {/* AI Search Tab */}
+      {activeTab === "ai" && (
+        <div className="section-card">
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", display: "flex", alignItems: "center", justifyContent: "center", color: "#15803D", flexShrink: 0 }}>
+              <Bot size={22} strokeWidth={2} />
+            </div>
+            <div>
+              <h3 style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>AI Audit Search</h3>
+              <p style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>Ask a natural-language question — the AI searches embedded audit logs and answers with sources.</p>
+            </div>
+          </div>
+
+          {/* Input */}
+          <form onSubmit={e => { e.preventDefault(); if (ragQuestion.trim()) ragMutation.mutate(ragQuestion.trim()); }}
+            style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+            <div style={{ position: "relative", flex: 1 }}>
+              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+                <Sparkles size={16} strokeWidth={2} />
+              </div>
+              <input className="input-field" style={{ paddingLeft: 40, width: "100%", fontSize: 15 }}
+                placeholder='e.g. "Who logged in after midnight?" or "Any brute force attempts today?"'
+                value={ragQuestion} onChange={e => setRagQuestion(e.target.value)} disabled={ragMutation.isPending} />
+            </div>
+            <button type="submit" disabled={ragMutation.isPending || !ragQuestion.trim()}
+              style={{ padding: "10px 22px", background: "#16A34A", color: "white", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: ragMutation.isPending || !ragQuestion.trim() ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, opacity: ragMutation.isPending || !ragQuestion.trim() ? 0.6 : 1, transition: "all 0.2s", whiteSpace: "nowrap" }}>
+              {ragMutation.isPending ? (
+                <><Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />Searching...</>
+              ) : (
+                <><ArrowRight size={16} strokeWidth={2} />Search</>
+              )}
+            </button>
+          </form>
+
+          {/* Error */}
+          {ragMutation.isError && (
+            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
+              Search failed — check that the backend RAG service is running.
+            </div>
+          )}
+
+          {/* Answer */}
+          {ragResult && (
+            <div>
+              <div style={{ background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", border: "1.5px solid #BBF7D0", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <Bot size={16} strokeWidth={2} color="#15803D" />
+                  <span style={{ fontWeight: 700, fontSize: 14, color: "#15803D" }}>AI Answer</span>
+                </div>
+                <p style={{ fontSize: 15, color: "#111827", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{ragResult.answer}</p>
+              </div>
+
+              {/* Sources */}
+              {ragResult.sources?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>
+                    {ragResult.sources.length} Source{ragResult.sources.length !== 1 ? "s" : ""} Retrieved
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {ragResult.sources.map((src: any, i: number) => {
+                      const cfg = EVENT_CONFIG[src.event_type] ?? EVENT_CONFIG.default;
+                      return (
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: "#F9FAFB", border: "1px solid #F3F4F6", borderRadius: 10 }}>
+                          <div style={{ width: 32, height: 32, background: cfg.bg, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: cfg.color }}>
+                            {(() => { const Icon = EVENT_ICONS[src.event_type] ?? Activity; return <Icon size={14} strokeWidth={2} />; })()}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                              <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>{src.event_type?.replace(/_/g, " ")}</span>
+                              <span style={{ fontSize: 12, color: "#9CA3AF" }}>{src.user_id?.slice(0, 20)}</span>
+                            </div>
+                            <div style={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{src.path}</div>
+                            {src.created_at && (
+                              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>
+                                {new Date(src.created_at).toLocaleString("en-PK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!ragResult && !ragMutation.isPending && !ragMutation.isError && (
+            <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", display: "flex", alignItems: "center", justifyContent: "center", color: "#15803D", margin: "0 auto 16px" }}>
+                <Bot size={26} strokeWidth={1.8} />
+              </div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: "#374151", marginBottom: 6 }}>Ask anything about your audit logs</div>
+              <div style={{ fontSize: 13, maxWidth: 340, margin: "0 auto", lineHeight: 1.6 }}>
+                The AI uses semantic search over embedded audit logs and a language model to answer your question in plain English.
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

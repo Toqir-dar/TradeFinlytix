@@ -111,3 +111,17 @@ body {
     min-width: 600px;
   }
 }
+
+/* Responsive page titles */
+@media (max-width: 768px) {
+  .page-title { font-size: 26px !important; letter-spacing: -0.3px !important; }
+  .section-card { padding: 16px !important; }
+  .stat-card { padding: 16px !important; }
+  .metric-card { padding: 14px !important; }
+}
+
+@media (max-width: 480px) {
+  .page-title { font-size: 22px !important; }
+  .section-card { padding: 14px !important; }
+  .stat-card { padding: 14px !important; }
+}

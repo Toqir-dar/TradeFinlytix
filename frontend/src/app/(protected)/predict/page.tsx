@@ -73,7 +73,7 @@ export default function PredictPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 8 }}>
+        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 8 }}>
           AI Signal Predictions
         </h1>
         <p style={{ fontSize: 15, color: "#6B7280" }}>

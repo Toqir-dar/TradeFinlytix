@@ -162,6 +162,13 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         @media (max-width: 520px) {
           .shell-user-name { display: none; }
         }
+        .shell-content { padding: 28px 24px; }
+        @media (max-width: 640px) {
+          .shell-content { padding: 20px 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .shell-content { padding: 16px 12px !important; }
+        }
       `}</style>
 
       {/* Navbar */}
@@ -318,7 +325,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Content */}
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 24px" }}>
+      <div className="shell-content" style={{ maxWidth: 1280, margin: "0 auto" }}>
         <main>{children}</main>
       </div>
     </div>

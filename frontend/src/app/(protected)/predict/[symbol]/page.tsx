@@ -81,6 +81,12 @@ export default function PredictSymbolPage() {
         .feature-bar { height: 8px; border-radius: 100px; background: #F3F4F6; overflow: hidden; }
         .feature-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #4ADE80, #16A34A); transition: width 0.8s ease; }
         .action-btn { padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        @media (max-width: 640px) {
+          .symbol-hero { padding: 20px !important; }
+          .symbol-h1 { font-size: 28px !important; }
+          .signal-badge { font-size: 15px !important; padding: 6px 18px !important; }
+          .action-btn { padding: 10px 16px !important; font-size: 13px !important; }
+        }
       `}</style>
 
       {/* Back Button */}
@@ -92,7 +98,7 @@ export default function PredictSymbolPage() {
       </div>
 
       {/* Hero Section */}
-      <div style={{ background: `linear-gradient(135deg, ${sigConfig.bg}, white)`, border: `2px solid ${sigConfig.border}`, borderRadius: 20, padding: 32, marginBottom: 24, position: "relative", overflow: "hidden" }}>
+      <div className="symbol-hero" style={{ background: `linear-gradient(135deg, ${sigConfig.bg}, white)`, border: `2px solid ${sigConfig.border}`, borderRadius: 20, padding: 32, marginBottom: 24, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: sigConfig.bg, opacity: 0.5 }}/>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
@@ -102,14 +108,14 @@ export default function PredictSymbolPage() {
                   {symbol.slice(0, 4)}
                 </div>
                 <div>
-                  <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, letterSpacing: "-0.5px", color: "#111827" }}>{symbol}</h1>
+                  <h1 className="symbol-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, letterSpacing: "-0.5px", color: "#111827" }}>{symbol}</h1>
                   <p style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>
                     Generated {new Date(data?.predicted_at ?? Date.now()).toLocaleString("en-PK", { dateStyle: "medium", timeStyle: "short" })}
                   </p>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ background: sigConfig.color, color: "white", padding: "8px 24px", borderRadius: 12, fontWeight: 800, fontSize: 18, letterSpacing: "1px" }}>
+                <span className="signal-badge" style={{ background: sigConfig.color, color: "white", padding: "8px 24px", borderRadius: 12, fontWeight: 800, fontSize: 18, letterSpacing: "1px" }}>
                   {signal}
                 </span>
                 <span style={{ fontSize: 15, color: "#6B7280", fontWeight: 500 }}>{sigConfig.label}</span>

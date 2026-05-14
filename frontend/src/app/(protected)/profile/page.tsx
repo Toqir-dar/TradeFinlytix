@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { Shield, Lock, LogOut, CheckCircle2, KeyRound, MonitorSmartphone, User, Mail, CalendarDays } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -74,6 +75,7 @@ export default function ProfilePage() {
       {/* Success Message */}
       {successMsg && (
         <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 14, color: "#15803D", display: "flex", alignItems: "center", gap: 8 }}>
+          <CheckCircle2 size={16} strokeWidth={2.5} />
           {successMsg}
         </div>
       )}
@@ -111,14 +113,17 @@ export default function ProfilePage() {
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 16 }}>Your account details</p>
 
         {[
-          { label: "Full Name", value: user?.full_name ?? "—" },
-          { label: "Email Address", value: user?.email ?? "—" },
-          { label: "Role", value: roleConfig.label },
-          { label: "Account Status", value: user?.is_active !== false ? "Active" : "Inactive" },
-          { label: "Member Since", value: memberSince },
+          { label: "Full Name", value: user?.full_name ?? "—", Icon: User },
+          { label: "Email Address", value: user?.email ?? "—", Icon: Mail },
+          { label: "Role", value: roleConfig.label, Icon: Shield },
+          { label: "Account Status", value: user?.is_active !== false ? "Active" : "Inactive", Icon: CheckCircle2 },
+          { label: "Member Since", value: memberSince, Icon: CalendarDays },
         ].map(item => (
           <div key={item.label} className="info-row">
-            <span style={{ fontSize: 14, color: "#6B7280", fontWeight: 500 }}>{item.label}</span>
+            <span style={{ fontSize: 14, color: "#6B7280", fontWeight: 500, display: "flex", alignItems: "center", gap: 8 }}>
+              <item.Icon size={14} color="#9CA3AF" strokeWidth={2} />
+              {item.label}
+            </span>
             <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{item.value}</span>
           </div>
         ))}
@@ -126,14 +131,19 @@ export default function ProfilePage() {
 
       {/* Security */}
       <div className="section-card">
-        <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Security Settings</h3>
+        <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+          <Lock size={16} color="#16A34A" strokeWidth={2} />
+          Security Settings
+        </h3>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 20 }}>Manage your password and sessions</p>
 
         {/* Change Password */}
         <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 20, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <p style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>Password</p>
+              <p style={{ fontWeight: 600, fontSize: 15, color: "#111827", display: "flex", alignItems: "center", gap: 8 }}>
+                <KeyRound size={15} color="#374151" strokeWidth={2} /> Password
+              </p>
               <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Last changed recently</p>
             </div>
             <button className="btn-outline" onClick={() => setShowPasswordForm(!showPasswordForm)}>
@@ -174,7 +184,9 @@ export default function ProfilePage() {
         <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <p style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>Active Sessions</p>
+              <p style={{ fontWeight: 600, fontSize: 15, color: "#111827", display: "flex", alignItems: "center", gap: 8 }}>
+                <MonitorSmartphone size={15} color="#374151" strokeWidth={2} /> Active Sessions
+              </p>
               <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Logout from all devices</p>
             </div>
             <button className="btn-danger" onClick={() => setShowLogoutConfirm(true)}>
@@ -189,7 +201,8 @@ export default function ProfilePage() {
         <h3 style={{ fontWeight: 700, fontSize: 16, color: "#DC2626", marginBottom: 4 }}>Session Management</h3>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 20 }}>Manage your current login session</p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <button className="btn-outline" onClick={() => logout()}>
+          <button className="btn-outline" onClick={() => logout()} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <LogOut size={15} strokeWidth={2} />
             Logout Current Session
           </button>
           <button className="btn-danger" onClick={() => setShowLogoutConfirm(true)}

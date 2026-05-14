@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { Eye, EyeOff, ArrowRight, Lock, Shield, UserCheck, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -200,11 +201,7 @@ export default function LoginPage() {
                   style={{ paddingRight: 44 }}
                 />
                 <button type="button" className="eye-btn" onClick={() => setShowPass(!showPass)}>
-                  {showPass ? (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
-                  ) : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  )}
+                  {showPass ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
                 </button>
               </div>
             </div>
@@ -218,11 +215,11 @@ export default function LoginPage() {
             <button type="submit" className="btn-submit" disabled={loading}>
               {loading ? (
                 <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/></svg>
+                  <Loader2 size={18} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />
                   Signing in...
                 </>
               ) : (
-                <>Login to Dashboard <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></>
+                <>Login to Dashboard <ArrowRight size={16} color="white" strokeWidth={2} /></>
               )}
             </button>
           </form>
@@ -252,10 +249,17 @@ export default function LoginPage() {
           </p>
 
           {/* Trust badges */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 36, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
-            { [["SSL Secure"], ["RBAC Protected"], ["ISO Aligned"] ].map(([label]) => (
-              <div key={label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{label}</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 36, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
+            {[
+              { label: "SSL Secure", Icon: Lock },
+              { label: "RBAC Protected", Icon: Shield },
+              { label: "ISO Aligned", Icon: UserCheck },
+            ].map(({ label, Icon }) => (
+              <div key={label} style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16A34A" }}>
+                  <Icon size={14} strokeWidth={2} />
+                </div>
+                <div style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 600 }}>{label}</div>
               </div>
             ))}
           </div>

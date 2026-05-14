@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useAnomalies, useAudit, useAuditVerify } from "@/lib/queries";
 import { api } from "@/lib/api";
+import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX } from "lucide-react";
 
 const MOCK_AUDIT = {
   items: [
@@ -43,6 +44,22 @@ const ANOMALY_CONFIG: Record<string, { bg: string; color: string; label: string 
   auth_brute_force: { bg: "#FEE2E2", color: "#991B1B", label: "CRITICAL" },
   off_hours_access: { bg: "#FFEDD5", color: "#9A3412", label: "MEDIUM" },
   default:          { bg: "#F3F4F6", color: "#374151", label: "LOW" },
+};
+
+const EVENT_ICONS: Record<string, any> = {
+  login_success:    LogIn,
+  login_failed:     UserX,
+  predict_request:  TrendingUp,
+  portfolio_update: Briefcase,
+  admin_deactivate: UserX,
+  admin_activate:   CheckCircle2,
+  logout:           LogOut,
+};
+
+const ANOMALY_ICONS: Record<string, any> = {
+  rapid_requests:   BarChart3,
+  auth_brute_force: Shield,
+  off_hours_access: AlertTriangle,
 };
 
 export default function CisoAuditPage() {
@@ -124,8 +141,12 @@ export default function CisoAuditPage() {
         <button onClick={handleVerify} disabled={verifying}
           style={{ background: verifyResult?.ok ? "#16A34A" : "#111827", color: "white", border: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, opacity: verifying ? 0.7 : 1, transition: "all 0.2s" }}>
           {verifying ? (
-            <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/></svg>Verifying...</>
-          ) : verifyResult?.ok ? "Chain Verified" : "Verify Chain"}
+            <><Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />Verifying...</>
+          ) : verifyResult?.ok ? (
+            <><CheckCircle2 size={16} strokeWidth={2} />Chain Verified</>
+          ) : (
+            <><FileSearch size={16} strokeWidth={2} />Verify Chain</>
+          )}
         </button>
       </div>
 
@@ -147,16 +168,21 @@ export default function CisoAuditPage() {
       {/* Stat Cards */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Events", value: audit?.total?.toLocaleString() ?? "3,421", sub: "All time" },
-          { label: "Anomalies", value: anomalies?.total ?? 7, sub: "Detected", color: "#DC2626" },
-          { label: "Chain Status", value: verifyResult ? (verifyResult.ok ? "Verified" : "Failed") : "Pending", sub: "HMAC integrity", color: verifyResult?.ok === false ? "#DC2626" : "#16A34A" },
-          { label: "Event Types", value: EVENT_TYPES.length - 1, sub: "Distinct types" },
+          { label: "Total Events", value: audit?.total?.toLocaleString() ?? "3,421", sub: "All time", Icon: FileSearch, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+          { label: "Anomalies", value: anomalies?.total ?? 7, sub: "Detected", color: "#DC2626", Icon: AlertTriangle, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+          { label: "Chain Status", value: verifyResult ? (verifyResult.ok ? "Verified" : "Failed") : "Pending", sub: "HMAC integrity", color: verifyResult?.ok === false ? "#DC2626" : "#16A34A", Icon: CheckCircle2, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+          { label: "Event Types", value: EVENT_TYPES.length - 1, sub: "Distinct types", Icon: BarChart3, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
         ].map(s => (
           <div key={s.label} className="stat-card">
-            <div>
-              <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-              <p style={{ fontSize: 22, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
-              <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
+                <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
+                <s.Icon size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
         ))}
@@ -179,10 +205,9 @@ export default function CisoAuditPage() {
           {/* Filters */}
           <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-              <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#9CA3AF" strokeWidth="1.5"/>
-                <path d="M10 10l2 2" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
+              <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+                <Search size={14} strokeWidth={2} />
+              </div>
               <input className="input-field" style={{ paddingLeft: 32, width: "100%" }} placeholder="Search event type, user, path..."
                 value={search} onChange={e => setSearch(e.target.value)}/>
             </div>
@@ -216,7 +241,9 @@ export default function CisoAuditPage() {
                   return (
                     <div key={item._id} className="audit-row">
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 34, height: 34, background: cfg.bg, borderRadius: 8, flexShrink: 0 }}/>
+                        <div style={{ width: 34, height: 34, background: cfg.bg, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: cfg.color }}>
+                          {(() => { const Icon = EVENT_ICONS[item.event_type] ?? Activity; return <Icon size={15} strokeWidth={2} />; })()}
+                        </div>
                         <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>
                           {item.event_type?.replace(/_/g, " ")}
                         </span>
@@ -264,7 +291,9 @@ export default function CisoAuditPage() {
                 <div key={a._id} className="anomaly-row">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      <div style={{ width: 40, height: 40, background: cfg.bg, borderRadius: 10, flexShrink: 0 }}/>
+                      <div style={{ width: 40, height: 40, background: cfg.bg, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: cfg.color }}>
+                        {(() => { const Icon = ANOMALY_ICONS[a.anomaly_type] ?? AlertTriangle; return <Icon size={18} strokeWidth={2} />; })()}
+                      </div>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                           <span style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>

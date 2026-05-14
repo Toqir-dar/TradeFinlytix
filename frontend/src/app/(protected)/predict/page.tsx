@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Search, Zap, ArrowRight, Clock, Info } from "lucide-react";
 
 const POPULAR_SYMBOLS = [
   { symbol: "OGDC", name: "Oil & Gas Dev. Corp", sector: "Energy" },
@@ -83,10 +84,9 @@ export default function PredictPage() {
       {/* Search Box */}
       <div style={{ background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", border: "1.5px solid #BBF7D0", borderRadius: 20, padding: 32, marginBottom: 32 }}>
         <div style={{ position: "relative", marginBottom: 16 }}>
-          <svg style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <circle cx="9" cy="9" r="6" stroke="#9CA3AF" strokeWidth="2"/>
-            <path d="M15 15l-3-3" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+          <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+            <Search size={20} strokeWidth={2} />
+          </div>
           <input
             className="search-input"
             placeholder="Search symbol e.g. OGDC, HBL, ENGRO..."
@@ -103,10 +103,7 @@ export default function PredictPage() {
           disabled={!symbol.trim()}
           style={{ width: "100%", justifyContent: "center" }}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M3 14l5-5 3 3 6-7" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="17" cy="5" r="2" fill="white"/>
-          </svg>
+          <Zap size={18} color="white" strokeWidth={2.5} />
           Get AI Prediction
         </button>
 
@@ -150,7 +147,7 @@ export default function PredictPage() {
                 <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{s.name}</div>
                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 4, color: "#16A34A", fontSize: 13, fontWeight: 600 }}>
                   Get Signal
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <ArrowRight size={13} strokeWidth={2.5} />
                 </div>
               </Link>
             ))}
@@ -168,7 +165,8 @@ export default function PredictPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Recent */}
           <div style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 20 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+              <Clock size={15} color="#16A34A" strokeWidth={2} />
               Recent Signals
             </h3>
             {MOCK_RECENT.map((r, i) => (
@@ -194,7 +192,10 @@ export default function PredictPage() {
 
           {/* How it works */}
           <div style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 20 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>How it works</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+              <Info size={15} color="#16A34A" strokeWidth={2} />
+              How it works
+            </h3>
             {[
               { num: "1", text: "Enter any PSX symbol (.KA ticker)" },
               { num: "2", text: "AI ensemble runs XGBoost + LightGBM + LSTM" },

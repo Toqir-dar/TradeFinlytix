@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DollarSign, TrendingUp, Briefcase, PiggyBank, Plus, History } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { api } from "@/lib/api";
@@ -97,11 +98,12 @@ export default function PortfolioPage() {
           <p style={{ fontSize: 14, color: "#6B7280" }}>Track your PSX positions, P&L, and allocation</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/trades" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+          <Link href="/trades" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <History size={15} strokeWidth={2} />
             Trade History
           </Link>
           <button className="add-btn" onClick={() => setShowForm(!showForm)}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+            <Plus size={16} color="white" strokeWidth={2.5} />
             Add Position
           </button>
         </div>
@@ -139,16 +141,21 @@ export default function PortfolioPage() {
       {/* Stat Cards */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Value", value: `PKR ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${Number(totalPnLPct) >= 0 ? "▲" : "▼"} ${Math.abs(Number(totalPnLPct))}%`, up: Number(totalPnLPct) >= 0 },
-          { label: "Total P&L", value: `${totalPnL >= 0 ? "+" : ""}PKR ${Math.abs(totalPnL).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${totalPnL >= 0 ? "Profit" : "Loss"} overall`, up: totalPnL >= 0 },
-          { label: "Positions", value: `${rows.length}`, change: "Active holdings", up: true },
-          { label: "Cost Basis", value: `PKR ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: "Total invested", up: true },
+          { label: "Total Value", value: `PKR ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${Number(totalPnLPct) >= 0 ? "▲" : "▼"} ${Math.abs(Number(totalPnLPct))}%`, up: Number(totalPnLPct) >= 0, Icon: DollarSign, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+          { label: "Total P&L", value: `${totalPnL >= 0 ? "+" : ""}PKR ${Math.abs(totalPnL).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: `${totalPnL >= 0 ? "Profit" : "Loss"} overall`, up: totalPnL >= 0, Icon: TrendingUp, iconBg: totalPnL >= 0 ? "linear-gradient(135deg,#DCFCE7,#BBF7D0)" : "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: totalPnL >= 0 ? "#15803D" : "#991B1B" },
+          { label: "Positions", value: `${rows.length}`, change: "Active holdings", up: true, Icon: Briefcase, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+          { label: "Cost Basis", value: `PKR ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: "Total invested", up: true, Icon: PiggyBank, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
         ].map(s => (
-          <div key={s.label} className="stat-card">
-            <div>
-              <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-              <p style={{ fontSize: 20, fontWeight: 800, color: "#111827" }}>{s.value}</p>
-              <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>{s.change}</p>
+          <div key={s.label} className="stat-card" style={{ position: "relative", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: "#111827" }}>{s.value}</p>
+                <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>{s.change}</p>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: s.iconColor }}>
+                <s.Icon size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
         ))}

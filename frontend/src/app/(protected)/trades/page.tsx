@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plus, Search, TrendingUp, TrendingDown, BarChart3, DollarSign } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { api } from "@/lib/api";
@@ -97,7 +98,7 @@ export default function TradesPage() {
           <p style={{ fontSize: 14, color: "#6B7280" }}>All your PSX buy and sell transactions</p>
         </div>
         <button className="add-btn" onClick={() => setShowForm(!showForm)}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+          <Plus size={16} color="white" strokeWidth={2.5} />
           Log Trade
         </button>
       </div>
@@ -142,16 +143,21 @@ export default function TradesPage() {
       {/* Stats */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Trades", value: items.length, sub: "All time" },
-          { label: "Buy Orders", value: totalBuy, sub: "Purchases", color: "#16A34A" },
-          { label: "Sell Orders", value: totalSell, sub: "Exits", color: "#DC2626" },
-          { label: "Total Volume", value: `PKR ${(totalVolume/1000).toFixed(0)}K`, sub: "Traded" },
+          { label: "Total Trades", value: items.length, sub: "All time", Icon: BarChart3, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+          { label: "Buy Orders", value: totalBuy, sub: "Purchases", color: "#16A34A", Icon: TrendingUp, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+          { label: "Sell Orders", value: totalSell, sub: "Exits", color: "#DC2626", Icon: TrendingDown, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+          { label: "Total Volume", value: `PKR ${(totalVolume/1000).toFixed(0)}K`, sub: "Traded", Icon: DollarSign, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
         ].map(s => (
-          <div key={s.label} className="stat-card">
-            <div>
-              <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-              <p style={{ fontSize: 24, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
-              <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
+          <div key={s.label} className="stat-card" style={{ position: "relative", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                <p style={{ fontSize: 24, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
+                <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: s.iconColor }}>
+                <s.Icon size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
         ))}
@@ -217,10 +223,9 @@ export default function TradesPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16 }}>All Trades</h3>
           <div style={{ position: "relative" }}>
-            <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="6" cy="6" r="4" stroke="#9CA3AF" strokeWidth="1.5"/>
-              <path d="M10 10l2 2" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+            <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+              <Search size={14} strokeWidth={2} />
+            </div>
             <input className="input-field" style={{ paddingLeft: 32, width: 200 }} placeholder="Search symbol..." value={search} onChange={e => setSearch(e.target.value)}/>
           </div>
         </div>

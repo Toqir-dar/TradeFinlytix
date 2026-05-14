@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
+import { TrendingUp, BarChart2, Shield, Activity, ArrowRight, UserCheck, Search, BarChart3, Menu, X } from "lucide-react";
 
 function useCountUp(end: number, duration = 2000) {
   const [value, setValue] = useState(0);
@@ -34,62 +35,16 @@ function useCountUp(end: number, duration = 2000) {
 const NAV_LINKS = ["Features", "How it Works"];
 
 const FEATURES = [
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect width="28" height="28" rx="8" fill="#4ADE80" fillOpacity="0.15"/>
-        <path d="M7 18l5-5 3 3 6-7" stroke="#16A34A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="21" cy="9" r="2" fill="#4ADE80"/>
-      </svg>
-    ),
-    title: "AI-Driven Predictions",
-    desc: "Get symbol-level buy/hold/trim/sell signals powered by XGBoost and transformer models with SHAP-backed rationale.",
-    badge: "Investor"
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect width="28" height="28" rx="8" fill="#4ADE80" fillOpacity="0.15"/>
-        <rect x="7" y="14" width="4" height="7" rx="1" fill="#4ADE80"/>
-        <rect x="12" y="10" width="4" height="11" rx="1" fill="#16A34A"/>
-        <rect x="17" y="7" width="4" height="14" rx="1" fill="#4ADE80"/>
-      </svg>
-    ),
-    title: "Portfolio Intelligence",
-    desc: "Real-time P&L tracking, allocation views, and trade history with full position management.",
-    badge: "Investor"
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect width="28" height="28" rx="8" fill="#4ADE80" fillOpacity="0.15"/>
-        <path d="M14 7l5 2.5v4c0 3-2.5 5.5-5 6.5-2.5-1-5-3.5-5-6.5v-4L14 7z" stroke="#16A34A" strokeWidth="2" strokeLinejoin="round" fill="#4ADE80" fillOpacity="0.2"/>
-        <path d="M11.5 14l2 2 3.5-3.5" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    title: "Security & Audit",
-    desc: "HMAC-verified audit chains, AES-GCM field encryption, anomaly detection, and RBAC role enforcement.",
-    badge: "CISO"
-  },
-  {
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect width="28" height="28" rx="8" fill="#4ADE80" fillOpacity="0.15"/>
-        <circle cx="14" cy="14" r="5" stroke="#16A34A" strokeWidth="2"/>
-        <path d="M14 9V7M14 21v-2M9 14H7M21 14h-2" stroke="#4ADE80" strokeWidth="1.8" strokeLinecap="round"/>
-        <circle cx="14" cy="14" r="2" fill="#4ADE80"/>
-      </svg>
-    ),
-    title: "Risk Analytics",
-    desc: "Live risk snapshots, trend analysis, and anomaly stats for institutional-grade operational visibility.",
-    badge: "Admin"
-  }
+  { Icon: TrendingUp, gradient: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D", title: "AI-Driven Predictions", desc: "Get symbol-level buy/hold/trim/sell signals powered by XGBoost and transformer models with SHAP-backed rationale.", badge: "Investor" },
+  { Icon: BarChart2, gradient: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8", title: "Portfolio Intelligence", desc: "Real-time P&L tracking, allocation views, and trade history with full position management.", badge: "Investor" },
+  { Icon: Shield, gradient: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", iconColor: "#15803D", title: "Security & Audit", desc: "HMAC-verified audit chains, AES-GCM field encryption, anomaly detection, and RBAC role enforcement.", badge: "CISO" },
+  { Icon: Activity, gradient: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E", title: "Risk Analytics", desc: "Live risk snapshots, trend analysis, and anomaly stats for institutional-grade operational visibility.", badge: "Admin" },
 ];
 
 const STEPS = [
-  { num: "01", title: "Register & Get Verified", desc: "Create your account and get assigned your role — investor, admin, or CISO — with secure JWT sessions." },
-  { num: "02", title: "Analyze PSX Signals", desc: "Search any PSX symbol to get AI-predicted signals with confidence scores, target prices, and risk levels." },
-  { num: "03", title: "Execute & Track", desc: "Log trades, monitor your portfolio P&L, and let CISO dashboards keep operations auditable and secure." }
+  { num: "01", Icon: UserCheck, title: "Register & Get Verified", desc: "Create your account and get assigned your role — investor, admin, or CISO — with secure JWT sessions." },
+  { num: "02", Icon: Search, title: "Analyze PSX Signals", desc: "Search any PSX symbol to get AI-predicted signals with confidence scores, target prices, and risk levels." },
+  { num: "03", Icon: BarChart3, title: "Execute & Track", desc: "Log trades, monitor your portfolio P&L, and let CISO dashboards keep operations auditable and secure." },
 ];
 
 const TESTIMONIALS = [
@@ -196,17 +151,12 @@ export default function HomePage() {
             <Link href="/login" className="btn-outline" style={{ padding: "10px 20px", fontSize: 14 }}>Login</Link>
             <Link href="/register" className="btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>
               Get Started
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <ArrowRight size={15} color="white" strokeWidth={2} />
             </Link>
           </div>
 
           <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              {mobileOpen
-                ? <path d="M4 4l12 12M4 16L16 4" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
-                : <path d="M3 5h14M3 10h14M3 15h14" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
-              }
-            </svg>
+            {mobileOpen ? <X size={20} color="#374151" strokeWidth={1.8} /> : <Menu size={20} color="#374151" strokeWidth={1.8} />}
           </button>
         </div>
 
@@ -253,7 +203,7 @@ export default function HomePage() {
             <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
               <Link href="/register" className="btn-primary">
                 Start for Free
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <ArrowRight size={15} color="white" strokeWidth={2} />
               </Link>
               <Link href="/login" className="btn-outline">Login to Dashboard</Link>
             </div>
@@ -387,7 +337,10 @@ export default function HomePage() {
                 whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(74,222,128,0.18)", transition: { duration: 0.2 } }}
                 style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28, cursor: "default" }}
               >
-                <div style={{ marginBottom: 16 }}>{f.icon}</div>
+                <motion.div whileHover={{ rotate: [0, -8, 8, 0], scale: 1.08 }} transition={{ duration: 0.4 }}
+                  style={{ width: 52, height: 52, borderRadius: 14, background: f.gradient, display: "flex", alignItems: "center", justifyContent: "center", color: f.iconColor, marginBottom: 16 }}>
+                  <f.Icon size={24} strokeWidth={2} />
+                </motion.div>
                 <span className="chip" style={{ marginBottom: 12, display: "inline-block" }}>{f.badge}</span>
                 <h3 style={{ fontWeight: 700, fontSize: 17, color: "#111827", marginBottom: 10 }}>{f.title}</h3>
                 <p style={{ fontSize: 13.5, color: "#6B7280", lineHeight: 1.65 }}>{f.desc}</p>
@@ -424,13 +377,10 @@ export default function HomePage() {
                   style={{ textAlign: "center" }}
                 >
                   <div className="step-num">{s.num}</div>
-                  <div style={{ width: 56, height: 56, background: "#4ADE80", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "12px auto 16px", boxShadow: "0 8px 20px rgba(74,222,128,0.3)" }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      {i === 0 && <><path d="M12 4l7 4v5c0 4-3 7.5-7 8.5C8 20.5 5 17 5 13V8l7-4z" stroke="white" strokeWidth="2" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round"/></>}
-                      {i === 1 && <><path d="M5 12l5-5 3 3 6-7" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="19" cy="6" r="2" fill="white"/></>}
-                      {i === 2 && <><rect x="4" y="10" width="3" height="10" rx="1" fill="white"/><rect x="10.5" y="6" width="3" height="14" rx="1" fill="white"/><rect x="17" y="3" width="3" height="17" rx="1" fill="white"/></>}
-                    </svg>
-                  </div>
+                  <motion.div whileHover={{ scale: 1.12, rotate: 8 }} transition={{ duration: 0.3 }}
+                    style={{ width: 56, height: 56, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "12px auto 16px", boxShadow: "0 8px 20px rgba(74,222,128,0.3)" }}>
+                    <s.Icon size={24} color="white" strokeWidth={2.2} />
+                  </motion.div>
                   <h3 style={{ fontWeight: 700, fontSize: 18, color: "#111827", marginBottom: 10 }}>{s.title}</h3>
                   <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.65 }}>{s.desc}</p>
                 </motion.div>
@@ -492,7 +442,7 @@ export default function HomePage() {
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/register" style={{ background: "white", color: "#16A34A", padding: "14px 32px", borderRadius: 10, fontWeight: 700, fontSize: 15, display: "inline-flex", alignItems: "center", gap: 8 }}>
                 Create Free Account
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <ArrowRight size={15} color="#16A34A" strokeWidth={2} />
               </Link>
               <Link href="/login" style={{ background: "rgba(255,255,255,0.15)", color: "white", padding: "14px 32px", borderRadius: 10, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(255,255,255,0.4)" }}>
                 Login

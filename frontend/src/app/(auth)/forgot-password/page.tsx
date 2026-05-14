@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { useAuth } from "@/lib/auth";
+import { Eye, EyeOff, Loader2, ArrowRight, Mail, CheckCircle2 } from "lucide-react";
 
 type Step = "email" | "otp" | "password" | "done";
 
@@ -223,7 +224,8 @@ export default function ForgotPasswordPage() {
             </div>
           )}
           {message && (
-            <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#15803D", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 18 }}>
+            <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#15803D", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
+              <CheckCircle2 size={15} strokeWidth={2.5} />
               {message}
             </div>
           )}
@@ -231,11 +233,13 @@ export default function ForgotPasswordPage() {
           {step === "email" && (
             <form onSubmit={handleEmailSubmit}>
               <div style={{ marginBottom: 22 }}>
-                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email Address</label>
+                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Mail size={13} strokeWidth={2} color="#9CA3AF" /> Email Address
+                </label>
                 <input className="input-field" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required/>
               </div>
               <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? "Sending OTP..." : "Send Reset OTP"}
+                {loading ? <><Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />Sending OTP...</> : <>Send Reset OTP <ArrowRight size={15} strokeWidth={2} /></>}
               </button>
             </form>
           )}
@@ -257,7 +261,7 @@ export default function ForgotPasswordPage() {
                 </button>
               </div>
               <button type="submit" className="btn-submit" disabled={loading || otp.length !== 6}>
-                {loading ? "Verifying..." : "Verify OTP"}
+                {loading ? <><Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />Verifying...</> : <>Verify OTP <ArrowRight size={15} strokeWidth={2} /></>}
               </button>
             </form>
           )}
@@ -270,9 +274,9 @@ export default function ForgotPasswordPage() {
                   <input className="input-field" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required style={{ paddingRight: 44 }}/>
                   <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
+                      <EyeOff size={18} strokeWidth={2} />
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <Eye size={18} strokeWidth={2} />
                     )}
                   </button>
                 </div>
@@ -295,7 +299,7 @@ export default function ForgotPasswordPage() {
                 )}
               </div>
               <button type="submit" className="btn-submit" disabled={loading || !password || password !== confirm}>
-                {loading ? "Updating password..." : "Update Password"}
+                {loading ? <><Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />Updating...</> : <>Update Password <ArrowRight size={15} strokeWidth={2} /></>}
               </button>
             </form>
           )}

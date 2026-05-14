@@ -9,6 +9,7 @@ import {
 import { motion, type Variants } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { DollarSign, TrendingUp, Briefcase, Award, Zap, History, UserCircle, Users, UserCheck, UserX, UserPlus, FileText, AlertCircle, Shield, CheckCircle2, FileSearch, AlertTriangle } from "lucide-react";
 
 const MOCK_PORTFOLIO_CHART = [
   { day: "Mon", value: 245000 }, { day: "Tue", value: 251000 },
@@ -162,7 +163,7 @@ export default function DashboardPage() {
           {isInvestor && (
             <div style={{ display: "flex", gap: 8 }}>
               <Link href="/predict" style={{ background: "#16A34A", color: "white", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 11l4-4 2 2 4-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <Zap size={15} color="white" strokeWidth={2} />
                 Get Signal
               </Link>
               <Link href="/portfolio" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
@@ -185,10 +186,10 @@ export default function DashboardPage() {
             animate="visible"
           >
             {[
-              { label: "Portfolio Value", value: "PKR 2,79,500", change: "+4.3%", up: true },
-              { label: "Today's P&L", value: "+PKR 11,500", change: "+4.3%", up: true },
-              { label: "Active Positions", value: "8", change: "2 new today", up: true },
-              { label: "Win Rate", value: "71.4%", change: "+2.1% this week", up: true },
+              { label: "Portfolio Value", value: "PKR 2,79,500", change: "+4.3%", up: true, Icon: DollarSign, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Today's P&L", value: "+PKR 11,500", change: "+4.3%", up: true, Icon: TrendingUp, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Active Positions", value: "8", change: "2 new today", up: true, Icon: Briefcase, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+              { label: "Win Rate", value: "71.4%", change: "+2.1% this week", up: true, Icon: Award, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
             ].map((s) => (
               <motion.div
                 key={s.label}
@@ -196,12 +197,17 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
                 style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
               >
-                <div>
-                  <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                  <p style={{ fontSize: 22, fontWeight: 800, color: "#111827" }}>{s.value}</p>
-                  <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>
-                    {s.up ? "▲" : "▼"} {s.change}
-                  </p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: "#111827" }}>{s.value}</p>
+                    <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>
+                      {s.up ? "▲" : "▼"} {s.change}
+                    </p>
+                  </div>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
+                    <s.Icon size={18} strokeWidth={2} />
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -338,19 +344,24 @@ export default function DashboardPage() {
               animate="visible"
             >
               {[
-                { href: "/predict", label: "Get AI Signal", sub: "Any PSX symbol" },
-                { href: "/portfolio", label: "View Portfolio", sub: "P&L overview" },
-                { href: "/trades", label: "Trade History", sub: "All transactions" },
-                { href: "/profile", label: "My Profile", sub: "Account settings" },
+                { href: "/predict", label: "Get AI Signal", sub: "Any PSX symbol", Icon: Zap, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+                { href: "/portfolio", label: "View Portfolio", sub: "P&L overview", Icon: Briefcase, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+                { href: "/trades", label: "Trade History", sub: "All transactions", Icon: History, iconBg: "linear-gradient(135deg,#F3F4F6,#E5E7EB)", iconColor: "#374151" },
+                { href: "/profile", label: "My Profile", sub: "Account settings", Icon: UserCircle, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
               ].map((a) => (
                 <Link key={a.href} href={a.href} style={{ textDecoration: "none" }}>
                   <motion.div
                     variants={cardItem}
                     whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
-                    style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer" }}
+                    style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
-                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: a.iconColor, flexShrink: 0 }}>
+                      <a.Icon size={16} strokeWidth={2} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                    </div>
                   </motion.div>
                 </Link>
               ))}
@@ -370,10 +381,10 @@ export default function DashboardPage() {
             animate="visible"
           >
             {[
-              { label: "Total Users", value: "1,284", change: "+12 today"},
-              { label: "Active Users", value: "1,201", change: "93.5% active" },
-              { label: "Deactivated", value: "83", change: "6.5% inactive"},
-              { label: "New Today", value: "12", change: "+3 from yesterday"},
+              { label: "Total Users", value: "1,284", change: "+12 today", Icon: Users, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+              { label: "Active Users", value: "1,201", change: "93.5% active", Icon: UserCheck, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Deactivated", value: "83", change: "6.5% inactive", Icon: UserX, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+              { label: "New Today", value: "12", change: "+3 from yesterday", Icon: UserPlus, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
             ].map((s) => (
               <motion.div
                 key={s.label}
@@ -381,11 +392,14 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
                 style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>{s.label}</p>
                     <p style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</p>
                     <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{s.change}</p>
+                  </div>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
+                    <s.Icon size={18} strokeWidth={2} />
                   </div>
                 </div>
               </motion.div>
@@ -407,9 +421,9 @@ export default function DashboardPage() {
               animate="visible"
             >
               {[
-                { href: "/admin/users", label: "Manage Users", sub: "View & edit all users" },
-                { href: "/profile", label: "My Profile", sub: "Account settings" },
-                { href: "/predict", label: "AI Signals", sub: "View predictions" },
+                { href: "/admin/users", label: "Manage Users", sub: "View & edit all users", Icon: Users, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+                { href: "/profile", label: "My Profile", sub: "Account settings", Icon: UserCircle, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
+                { href: "/predict", label: "AI Signals", sub: "View predictions", Icon: Zap, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
               ].map((a) => (
                 <Link key={a.href} href={a.href} style={{ textDecoration: "none" }}>
                   <motion.div
@@ -417,6 +431,9 @@ export default function DashboardPage() {
                     whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
                     style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                   >
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: a.iconColor, flexShrink: 0 }}>
+                      <a.Icon size={16} strokeWidth={2} />
+                    </div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
                       <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
@@ -440,10 +457,10 @@ export default function DashboardPage() {
             animate="visible"
           >
             {[
-              { label: "Audit Events", value: "3,421", change: "+48 today"},
-              { label: "Anomalies", value: "7", change: "2 high severity"},
-              { label: "Risk Score", value: "LOW", change: "All systems normal" },
-              { label: "Chain Status", value: "Verified", change: "Last checked 2m ago"},
+              { label: "Audit Events", value: "3,421", change: "+48 today", Icon: FileText, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+              { label: "Anomalies", value: "7", change: "2 high severity", Icon: AlertCircle, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+              { label: "Risk Score", value: "LOW", change: "All systems normal", Icon: Shield, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Chain Status", value: "Verified", change: "Last checked 2m ago", Icon: CheckCircle2, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
             ].map((s) => (
               <motion.div
                 key={s.label}
@@ -451,13 +468,15 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
                 style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>{s.label}</p>
                     <p style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</p>
                     <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{s.change}</p>
                   </div>
-
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
+                    <s.Icon size={18} strokeWidth={2} />
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -494,18 +513,23 @@ export default function DashboardPage() {
                 animate="visible"
               >
                 {[
-                  { href: "/ciso/audit", label: "Audit Explorer", sub: "View event stream" },
-                  { href: "/ciso/risk", label: "Risk Dashboard", sub: "Anomalies & trends" },
-                  { href: "/profile", label: "My Profile", sub: "Account settings" },
+                  { href: "/ciso/audit", label: "Audit Explorer", sub: "View event stream", Icon: FileSearch, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+                  { href: "/ciso/risk", label: "Risk Dashboard", sub: "Anomalies & trends", Icon: AlertTriangle, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+                  { href: "/profile", label: "My Profile", sub: "Account settings", Icon: UserCircle, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
                 ].map((a) => (
                   <Link key={a.href} href={a.href} style={{ textDecoration: "none" }}>
                     <motion.div
                       variants={cardItem}
                       whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
-                      style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer" }}
+                      style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                     >
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: a.iconColor, flexShrink: 0 }}>
+                        <a.Icon size={16} strokeWidth={2} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
+                        <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                      </div>
                     </motion.div>
                   </Link>
                 ))}

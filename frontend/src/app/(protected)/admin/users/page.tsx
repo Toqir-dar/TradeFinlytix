@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useAdminUsers } from "@/lib/queries";
 import { api } from "@/lib/api";
+import { Users, UserCheck, UserX, Shield, Search } from "lucide-react";
 
 const MOCK_USERS = [
   { _id: "1", full_name: "Ahmed Khan", email: "ahmed@example.com", role: "investor", is_active: true, created_at: "2026-01-15T10:00:00Z" },
@@ -100,17 +101,20 @@ export default function AdminUsersPage() {
       {/* Stat Cards */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Users", value: items.length, sub: "Registered" },
-          { label: "Active Users", value: totalActive, sub: "Currently active", color: "#16A34A" },
-          { label: "Deactivated", value: totalInactive, sub: "Inactive accounts", color: "#DC2626" },
-          { label: "Admins", value: items.filter((u: any) => u.role === "admin").length, sub: "Admin role", color: "#1D4ED8" },
+          { label: "Total Users", value: items.length, sub: "Registered", Icon: Users, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+          { label: "Active Users", value: totalActive, sub: "Currently active", color: "#16A34A", Icon: UserCheck, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+          { label: "Deactivated", value: totalInactive, sub: "Inactive accounts", color: "#DC2626", Icon: UserX, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+          { label: "Admins", value: items.filter((u: any) => u.role === "admin").length, sub: "Admin role", color: "#1D4ED8", Icon: Shield, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
         ].map(s => (
-          <div key={s.label} className="stat-card">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div key={s.label} className="stat-card" style={{ position: "relative", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
                 <p style={{ fontSize: 24, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
                 <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: s.iconColor }}>
+                <s.Icon size={18} strokeWidth={2} />
               </div>
             </div>
           </div>
@@ -122,10 +126,9 @@ export default function AdminUsersPage() {
         {/* Filters */}
         <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-            <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="6" cy="6" r="4" stroke="#9CA3AF" strokeWidth="1.5"/>
-              <path d="M10 10l2 2" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+            <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+              <Search size={14} strokeWidth={2} />
+            </div>
             <input className="input-field" style={{ paddingLeft: 32, width: "100%" }} placeholder="Search by name or email..." value={search} onChange={e => setSearch(e.target.value)}/>
           </div>
           <div style={{ display: "flex", gap: 6 }}>

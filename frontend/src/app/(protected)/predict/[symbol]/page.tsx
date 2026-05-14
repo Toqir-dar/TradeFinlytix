@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useMarketPrediction } from "@/lib/queries";
+import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
 
 const MOCK_DATA = {
   symbol: "OGDC",
@@ -85,7 +86,7 @@ export default function PredictSymbolPage() {
       {/* Back Button */}
       <div style={{ marginBottom: 24 }}>
         <Link href="/predict" className="back-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <ChevronLeft size={16} strokeWidth={2} />
           Back to Predictions
         </Link>
       </div>
@@ -146,12 +147,13 @@ export default function PredictSymbolPage() {
       {/* Loading / Error States */}
       {isLoading && (
         <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: 16, marginBottom: 20, fontSize: 14, color: "#15803D", display: "flex", alignItems: "center", gap: 8 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity="0.3"/><path d="M21 12a9 9 0 00-9-9"/></svg>
+          <Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />
           Fetching live prediction for {symbol}...
         </div>
       )}
       {error && (
-        <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: 16, marginBottom: 20, fontSize: 14, color: "#92400E" }}>
+        <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: 16, marginBottom: 20, fontSize: 14, color: "#92400E", display: "flex", alignItems: "center", gap: 8 }}>
+          <AlertTriangle size={16} strokeWidth={2} />
           Backend offline — showing demo data. Connect backend to see live signals.
         </div>
       )}
@@ -162,13 +164,18 @@ export default function PredictSymbolPage() {
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Execution Levels</h3>
           <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[
-              { label: "Entry Price", value: data?.prediction?.entry_price ? `PKR ${data.prediction.entry_price}` : "PKR 173.50", sub: "Recommended entry", color: "#16A34A" },
-              { label: "Target Price", value: data?.prediction?.target_price ? `PKR ${data.prediction.target_price}` : "PKR 127.50", sub: "Upside target", color: "#16A34A" },
-              { label: "Stop Loss", value: data?.prediction?.stop_loss ? `PKR ${data.prediction.stop_loss}` : "PKR 168.00", sub: "Risk limit", color: "#DC2626" },
-              { label: "Expected Gain", value: data?.prediction?.expected_gain_pct ? `${data.prediction.expected_gain_pct}%` : "8.4%", sub: "Potential upside", color: "#16A34A" },
+              { label: "Entry Price", value: data?.prediction?.entry_price ? `PKR ${data.prediction.entry_price}` : "PKR 173.50", sub: "Recommended entry", color: "#16A34A", Icon: TrendingUp, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Target Price", value: data?.prediction?.target_price ? `PKR ${data.prediction.target_price}` : "PKR 127.50", sub: "Upside target", color: "#1D4ED8", Icon: Target, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+              { label: "Stop Loss", value: data?.prediction?.stop_loss ? `PKR ${data.prediction.stop_loss}` : "PKR 168.00", sub: "Risk limit", color: "#DC2626", Icon: ShieldAlert, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+              { label: "Expected Gain", value: data?.prediction?.expected_gain_pct ? `${data.prediction.expected_gain_pct}%` : "8.4%", sub: "Potential upside", color: "#16A34A", Icon: Zap, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
             ].map(m => (
               <div key={m.label} className="metric-card">
-                <p style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>{m.label}</p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{m.label}</p>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: m.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: m.iconColor, flexShrink: 0 }}>
+                    <m.Icon size={15} strokeWidth={2} />
+                  </div>
+                </div>
                 <p style={{ fontSize: 22, fontWeight: 800, color: m.color }}>{m.value}</p>
                 <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{m.sub}</p>
               </div>
@@ -234,7 +241,8 @@ export default function PredictSymbolPage() {
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Integrity Verification</h3>
           <div style={{ background: data?.integrity?.verified !== false ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${data?.integrity?.verified !== false ? "#BBF7D0" : "#FECACA"}`, borderRadius: 12, padding: 20, marginBottom: 16, textAlign: "center" }}>
-            <p style={{ fontWeight: 700, fontSize: 16, color: data?.integrity?.verified !== false ? "#15803D" : "#991B1B" }}>
+            <p style={{ fontWeight: 700, fontSize: 16, color: data?.integrity?.verified !== false ? "#15803D" : "#991B1B", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <CheckCircle2 size={18} strokeWidth={2} />
               {data?.integrity?.verified !== false ? "HMAC Verified" : "Verification Failed"}
             </p>
             <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
@@ -261,13 +269,15 @@ export default function PredictSymbolPage() {
       {/* Action Buttons */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <Link href="/portfolio" className="action-btn" style={{ background: "#16A34A", color: "white" }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 14l4-4 3 3 5-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <TrendingUp size={16} color="white" strokeWidth={2} />
           Add to Portfolio
         </Link>
         <Link href="/trades" className="action-btn" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB" }}>
+          <Zap size={15} strokeWidth={2} />
           Log Trade
         </Link>
         <Link href="/predict" className="action-btn" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB" }}>
+          <ChevronLeft size={15} strokeWidth={2} />
           Another Symbol
         </Link>
       </div>

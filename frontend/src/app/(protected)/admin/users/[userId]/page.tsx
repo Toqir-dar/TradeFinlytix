@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAdminUser, useAdminUserActivity } from "@/lib/queries";
+import { ChevronLeft, UserCheck, UserX, KeyRound, User, Mail, Shield, CalendarDays, Hash, LogIn, LogOut, TrendingUp, Briefcase, BarChart3, Activity } from "lucide-react";
 
 const MOCK_USER = {
   _id: "1", full_name: "Ahmed Khan", email: "ahmed@example.com",
@@ -34,6 +35,14 @@ const ACTION_CONFIG: Record<string, { bg: string; color: string }> = {
   trade_log:        { bg: "#FEF9C3", color: "#854D0E" },
   logout:           { bg: "#FEE2E2", color: "#991B1B" },
   default:          { bg: "#F3F4F6", color: "#374151" },
+};
+
+const ACTION_ICONS: Record<string, any> = {
+  login:            LogIn,
+  predict:          TrendingUp,
+  portfolio_update: Briefcase,
+  trade_log:        BarChart3,
+  logout:           LogOut,
 };
 
 export default function AdminUserDetailPage() {
@@ -77,7 +86,7 @@ export default function AdminUserDetailPage() {
 
       {/* Back */}
       <Link href="/admin/users" className="back-btn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <ChevronLeft size={16} strokeWidth={2} />
         Back to Users
       </Link>
 
@@ -113,19 +122,19 @@ export default function AdminUserDetailPage() {
               style={{ background: "#F0FDF4", color: "#16A34A", borderColor: "#BBF7D0" }}
               onClick={() => action.mutate(`/admin/users/${userId}/activate`)}
               disabled={action.isPending || data?.is_active}>
-              Activate
+              <UserCheck size={15} strokeWidth={2} /> Activate
             </button>
             <button className="action-btn"
               style={{ background: "#FEF2F2", color: "#DC2626", borderColor: "#FECACA" }}
               onClick={() => action.mutate(`/admin/users/${userId}/deactivate`)}
               disabled={action.isPending || !data?.is_active}>
-             Deactivate
+              <UserX size={15} strokeWidth={2} /> Deactivate
             </button>
             <button className="action-btn"
               style={{ background: "#FFFBEB", color: "#92400E", borderColor: "#FDE68A" }}
               onClick={() => action.mutate(`/admin/users/${userId}/reset-password`)}
               disabled={action.isPending}>
-              Reset Password
+              <KeyRound size={15} strokeWidth={2} /> Reset Password
             </button>
           </div>
         </div>
@@ -136,15 +145,18 @@ export default function AdminUserDetailPage() {
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Account Details</h3>
           {[
-            { label: "Full Name", value: data?.full_name ?? "—" },
-            { label: "Email", value: data?.email ?? "—" },
-            { label: "Role", value: data?.role ?? "—" },
-            { label: "Status", value: data?.is_active ? "Active" : "Inactive" },
-            { label: "User ID", value: userId?.slice(0, 12) + "..." },
-            { label: "Joined", value: data?.created_at ? new Date(data.created_at).toLocaleDateString("en-PK", { dateStyle: "medium" }) : "—" },
+            { label: "Full Name", value: data?.full_name ?? "—", Icon: User },
+            { label: "Email", value: data?.email ?? "—", Icon: Mail },
+            { label: "Role", value: data?.role ?? "—", Icon: Shield },
+            { label: "Status", value: data?.is_active ? "Active" : "Inactive", Icon: UserCheck },
+            { label: "User ID", value: userId?.slice(0, 12) + "...", Icon: Hash },
+            { label: "Joined", value: data?.created_at ? new Date(data.created_at).toLocaleDateString("en-PK", { dateStyle: "medium" }) : "—", Icon: CalendarDays },
           ].map(item => (
             <div key={item.label} className="info-row">
-              <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>{item.label}</span>
+              <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500, display: "flex", alignItems: "center", gap: 7 }}>
+                <item.Icon size={13} strokeWidth={2} color="#9CA3AF" />
+                {item.label}
+              </span>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{item.value}</span>
             </div>
           ))}
@@ -166,7 +178,9 @@ export default function AdminUserDetailPage() {
               const cfg = ACTION_CONFIG[item.action] ?? ACTION_CONFIG.default;
               return (
                 <div key={item._id} className="activity-row">
-                  <div style={{ width: 36, height: 36, background: cfg.bg, borderRadius: 10, flexShrink: 0 }}/>
+                  <div style={{ width: 36, height: 36, background: cfg.bg, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: cfg.color }}>
+                    {(() => { const Icon = ACTION_ICONS[item.action] ?? Activity; return <Icon size={16} strokeWidth={2} />; })()}
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>

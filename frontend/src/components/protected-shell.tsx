@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
+import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, type LucideIcon } from "lucide-react";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
@@ -24,6 +25,17 @@ const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string }> 
   investor: { bg: "#DCFCE7", color: "#15803D", label: "Investor" },
   admin:    { bg: "#EFF6FF", color: "#1D4ED8", label: "Admin" },
   ciso:     { bg: "#FEF3C7", color: "#92400E", label: "CISO" },
+};
+
+const NAV_ICONS: Record<string, LucideIcon> = {
+  "/dashboard": LayoutDashboard,
+  "/predict": TrendingUp,
+  "/portfolio": Briefcase,
+  "/trades": History,
+  "/admin/users": Users,
+  "/ciso/audit": FileSearch,
+  "/ciso/risk": AlertTriangle,
+  "/profile": UserCircle,
 };
 
 export function ProtectedShell({ children }: { children: React.ReactNode }) {
@@ -131,8 +143,10 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         .alert-item:last-child { border-bottom: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); } 60% { box-shadow: 0 0 0 5px rgba(220,38,38,0); } }
         .alerts-panel { animation: slideDown 0.2s ease; }
         .mobile-menu { animation: slideDown 0.2s ease; }
+        .badge-pulse { animation: badgePulse 2s ease-in-out infinite; }
         .shell-desktop-nav { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; flex-wrap: nowrap; overflow: hidden; }
         .shell-right-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .shell-mobile-btn { display: none; background: white; border: 1.5px solid #E5E7EB; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -170,8 +184,10 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
           <nav className="shell-desktop-nav">
             {visibleLinks.map((l) => {
               const isActive = pathname === l.href || pathname.startsWith(`${l.href}/`);
+              const Icon = NAV_ICONS[l.href];
               return (
                 <Link key={l.href} href={l.href} className={`nav-link ${isActive ? "active" : ""}`}>
+                  {Icon && <Icon size={15} strokeWidth={2} />}
                   {l.label}
                 </Link>
               );
@@ -198,12 +214,9 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; e.currentTarget.style.background = "#F0FDF4"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
+                <Bell size={18} color="#374151" strokeWidth={2} />
                 {unreadCount > 0 && (
-                  <span style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "white", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
+                  <span className="badge-pulse" style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "white", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -279,11 +292,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
               onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
               title="Logout"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
+              <LogOut size={16} color="#DC2626" strokeWidth={2} />
             </button>
           </div>
         </div>

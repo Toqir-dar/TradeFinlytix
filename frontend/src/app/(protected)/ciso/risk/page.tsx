@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { useAnomalies, useAudit, useAuditVerify } from "@/lib/queries";
+import { useAnomalies, useAudit } from "@/lib/queries";
 import { api } from "@/lib/api";
 import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX } from "lucide-react";
 
@@ -64,7 +63,6 @@ const ANOMALY_ICONS: Record<string, any> = {
 
 export default function CisoAuditPage() {
   const { user } = useAuth();
-  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"events" | "anomalies">("events");
   const [eventFilter, setEventFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -135,7 +133,7 @@ export default function CisoAuditPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Audit Explorer</h1>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Risk & Audit</h1>
           <p style={{ fontSize: 14, color: "#6B7280" }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
         </div>
         <button onClick={handleVerify} disabled={verifying}
@@ -189,7 +187,7 @@ export default function CisoAuditPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {(["events", "anomalies"] as const).map(tab => (
           <button key={tab} className="tab-btn"
             onClick={() => setActiveTab(tab)}

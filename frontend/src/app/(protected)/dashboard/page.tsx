@@ -153,7 +153,7 @@ export default function DashboardPage() {
       >
         <div className="dash-header">
           <div>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#111827", letterSpacing: "-0.5px" }}>
+            <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#111827", letterSpacing: "-0.5px" }}>
               {getGreeting()}, {firstName}
             </h1>
             <p style={{ fontSize: 14, color: "#6B7280", marginTop: 4 }}>

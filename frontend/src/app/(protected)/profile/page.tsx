@@ -66,7 +66,7 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>
+        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>
           My Profile
         </h1>
         <p style={{ fontSize: 14, color: "#6B7280" }}>Manage your account and security settings</p>

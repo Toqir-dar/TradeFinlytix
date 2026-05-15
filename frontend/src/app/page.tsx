@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
+import { PsxLiveChartCard } from "@/components/psx-live-chart";
 import { TrendingUp, BarChart2, Shield, Activity, ArrowRight, UserCheck, Search, BarChart3, Menu, X } from "lucide-react";
 
 function useCountUp(end: number, duration = 2000) {
@@ -92,6 +93,11 @@ export default function HomePage() {
         .chip { display: inline-block; background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
         .ticker-line { display: flex; gap: 32px; animation: ticker 20s linear infinite; white-space: nowrap; }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .market-section { background: radial-gradient(circle at top, #F0FDF4 0%, #FFFFFF 60%); border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; }
+        .market-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; }
+        .market-bullets { display: grid; gap: 10px; margin-top: 24px; }
+        .market-bullet { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #374151; }
+        .market-dot { width: 10px; height: 10px; border-radius: 999px; background: #16A34A; box-shadow: 0 0 0 3px #DCFCE7; }
         .step-num { font-family: 'DM Serif Display', serif; font-size: 56px; color: #BBF7D0; line-height: 1; }
         .nav-link { color: #374151; text-decoration: none; font-weight: 500; font-size: 14px; transition: color 0.2s; }
         .nav-link:hover { color: #16A34A; }
@@ -118,6 +124,7 @@ export default function HomePage() {
           .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
           .cta-box { padding: 48px 28px !important; border-radius: 20px !important; }
           .cta-h2 { font-size: 34px !important; }
+          .market-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .features-grid { grid-template-columns: 1fr !important; }
@@ -275,6 +282,58 @@ export default function HomePage() {
               </div>
             </motion.div>
           </motion.div>
+        </section>
+
+        {/* Live Market */}
+        <section id="live-market" className="market-section" style={{ padding: "90px 24px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div className="market-grid">
+              <motion.div
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.55, ease: EASE }}
+              >
+                <span className="chip">Live market</span>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: "#111827", marginTop: 16, letterSpacing: "-0.4px" }}>
+                  PSX prices updated every minute
+                </h2>
+                <p style={{ fontSize: 16, color: "#6B7280", marginTop: 12, maxWidth: 520, lineHeight: 1.7 }}>
+                  Track five liquid PSX names in a single glance. Powered by YFinance intraday data and refreshed every minute.
+                </p>
+                <div className="market-bullets">
+                  {[
+                    "Five PSX tickers side by side",
+                    "Auto refresh every minute",
+                    "Built on YFinance price feeds",
+                  ].map((item) => (
+                    <div key={item} className="market-bullet">
+                      <span className="market-dot" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+              >
+                <PsxLiveChartCard
+                  title="Live PSX Prices"
+                  subtitle="OGDC, HBL, ENGRO, LUCK, PSO"
+                  badge="1m refresh"
+                  style={{
+                    borderRadius: 22,
+                    padding: 28,
+                    boxShadow: "0 22px 60px rgba(22,163,74,0.15)",
+                  }}
+                />
+              </motion.div>
+            </div>
+          </div>
         </section>
 
         {/* Stats */}

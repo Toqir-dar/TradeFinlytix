@@ -46,7 +46,7 @@ export const useAdminUserActivity = (userId: string) =>
   });
 
 // ── CISO Audit ────────────────────────────────────────────────
-export const useAudit = (params?: { event_type?: string; user_id?: string; limit?: number }) =>
+export const useAudit = (params?: { event_type?: string; user_id?: string; limit?: number; skip?: number }) =>
   useQuery({
     queryKey: ["ciso-audit", params],
     queryFn: async () => {
@@ -54,6 +54,7 @@ export const useAudit = (params?: { event_type?: string; user_id?: string; limit
       if (params?.event_type) p.set("event_type", params.event_type);
       if (params?.user_id) p.set("user_id", params.user_id);
       if (params?.limit) p.set("limit", String(params.limit));
+      if (params?.skip) p.set("skip", String(params.skip));
       return (await api.get(`/ciso/audit?${p.toString()}`)).data;
     },
   });
@@ -130,4 +131,26 @@ export const useScreener = () =>
     queryKey: ["screener"],
     queryFn: async () =>
       (await api.post("/screener", { preset: "trending", limit: 20 })).data,
+  });
+
+// ── Market ───────────────────────────────────────────────────
+export type IntradayPoint = { ts: string; price: number };
+export type IntradayResponse = {
+  interval: string;
+  updated_at: string;
+  data: Record<string, IntradayPoint[]>;
+};
+
+export const usePsxIntraday = (symbols: string[], interval = "1m", limit = 60) =>
+  useQuery<IntradayResponse>({
+    queryKey: ["market-intraday", symbols, interval, limit],
+    queryFn: async () =>
+      (
+        await api.get("/market/intraday", {
+          params: { symbols: symbols.join(","), interval, limit },
+        })
+      ).data,
+    enabled: symbols.length > 0,
+    refetchInterval: 60000,
+    staleTime: 55000,
   });

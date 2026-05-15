@@ -7,6 +7,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid
 } from "recharts";
 import { motion, type Variants } from "framer-motion";
+import { PsxLiveChartCard } from "@/components/psx-live-chart";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { DollarSign, TrendingUp, Briefcase, Award, Zap, History, UserCircle, Users, UserCheck, UserX, UserPlus, FileText, AlertCircle, Shield, CheckCircle2, FileSearch, AlertTriangle } from "lucide-react";
@@ -286,6 +287,20 @@ export default function DashboardPage() {
               </motion.div>
             </motion.div>
           </div>
+
+          {/* Live Market */}
+          <motion.div
+            style={{ marginBottom: 24 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.5, ease: EASE }}
+          >
+            <PsxLiveChartCard
+              title="Live PSX Prices"
+              subtitle="Updated every minute"
+              badge="1m refresh"
+            />
+          </motion.div>
 
           {/* Recent Trades */}
           <motion.div

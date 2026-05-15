@@ -22,6 +22,7 @@ from app.api.routes import admin as admin_routes
 from app.api.routes import alerts as alerts_routes
 from app.api.routes import auth as auth_routes
 from app.api.routes import ciso as ciso_routes
+from app.api.routes import market as market_routes
 from app.api.routes import portfolio as portfolio_routes
 from app.api.routes import prediction as prediction_routes
 from app.api.routes import screener as screener_routes
@@ -67,6 +68,10 @@ OPENAPI_TAGS = [
     {
         "name": "Screener",
         "description": "Authenticated investors/admins: filter stocks by price, volume, trend, growth, and risk rules.",
+    },
+    {
+        "name": "Market",
+        "description": "Public intraday price snapshots for dashboard and landing page visuals.",
     },
     {
         "name": "Admin",
@@ -194,6 +199,7 @@ app.include_router(prediction_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")
 app.include_router(alerts_routes.router, prefix="/api/v1")
 app.include_router(screener_routes.router, prefix="/api/v1")
+app.include_router(market_routes.router, prefix="/api/v1")
 app.include_router(admin_routes.router, prefix="/api/v1")
 app.include_router(ciso_routes.router, prefix="/api/v1")
 

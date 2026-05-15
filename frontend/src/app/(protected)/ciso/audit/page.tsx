@@ -71,6 +71,8 @@ export default function CisoAuditPage() {
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [ragQuestion, setRagQuestion] = useState("");
   const [ragResult, setRagResult] = useState<{ answer: string; sources: any[] } | null>(null);
+  const PAGE_SIZE = 20;
+  const [page, setPage] = useState(0);
 
   const ragMutation = useMutation({
     mutationFn: async (question: string) =>
@@ -78,7 +80,11 @@ export default function CisoAuditPage() {
     onSuccess: (data) => setRagResult(data),
   });
 
-  const { data: auditRaw, isLoading } = useAudit();
+  const { data: auditRaw, isLoading } = useAudit({
+    event_type: eventFilter !== "all" ? eventFilter : undefined,
+    limit: PAGE_SIZE,
+    skip: page * PAGE_SIZE,
+  });
   const { data: anomalyRaw } = useAnomalies();
 
   const audit = auditRaw ?? MOCK_AUDIT;
@@ -92,11 +98,10 @@ export default function CisoAuditPage() {
     ...Array.from(new Set<string>(auditItems.map((i: any) => String(i.event_type))))
   ];
 
-  const filteredAudit = auditItems.filter((i: any) => {
-    const matchFilter = eventFilter === "all" || i.event_type === eventFilter;
-    const matchSearch = !search || i.event_type.includes(search) || i.user_id?.includes(search) || i.path?.includes(search);
-    return matchFilter && matchSearch;
-  });
+  const filteredAudit = auditItems.filter((i: any) =>
+    !search || i.event_type.includes(search) || i.user_id?.includes(search) || i.path?.includes(search)
+  );
+  const totalPages = Math.max(1, Math.ceil((audit?.total ?? 0) / PAGE_SIZE));
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -225,7 +230,7 @@ export default function CisoAuditPage() {
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {EVENT_TYPES.slice(0, 6).map(t => (
-                <button key={t} className={`filter-btn ${eventFilter === t ? "active" : ""}`} onClick={() => setEventFilter(t)}>
+                <button key={t} className={`filter-btn ${eventFilter === t ? "active" : ""}`} onClick={() => { setEventFilter(t); setPage(0); }}>
                   {t === "all" ? "All" : t.replace(/_/g, " ")}
                 </button>
               ))}
@@ -278,8 +283,39 @@ export default function CisoAuditPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F3F4F6", fontSize: 13, color: "#9CA3AF" }}>
-            Showing {filteredAudit.length} of {audit?.total?.toLocaleString() ?? 0} total events
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <span style={{ fontSize: 13, color: "#9CA3AF" }}>
+              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, audit?.total ?? 0)} of {audit?.total?.toLocaleString() ?? 0} total events
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                style={{ padding: "6px 14px", borderRadius: 8, border: "1.5px solid #E5E7EB", background: page === 0 ? "#F9FAFB" : "white", color: page === 0 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 600, cursor: page === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                Previous
+              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 5) pageNum = i;
+                  else if (page < 3) pageNum = i;
+                  else if (page > totalPages - 4) pageNum = totalPages - 5 + i;
+                  else pageNum = page - 2 + i;
+                  return (
+                    <button key={pageNum} onClick={() => setPage(pageNum)}
+                      style={{ width: 32, height: 32, borderRadius: 8, border: "1.5px solid", borderColor: pageNum === page ? "#111827" : "#E5E7EB", background: pageNum === page ? "#111827" : "white", color: pageNum === page ? "white" : "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                      {pageNum + 1}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                style={{ padding: "6px 14px", borderRadius: 8, border: "1.5px solid #E5E7EB", background: page >= totalPages - 1 ? "#F9FAFB" : "white", color: page >= totalPages - 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 600, cursor: page >= totalPages - 1 ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}

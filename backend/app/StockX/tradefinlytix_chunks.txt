@@ -1,0 +1,821 @@
+TRADEFINLYTIX -- DOCUMENT CHUNKS REVIEW FILE
+Total chunks : 44
+Chunk size   : 700 chars  |  Overlap: 120 chars
+================================================================================
+
+CHUNK #001
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 1 / 30
+  Start Index : 0
+  Length      : 571 chars
+  Content:
+    TradeFinlytix
+
+    Pakistan Stock Exchange AI Platform
+
+    Company Policy, Terms of Service & Legal Compliance
+
+    Version 1.0  |  Effective: 2025
+
+    Founders: Aleena • Toqir Dar • Seerat Fatima • Ayan Ahmed
+
+    ⚠  IMPORTANT: This document constitutes the binding legal framework governing use of the TradeFinlytix platform. By accessing or using the platform, you agree to these terms in full. Please read carefully.
+
+    1. Company Overview
+
+    Company Name | TradeFinlytix
+
+    Platform Type | AI-Powered Financial Analytics & Intelligence Platform
+
+    Focus Market | Pakistan Stock Exchange (PSX)
+================================================================================
+
+CHUNK #002
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 2 / 30
+  Start Index : 455
+  Length      : 592 chars
+  Content:
+    Platform Type | AI-Powered Financial Analytics & Intelligence Platform
+
+    Focus Market | Pakistan Stock Exchange (PSX)
+
+    Founders | Aleena, Toqir Dar, Seerat Fatima, Ayan Ahmed
+
+    Jurisdiction | Islamic Republic of Pakistan
+
+    Contact | support@tradefinlytix.com
+
+    Effective Date | 2025
+
+    TradeFinlytix provides AI-driven analytics, predictive modeling, news intelligence, and decision-support tools for participants in the Pakistan Stock Exchange. The platform does not operate as a brokerage, investment advisor, asset manager, or financial institution.
+
+    2. Terms of Service
+
+    2.1 Acceptance of Terms
+================================================================================
+
+CHUNK #003
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 3 / 30
+  Start Index : 1003
+  Length      : 554 chars
+  Content:
+    2. Terms of Service
+
+    2.1 Acceptance of Terms
+
+    By registering, accessing, or using the TradeFinlytix platform in any capacity, you ('User') acknowledge that you have read, understood, and agree to be bound by these Terms of Service, our Privacy Policy, and any additional policies published by TradeFinlytix. If you do not agree, you must immediately cease use of the platform.
+
+    2.2 Eligibility
+
+    You must meet the following criteria to use TradeFinlytix:
+
+    Be at least 18 years of age.
+
+    Be legally capable of entering binding contracts under Pakistani law.
+================================================================================
+
+CHUNK #004
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 4 / 30
+  Start Index : 1458
+  Length      : 551 chars
+  Content:
+    Be at least 18 years of age.
+
+    Be legally capable of entering binding contracts under Pakistani law.
+
+    Not be barred from accessing financial services by any regulatory authority.
+
+    Use the platform solely for lawful purposes.
+
+    2.3 Account Registration & Security
+
+    Users are responsible for:
+
+    Providing accurate and truthful registration information.
+
+    Maintaining the confidentiality of their account credentials.
+
+    All activity that occurs under their account.
+
+    Immediately notifying TradeFinlytix of any unauthorized access at support@tradefinlytix.com.
+================================================================================
+
+CHUNK #005
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 5 / 30
+  Start Index : 1917
+  Length      : 520 chars
+  Content:
+    Immediately notifying TradeFinlytix of any unauthorized access at support@tradefinlytix.com.
+
+    TradeFinlytix reserves the right to suspend or terminate accounts found to be in violation of these terms, used fraudulently, or involved in any security breach.
+
+    2.4 Prohibited Conduct
+
+    Users are strictly prohibited from:
+
+    Attempting to reverse-engineer, decompile, or access source code of the platform.
+
+    Scraping, harvesting, or bulk-downloading data from the platform using automated means not authorized by TradeFinlytix.
+================================================================================
+
+CHUNK #006
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 6 / 30
+  Start Index : 2439
+  Length      : 434 chars
+  Content:
+    Using AI-generated buy/sell signals as the sole basis for high-volume automated trading.
+
+    Reselling, redistributing, or sublicensing platform outputs without written authorization.
+
+    Uploading false, misleading, or malicious content through any platform interface.
+
+    Using the platform to engage in market manipulation, insider trading, or any activity prohibited under Pakistani securities law.
+
+    3. AI & Predictive Analytics Disclaimer
+================================================================================
+
+CHUNK #007
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 7 / 30
+  Start Index : 2834
+  Length      : 586 chars
+  Content:
+    3. AI & Predictive Analytics Disclaimer
+
+    ⚠  CRITICAL DISCLAIMER: AI predictions, buy/sell signals, and news summaries generated by TradeFinlytix are NOT financial advice. They are probabilistic outputs of machine learning models and may be materially incorrect. Past model performance does not guarantee future accuracy.
+
+    TradeFinlytix explicitly disclaims the following:
+
+    No guarantee of accuracy, completeness, or timeliness of any AI-generated output.
+
+    No responsibility for financial losses, missed opportunities, or damages arising from reliance on platform predictions or signals.
+================================================================================
+
+CHUNK #008
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 8 / 30
+  Start Index : 3422
+  Length      : 580 chars
+  Content:
+    No warranty that the platform will be continuously available, error-free, or free from data inaccuracies.
+
+    No liability for losses caused by third-party data source failures (e.g., PSX data feed delays, API outages).
+
+    Users acknowledge that:
+
+    All investments carry inherent risk, including risk of total capital loss.
+
+    AI forecasts are one decision-support input and should be combined with personal research and professional advice.
+
+    TradeFinlytix is not a SECP-registered investment advisor, and no platform feature constitutes personalized investment advice.
+
+    4. Privacy Policy
+================================================================================
+
+CHUNK #009
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 9 / 30
+  Start Index : 3985
+  Length      : 354 chars
+  Content:
+    4. Privacy Policy
+
+    4.1 Data Collection
+
+    We collect the following categories of personal data:
+
+    Data Category | Examples
+
+    Identity Data | Name, email address
+
+    Credentials | Hashed password (never stored in plaintext)
+
+    Usage Data | Feature usage, watchlists, query history
+
+    Technical Data | IP address, browser type, device type
+
+    4.2 Data We Do NOT Collect
+================================================================================
+
+CHUNK #010
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 10 / 30
+  Start Index : 4257
+  Length      : 588 chars
+  Content:
+    Technical Data | IP address, browser type, device type
+
+    4.2 Data We Do NOT Collect
+
+    TradeFinlytix explicitly does NOT collect: CNIC/national identity numbers, bank account or brokerage credentials, payment card details (processed by third-party payment providers), biometric data, or minors' data (users under 18 are not permitted).
+
+    4.3 Legal Basis for Processing
+
+    We process personal data under the following lawful bases:
+
+    Contract Performance: processing necessary to deliver the subscribed service.
+
+    Legitimate Interests: platform security, fraud prevention, and product improvement.
+================================================================================
+
+CHUNK #011
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 11 / 30
+  Start Index : 4762
+  Length      : 540 chars
+  Content:
+    Legitimate Interests: platform security, fraud prevention, and product improvement.
+
+    Legal Obligation: compliance with Pakistani law and regulatory requirements.
+
+    Consent: for optional marketing communications (which may be withdrawn at any time).
+
+    4.4 Data Retention
+
+    Account data is retained for the duration of an active subscription plus 12 months after account closure, after which it is securely deleted or anonymized. Usage logs are retained for 6 months. Anonymized aggregate analytics may be retained indefinitely.
+
+    4.5 User Rights
+================================================================================
+
+CHUNK #012
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 12 / 30
+  Start Index : 5287
+  Length      : 557 chars
+  Content:
+    4.5 User Rights
+
+    Users have the following rights regarding their personal data:
+
+    Right of Access: request a copy of your personal data.
+
+    Right to Rectification: request correction of inaccurate data.
+
+    Right to Erasure: request deletion of your data (subject to legal retention requirements).
+
+    Right to Portability: request your data in a structured, machine-readable format.
+
+    Right to Object: object to processing based on legitimate interests.
+
+    To exercise any of these rights, contact privacy@tradefinlytix.com.
+
+    5. Legal & Regulatory Compliance Framework
+================================================================================
+
+CHUNK #013
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 13 / 30
+  Start Index : 5733
+  Length      : 574 chars
+  Content:
+    To exercise any of these rights, contact privacy@tradefinlytix.com.
+
+    5. Legal & Regulatory Compliance Framework
+
+    ⚖  Applicable Pakistani Law & Regulatory Bodies
+
+    5.1 Securities & Exchange Commission of Pakistan (SECP)
+
+    TradeFinlytix operates as an analytics technology platform and not as a regulated entity under the Securities Act, 2015 or the Companies Act, 2017. However, the platform is designed to be fully compatible with SECP regulations. Specifically:
+
+    Platform outputs are explicitly labeled as AI-generated decision-support tools, not regulated investment advice.
+================================================================================
+
+CHUNK #014
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 14 / 30
+  Start Index : 6195
+  Length      : 487 chars
+  Content:
+    Platform outputs are explicitly labeled as AI-generated decision-support tools, not regulated investment advice.
+
+    TradeFinlytix does not act as a broker, dealer, investment advisor, or collective investment scheme.
+
+    All data sourcing from PSX is conducted through publicly available channels and authorized data providers.
+
+    Should SECP extend regulatory requirements to AI financial analytics platforms in the future, TradeFinlytix commits to full compliance within applicable timelines.
+================================================================================
+
+CHUNK #015
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 15 / 30
+  Start Index : 6684
+  Length      : 596 chars
+  Content:
+    Relevant Legislation: Securities Act, 2015 | Listed Companies (Code of Corporate Governance) Regulations, 2019 | Securities Brokers (Licensing and Operations) Regulations, 2016
+
+    5.2 Pakistan Stock Exchange (PSX) Data Usage Policy
+
+    TradeFinlytix uses PSX market data for internal model training and display purposes in accordance with PSX's data dissemination policies. We do not redistribute raw PSX data feeds to third parties. Commercial redistribution licenses are obtained where required. Users are prohibited from extracting and re-distributing raw market data obtained through the platform.
+================================================================================
+
+CHUNK #016
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 16 / 30
+  Start Index : 7282
+  Length      : 422 chars
+  Content:
+    5.3 Prevention of Electronic Crimes Act, 2016 (PECA)
+
+    TradeFinlytix is fully compliant with PECA 2016 and actively enforces its provisions:
+
+    Unauthorized access to platform systems by users or third parties is a criminal offense under Section 3 of PECA.
+
+    Any attempt to disrupt platform operations, conduct data breaches, or engage in cyberfraud will be reported to the Federal Investigation Agency (FIA) Cyber Crime Wing.
+================================================================================
+
+CHUNK #017
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 17 / 30
+  Start Index : 7706
+  Length      : 595 chars
+  Content:
+    Users engaging in identity fraud, spreading false financial information through the platform, or using the platform to facilitate cybercrime will face immediate account termination and legal action.
+
+    TradeFinlytix implements technical safeguards required to protect user data as mandated under PECA.
+
+    5.4 State Bank of Pakistan (SBP) Regulations
+
+    As a non-banking, non-payment technology platform, TradeFinlytix does not fall under direct SBP jurisdiction. However:
+
+    We do not hold, transfer, or process user funds. All subscription payments are handled by SECP/SBP-compliant payment processors.
+================================================================================
+
+CHUNK #018
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 18 / 30
+  Start Index : 8303
+  Length      : 568 chars
+  Content:
+    We utilize SBP-published macro data (PKR/USD rates, KIBOR) as model inputs in accordance with SBP's open data publication policy.
+
+    In the event of future regulatory guidance on AI in financial services from SBP, TradeFinlytix will adapt its operations accordingly.
+
+    5.5 Personal Data Protection Bill (PDPB) / Draft Framework
+
+    Pakistan's data protection legislative landscape is evolving. TradeFinlytix has designed its data practices to align with the principles of the draft Personal Data Protection Bill and international best practices (GDPR-equivalent principles):
+================================================================================
+
+CHUNK #019
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 19 / 30
+  Start Index : 8873
+  Length      : 434 chars
+  Content:
+    Lawfulness, fairness, and transparency of data processing.
+
+    Purpose limitation: data collected only for specified, explicit, legitimate purposes.
+
+    Data minimization: only data necessary for the service is collected.
+
+    Accuracy: reasonable steps taken to keep user data accurate.
+
+    Storage limitation: data not retained beyond necessary periods.
+
+    Integrity and confidentiality: appropriate technical and organizational security measures.
+================================================================================
+
+CHUNK #020
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 20 / 30
+  Start Index : 9217
+  Length      : 538 chars
+  Content:
+    Integrity and confidentiality: appropriate technical and organizational security measures.
+
+    Upon enactment of the PDPB or equivalent legislation, TradeFinlytix will conduct a full compliance audit and update its practices within the legally prescribed transition period.
+
+    5.6 Anti-Money Laundering (AML) & Combating Financing of Terrorism (CFT)
+
+    TradeFinlytix does not process financial transactions between users or hold user funds. Accordingly, direct AML/CFT obligations under the Anti-Money Laundering Act, 2010 do not apply. However:
+================================================================================
+
+CHUNK #021
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 21 / 30
+  Start Index : 9757
+  Length      : 589 chars
+  Content:
+    TradeFinlytix will not knowingly provide services to entities or individuals on UNSC, FATF, or Pakistani regulatory watch lists.
+
+    We reserve the right to terminate accounts if there is reasonable belief the platform is being used to facilitate illegal financial activity.
+
+    Our payment processing partners comply with all applicable AML/CFT regulations.
+
+    6. Intellectual Property
+
+    All platform content, algorithms, model architectures, UI/UX designs, branding, and documentation are the exclusive intellectual property of TradeFinlytix and its founders. This includes but is not limited to:
+================================================================================
+
+CHUNK #022
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 22 / 30
+  Start Index : 10348
+  Length      : 534 chars
+  Content:
+    AI/ML models and their trained weights.
+
+    The RAG and Agentic RAG pipeline architecture.
+
+    The TradeFinlytix name, logo, and brand identity.
+
+    All proprietary datasets, feature engineering pipelines, and signal generation logic.
+
+    Users are granted a limited, non-exclusive, non-transferable license to access the platform for personal or business use under the applicable subscription tier. This license does not include the right to reproduce, modify, distribute, or create derivative works from any TradeFinlytix intellectual property.
+================================================================================
+
+CHUNK #023
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 23 / 30
+  Start Index : 10884
+  Length      : 559 chars
+  Content:
+    Web scraping, API abuse, or any unauthorized extraction of platform content for competitive intelligence or redistribution is strictly prohibited and constitutes a violation of Pakistani intellectual property law and PECA 2016.
+
+    7. Subscription, Payments & Refunds
+
+    7.1 Billing
+
+    Subscriptions are billed on a monthly or annual cycle as selected at sign-up. All prices are displayed in Pakistani Rupees (PKR) inclusive of applicable taxes. TradeFinlytix reserves the right to revise pricing with 30 days advance notice to active subscribers.
+
+    7.2 Refund Policy
+================================================================================
+
+CHUNK #024
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 24 / 30
+  Start Index : 11426
+  Length      : 571 chars
+  Content:
+    7.2 Refund Policy
+
+    TradeFinlytix offers the following refund framework:
+
+    New subscribers may request a full refund within 7 calendar days of initial payment if they have not materially used the platform (fewer than 10 substantive queries/predictions).
+
+    Renewals: refund requests for renewed subscriptions must be made within 3 days of the renewal charge.
+
+    No refunds are issued for partial months, downgrades, or accounts terminated for Terms of Service violations.
+
+    Enterprise contracts are governed by separate agreement terms.
+
+    7.3 Account Termination by TradeFinlytix
+================================================================================
+
+CHUNK #025
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 25 / 30
+  Start Index : 11893
+  Length      : 455 chars
+  Content:
+    Enterprise contracts are governed by separate agreement terms.
+
+    7.3 Account Termination by TradeFinlytix
+
+    TradeFinlytix may suspend or terminate user accounts for: (1) violation of Terms of Service, (2) fraudulent or abusive behavior, (3) non-payment of fees, (4) legal or regulatory requirement. Upon termination, access to the platform is immediately revoked. User data is handled per Section 4.4 of this document.
+
+    8. Governing Law & Dispute Resolution
+================================================================================
+
+CHUNK #026
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 26 / 30
+  Start Index : 12311
+  Length      : 501 chars
+  Content:
+    8. Governing Law & Dispute Resolution
+
+    These Terms of Service and all related policies are governed by and construed in accordance with the laws of the Islamic Republic of Pakistan.
+
+    8.1 Dispute Resolution
+
+    In the event of any dispute arising from use of the TradeFinlytix platform:
+
+    The parties shall first attempt resolution through good-faith negotiation within 30 days of written notice of the dispute.
+
+    If negotiation fails, the parties shall attempt mediation through a mutually agreed mediator.
+================================================================================
+
+CHUNK #027
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 27 / 30
+  Start Index : 12719
+  Length      : 521 chars
+  Content:
+    If negotiation fails, the parties shall attempt mediation through a mutually agreed mediator.
+
+    Unresolved disputes shall be submitted to the exclusive jurisdiction of the courts of Lahore, Punjab, Pakistan.
+
+    8.2 Class Action Waiver
+
+    Users agree to bring any claims in their individual capacity only, and not as a plaintiff or class member in any purported class or representative proceeding.
+
+    9. Changes to This Policy
+
+    TradeFinlytix reserves the right to update these policies at any time. For material changes, we will:
+================================================================================
+
+CHUNK #028
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 28 / 30
+  Start Index : 13139
+  Length      : 593 chars
+  Content:
+    TradeFinlytix reserves the right to update these policies at any time. For material changes, we will:
+
+    Publish the updated version on the platform at least 14 days before it takes effect.
+
+    Send a notification to registered users' email addresses.
+
+    Display an in-platform banner alerting users to review the updated terms.
+
+    Continued use of the platform after the effective date of a revised policy constitutes acceptance of the new terms. Users who do not agree should cancel their subscription before the effective date.
+
+    10. Contact Information
+
+    General Inquiries | support@tradefinlytix.com
+================================================================================
+
+CHUNK #029
+  Source      : CompanyPolicy
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_CompanyPolicy_Legal.docx
+  Chunk ID    : 29 / 30
+  Start Index : 13662
+  Length      : 569 chars
+  Content:
+    10. Contact Information
+
+    General Inquiries | support@tradefinlytix.com
+
+    Privacy & Data Rights | privacy@tradefinlytix.com
+
+    Legal & Compliance | legal@tradefinlytix.com
+
+    Security Reports | security@tradefinlytix.com
+
+    Business & Enterprise | enterprise@tradefinlytix.com
+
+    11. Acknowledgement & Adoption
+
+    This Company Policy, Terms of Service & Legal Compliance document has been reviewed and adopted by the founding team of TradeFinlytix:
+
+    AleenaCo-Founder | Toqir DarCo-Founder | Seerat FatimaCo-Founder | Ayan AhmedCo-Founder
+
+    © 2025 TradeFinlytix. All Rights Reserved.
+================================================================================
+
+CHUNK #030
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 1 / 15
+  Start Index : 0
+  Length      : 620 chars
+  Content:
+    TradeFinlytix
+
+    Pakistan Stock Exchange AI Platform
+
+    Frequently Asked Questions (FAQ)
+
+    Version 1.0  |  2025
+
+    Founders: Aleena • Toqir Dar • Seerat Fatima • Ayan Ahmed
+
+    Section 1: General Information
+
+    Q1. What is TradeFinlytix?
+
+    TradeFinlytix is an AI-powered financial analytics platform built specifically for the Pakistan Stock Exchange (PSX). It combines Retrieval-Augmented Generation (RAG), deep learning forecasting, agentic AI, and real-time web scraping to provide investors, traders, and analysts with actionable intelligence — including stock price predictions, live market news, and automated buy/sell signals.
+================================================================================
+
+CHUNK #031
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 2 / 15
+  Start Index : 622
+  Length      : 614 chars
+  Content:
+    Q2. Who founded TradeFinlytix?
+
+    TradeFinlytix was co-founded by four individuals: Aleena, Toqir Dar, Seerat Fatima, and Ayan Ahmed. The founding team brings expertise in data science, machine learning, financial engineering, and full-stack software development.
+
+    Q3. What markets does TradeFinlytix cover?
+
+    The platform currently focuses exclusively on the Pakistan Stock Exchange (PSX), covering equity instruments listed on the exchange. Coverage includes all major indices and individual stocks with sufficient historical OHLCV data. Future roadmap includes expansion to additional South Asian and Gulf markets.
+================================================================================
+
+CHUNK #032
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 3 / 15
+  Start Index : 1238
+  Length      : 487 chars
+  Content:
+    Q4. Is TradeFinlytix a licensed brokerage or investment advisor?
+
+    No. TradeFinlytix is a financial analytics and AI intelligence platform only. It is NOT a registered brokerage firm, investment advisor, asset manager, or portfolio manager. All outputs — including predictions, signals, and news summaries — are for informational and research purposes. Users must make their own investment decisions or consult a licensed financial advisor.
+
+    Section 2: Platform Features & AI Capabilities
+================================================================================
+
+CHUNK #033
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 4 / 15
+  Start Index : 1727
+  Length      : 526 chars
+  Content:
+    Q5. What does the 10-Day Stock Price Prediction feature do?
+
+    The 10-day prediction module uses a deep learning regression pipeline trained on historical OHLCV (Open, High, Low, Close, Volume) data from PSX stocks, augmented with engineered technical indicators (RSI, MACD, Bollinger Bands, ATR, OBV) and macro features (PKR/USD exchange rate, KIBOR). The models — including N-HiTS, PatchTST, and Temporal Fusion Transformer (TFT) — generate a predicted price trajectory for the next 10 trading sessions for each covered stock.
+================================================================================
+
+CHUNK #034
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 5 / 15
+  Start Index : 2255
+  Length      : 474 chars
+  Content:
+    Q6. How accurate are the predictions?
+
+    Prediction accuracy varies by stock liquidity, market conditions, and data availability. The platform reports directional accuracy, RMSE, and MAE metrics transparently for each model. No prediction system can guarantee accuracy in financial markets. Users should treat forecasts as one input among many, not as guaranteed outcomes. TradeFinlytix is continuously improving models through walk-forward validation and ensemble techniques.
+================================================================================
+
+CHUNK #035
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 6 / 15
+  Start Index : 2731
+  Length      : 493 chars
+  Content:
+    Q7. What is the RAG (Retrieval-Augmented Generation) system used for?
+
+    The RAG module enhances the platform's AI assistant by grounding responses in real company data, earnings reports, SEC/PSX filings, and a curated financial knowledge base. When a user queries the AI assistant about a specific stock or market event, the RAG pipeline retrieves the most relevant documents and uses them to generate contextually accurate, cited responses rather than relying solely on static model knowledge.
+================================================================================
+
+CHUNK #036
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 7 / 15
+  Start Index : 3226
+  Length      : 516 chars
+  Content:
+    Q8. What is Agentic RAG and how does it power news delivery?
+
+    Agentic RAG extends standard RAG by giving the AI agent the ability to autonomously execute actions — specifically, real-time web scraping of PSX announcements, financial news portals, and regulatory feeds. The agent decides when to fetch fresh information, processes the scraped content, and delivers contextual news summaries relevant to the stocks or topics a user is monitoring. This ensures news is current, not limited to a static knowledge cutoff.
+================================================================================
+
+CHUNK #037
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 8 / 15
+  Start Index : 3744
+  Length      : 469 chars
+  Content:
+    Q9. What graphs and visualizations does the platform provide?
+
+    TradeFinlytix provides an interactive charting suite including: candlestick OHLCV charts, predicted vs. actual price overlays, technical indicator plots (RSI, MACD, Bollinger Bands), volume analysis charts, portfolio performance comparison charts, sector-wise performance heatmaps, and model confidence/uncertainty intervals on forecasts. All charts are interactive with zoom, pan, and export capabilities.
+================================================================================
+
+CHUNK #038
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 9 / 15
+  Start Index : 4215
+  Length      : 566 chars
+  Content:
+    Q10. How do the AI-generated Buy/Sell signals work?
+
+    The agentic buy/sell signal module evaluates multiple conditions simultaneously: (1) 10-day price direction from the forecasting model, (2) technical indicator thresholds (e.g., RSI overbought/oversold zones, MACD crossover), (3) recent news sentiment from the Agentic RAG module, and (4) user-defined risk parameters. When conditions converge above a configurable confidence threshold, the agent flags a BUY or SELL recommendation for that stock. These are advisory signals, not automated trade execution orders.
+================================================================================
+
+CHUNK #039
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 10 / 15
+  Start Index : 4783
+  Length      : 744 chars
+  Content:
+    Q11. Does TradeFinlytix execute trades automatically?
+
+    No. TradeFinlytix does not execute trades, connect to brokerage accounts, or have access to user funds. All buy/sell signals are advisory recommendations displayed on the dashboard. The user must manually act on any signal through their own broker or trading account.
+
+    Section 3: Data, Privacy & Security
+
+    Q12. What data sources does TradeFinlytix use?
+
+    Primary data sources include: PSX official data feeds, Yahoo Finance API (yfinance), psx-data-reader library, State Bank of Pakistan (SBP) macro data, and publicly available financial news websites scraped by the Agentic RAG module. The platform does not use insider information, non-public data, or proprietary brokerage data streams.
+================================================================================
+
+CHUNK #040
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 11 / 15
+  Start Index : 5529
+  Length      : 770 chars
+  Content:
+    Q13. What personal data does TradeFinlytix collect from users?
+
+    During account registration, we collect: name, email address, and password (hashed). Optional profile information may include investment preferences and risk tolerance settings. We do not collect national ID numbers, CNIC, bank account details, or brokerage credentials. Full details are in our Privacy Policy document.
+
+    Q14. Does TradeFinlytix share user data with third parties?
+
+    We do not sell user data to any third party. Data may be shared only in the following limited circumstances: (1) with infrastructure service providers under strict data processing agreements, (2) when required by Pakistani law or regulatory authorities, (3) with explicit user consent. We do not share data with advertisers.
+================================================================================
+
+CHUNK #041
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 12 / 15
+  Start Index : 6301
+  Length      : 468 chars
+  Content:
+    Q15. How is my account data secured?
+
+    We implement industry-standard security measures: passwords are hashed with bcrypt, all data transmission uses TLS 1.3 encryption, database access is restricted via Row-Level Security (RLS), and we conduct regular security audits. Despite these measures, no system is 100% breach-proof; we recommend users use strong, unique passwords and enable two-factor authentication when available.
+
+    Section 4: Subscription, Access & Support
+================================================================================
+
+CHUNK #042
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 13 / 15
+  Start Index : 6771
+  Length      : 759 chars
+  Content:
+    Q16. What subscription tiers does TradeFinlytix offer?
+
+    TradeFinlytix offers three tiers: (1) Free — limited stock coverage, delayed data, basic charts; (2) Pro — full PSX coverage, real-time Agentic RAG news, 10-day predictions, buy/sell signals, advanced charts; (3) Enterprise — all Pro features plus API access, custom model configurations, dedicated support, and multi-user team accounts. Pricing is displayed on the official website.
+
+    Q17. Can I use the platform without creating an account?
+
+    A limited demo mode is available without account creation, providing access to sample predictions and static chart examples. Full platform features — including personalized watchlists, live Agentic RAG news, and buy/sell signals — require a registered account.
+================================================================================
+
+CHUNK #043
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 14 / 15
+  Start Index : 7532
+  Length      : 777 chars
+  Content:
+    Q18. How do I contact TradeFinlytix support?
+
+    Support is available via: Email at support@tradefinlytix.com, the in-platform chat widget powered by our AI assistant, and a ticketing portal for enterprise clients. Response times are typically within 24 hours on business days (Monday to Friday, Pakistan Standard Time).
+
+    Q19. What happens if the AI provides wrong information or a bad signal?
+
+    TradeFinlytix is a tool for decision support, not a guarantee of outcomes. The platform clearly labels all AI-generated content as model output. Users are responsible for their own investment decisions. TradeFinlytix disclaims liability for financial losses resulting from reliance on platform outputs. See the Disclaimer section of our Company Policy document for full legal language.
+================================================================================
+
+CHUNK #044
+  Source      : FAQ
+  File        : D:\Modern_RAG_Techniques\TradeFinlytix_FAQ.docx
+  Chunk ID    : 15 / 15
+  Start Index : 8311
+  Length      : 467 chars
+  Content:
+    Q20. Will TradeFinlytix expand beyond PSX?
+
+    Expansion to additional markets is on the roadmap. Planned phases include coverage of Saudi Exchange (Tadawul), Dhaka Stock Exchange (DSE), and potentially NSE India. Announcements will be made via official channels. Users can sign up for the newsletter to stay informed.
+
+    This document is maintained by the TradeFinlytix founding team and is subject to revision.
+
+    Last updated: 2025 | © TradeFinlytix. All rights reserved.
+================================================================================
+

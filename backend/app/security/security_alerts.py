@@ -9,7 +9,7 @@ import asyncio
 import logging
 from typing import Any
 
-import httpx
+from app.core.http_client import get_http_client
 
 from app.core.config import settings
 
@@ -41,12 +41,13 @@ async def emit_security_alert(kind: str, payload: dict[str, Any]) -> None:
     retries = 3
     for attempt in range(1, retries + 1):
         try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                await client.post(
-                    url,
-                    json={"alert_kind": kind, "payload": payload},
-                    headers={"User-Agent": f"{settings.app_name}-security-alert/1"},
-                )
+            client = get_http_client()
+            await client.post(
+                url,
+                json={"alert_kind": kind, "payload": payload},
+                headers={"User-Agent": f"{settings.app_name}-security-alert/1"},
+                timeout=8.0,
+            )
             return
         except Exception as e:
             logger.warning(

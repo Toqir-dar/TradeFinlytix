@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import Any
 import logging
-import httpx
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.core.config import settings
+from app.core.http_client import get_http_client
 from app.rag.retriever import search_logs
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,9 @@ async def _call_groq(question: str, context: str) -> str:
             ]
         }
 
-        async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.post(url, headers=headers, json=body)
-            return response.json()["choices"][0]["message"]["content"].strip()
+        client = get_http_client()
+        response = await client.post(url, headers=headers, json=body, timeout=30.0)
+        return response.json()["choices"][0]["message"]["content"].strip()
 
     except Exception as e:
         logger.warning("_call_groq failed: %s", e)

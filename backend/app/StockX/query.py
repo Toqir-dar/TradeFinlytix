@@ -9,6 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 from langchain.retrievers import MultiQueryRetriever
+import os
 
 # Load environment variables
 load_dotenv()
@@ -26,7 +27,9 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 # Initialize Vector Store
 # Note: You can replace 'faiss_path' with the actual path to your FAISS index
-faiss_path = r"D:\TradeFinlytix\TradeFinlytix\backend\app\StockX\faiss_vectorstore"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+faiss_path = os.path.join(BASE_DIR, "faiss_vectorstore")
+
 try:
     vectorstore = FAISS.load_local(
         faiss_path, embeddings, allow_dangerous_deserialization=True

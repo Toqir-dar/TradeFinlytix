@@ -31,6 +31,7 @@ from app.api.routes import screener as screener_routes
 from app.core.bootstrap import bootstrap_privileged_users
 from app.core.config import settings
 from app.core.database import close_db, connect_db, get_db
+from app.core.http_client import close_http_client, get_http_client
 from app.core.logging import setup_logging
 from app.repositories.audit_chain_state import (
     audit_chain_append_allowed,
@@ -138,6 +139,7 @@ async def lifespan(app: FastAPI):
         settings.app_env,
     )
     await connect_db()
+    get_http_client()
     reset_audit_chain_trusted()
     if settings.audit_startup_verify_chain:
         db = await get_db()
@@ -189,6 +191,7 @@ async def lifespan(app: FastAPI):
     yield
     await close_db()
     await close_redis()
+    await close_http_client()
     logger.info("Shutdown complete.")
 
 

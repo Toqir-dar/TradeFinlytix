@@ -9,6 +9,7 @@ to zero so the response still returns HTTP 200.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from datetime import datetime, timezone
@@ -67,19 +68,21 @@ async def predict_symbol(
     recent_count = 0
     high_count = 0
     try:
-        recent_count = await db["risk_snapshots"].count_documents(
-            {
-                "subject": subject,
-                "created_at": {
-                    "$gte": datetime.fromtimestamp(ten_min_ago, tz=timezone.utc)
-                },
-            }
-        )
-        high_count = await db["risk_snapshots"].count_documents(
-            {
-                "subject": subject,
-                "level": {"$in": ["HIGH", "CRITICAL"]},
-            }
+        recent_count, high_count = await asyncio.gather(
+            db["risk_snapshots"].count_documents(
+                {
+                    "subject": subject,
+                    "created_at": {
+                        "$gte": datetime.fromtimestamp(ten_min_ago, tz=timezone.utc)
+                    },
+                }
+            ),
+            db["risk_snapshots"].count_documents(
+                {
+                    "subject": subject,
+                    "level": {"$in": ["HIGH", "CRITICAL"]},
+                }
+            ),
         )
     except Exception as e:
         logger.warning(

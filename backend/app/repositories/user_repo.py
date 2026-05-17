@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -341,28 +342,31 @@ class UserRepository:
             filter_q["role"] = role
         if is_active is not None:
             filter_q["is_active"] = is_active
+        if q and q.strip():
+            needle = q.strip()
+            if "@" in needle:
+                normalized = normalize_email(needle)
+                filter_q["email_hash"] = stable_identifier_hash(normalized)
+            else:
+                filter_q["full_name"] = {
+                    "$regex": re.escape(needle),
+                    "$options": "i",
+                }
+
         proj = projection if projection is not None else {"password_hash": 0}
+        total = await self.users.count_documents(filter_q)
         cursor = (
             self.users.find(filter_q, projection=proj)
             .sort("created_at", -1)
+            .skip(skip)
+            .limit(limit)
         )
-        rows_all: list[dict[str, Any]] = []
+        rows: list[dict[str, Any]] = []
         async for doc in cursor:
             hydrated = await self._inflate_user_doc(doc)
             if hydrated:
-                rows_all.append(hydrated)
-
-        if q and q.strip():
-            needle = q.strip().lower()
-            rows_all = [
-                d
-                for d in rows_all
-                if needle in str(d.get("email", "")).lower()
-                or needle in str(d.get("full_name", "")).lower()
-            ]
-
-        total = len(rows_all)
-        return total, rows_all[skip : skip + limit]
+                rows.append(hydrated)
+        return total, rows
 
     async def deactivate_user_account(self, user_id: str) -> None:
         now = datetime.now(timezone.utc)

@@ -25,6 +25,8 @@ from app.api.routes import ciso as ciso_routes
 from app.api.routes import market as market_routes
 from app.api.routes import portfolio as portfolio_routes
 from app.api.routes import prediction as prediction_routes
+from app.api.routes import news_rag as news_rag_routes
+from app.api.routes import rag as rag_routes
 from app.api.routes import screener as screener_routes
 from app.core.bootstrap import bootstrap_privileged_users
 from app.core.config import settings
@@ -84,6 +86,20 @@ OPENAPI_TAGS = [
         "description": "Role **ciso** only: audit chain verification, anomalies, "
         "risk dashboards. Responses use `{items, total, skip, limit}` pagination "
         "(hard caps per query parameter).",
+    },
+    {
+        "name": "RAG",
+        "description": "Ask any natural-language question against the TradeFinlytix knowledge base. "
+        "Stock prediction queries are automatically intercepted and routed to the "
+        "ML prediction engine. All other queries run through the full RAG pipeline "
+        "(router → retrieval → contextual compression → GPT-4o-mini).",
+    },
+    {
+        "name": "NewsRAG",
+        "description": "Natural-language PSX company-announcement retrieval via Self-RAG. "
+        "Ask e.g. 'tell me latest news of ABL stock with 16 docs' and receive a "
+        "downloadable .txt report (IsRel → IsSup → IsUse evaluators + market briefing). "
+        "Use /news-rag/parse-preview to dry-run the NLP parser before the full pipeline.",
     },
     {"name": "System", "description": "Health checks (no JWT)."},
 ]
@@ -196,6 +212,8 @@ app.add_middleware(
 
 app.include_router(auth_routes.router, prefix="/api/v1")
 app.include_router(prediction_routes.router, prefix="/api/v1")
+app.include_router(rag_routes.router, prefix="/api/v1")
+app.include_router(news_rag_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")
 app.include_router(alerts_routes.router, prefix="/api/v1")
 app.include_router(screener_routes.router, prefix="/api/v1")

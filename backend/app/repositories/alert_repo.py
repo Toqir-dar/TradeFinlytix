@@ -43,7 +43,7 @@ class AlertRepository:
         if severity is not None:
             query["severity"] = severity.value
         cursor = self.alerts.find(query).sort("created_at", -1).skip(offset).limit(limit)
-        return await cursor.to_list(length=None)
+        return await cursor.to_list(length=limit)
 
     async def mark_as_read(self, alert_id: str, user_id: str) -> bool:
         result = await self.alerts.update_one(

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import "./globals.css";
 import { AppQueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/lib/auth";
+import { RagChatWidget } from "@/components/rag-chat-widget";
 
 export const metadata: Metadata = {
   title: "TradeFinlytix",
@@ -12,7 +14,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-brand-secondary text-brand-text antialiased">
         <AppQueryProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            <RagChatWidget />
+          </AuthProvider>
         </AppQueryProvider>
       </body>
     </html>

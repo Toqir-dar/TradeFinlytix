@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
 import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, type LucideIcon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
@@ -273,6 +274,9 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </div>
+
+            {/* Theme Toggle */}
+            <ThemeToggle variant="nav" />
 
             {/* User Badge */}
             <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: "1.5px solid #E5E7EB", borderRadius: 12, background: "white", textDecoration: "none", transition: "all 0.2s" }}

@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+<<<<<<< HEAD
 import "../app/globals.css";
+=======
+import "./globals.css";
+>>>>>>> 9e117a2 (feat: add theme toggle component for dark and light mode)
 import { AppQueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/lib/auth";
 import { RagChatWidget } from "@/components/rag-chat-widget";

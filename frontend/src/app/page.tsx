@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { PsxLiveChartCard } from "@/components/psx-live-chart";
 import { TrendingUp, BarChart2, Shield, Activity, ArrowRight, UserCheck, Search, BarChart3, Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function useCountUp(end: number, duration = 2000) {
   const [value, setValue] = useState(0);
@@ -155,6 +156,7 @@ export default function HomePage() {
           </nav>
 
           <div className="desktop-auth">
+            <ThemeToggle variant="nav" />
             <Link href="/login" className="btn-outline" style={{ padding: "10px 20px", fontSize: 14 }}>Login</Link>
             <Link href="/register" className="btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>
               Get Started
@@ -174,6 +176,10 @@ export default function HomePage() {
               <a key={link} href={`#${link.toLowerCase().replace(/ /g, "-")}`} className="mobile-nav-link" onClick={() => setMobileOpen(false)}>{link}</a>
             ))}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid #E5E7EB" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>Theme</span>
+                <ThemeToggle variant="nav" />
+              </div>
               <Link href="/login" className="btn-outline" onClick={() => setMobileOpen(false)} style={{ justifyContent: "center" }}>Login</Link>
               <Link href="/register" className="btn-primary" onClick={() => setMobileOpen(false)} style={{ justifyContent: "center" }}>Get Started</Link>
             </div>

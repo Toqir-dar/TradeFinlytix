@@ -9,6 +9,126 @@
 body {
   background: #ffffff;
   color: #111827;
+  transition: filter 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+html.tfx-mono {
+  color-scheme: dark;
+}
+
+html.tfx-mono body,
+body.tfx-mono {
+  background: #000000 !important;
+  color: #e7f9e7 !important;
+}
+
+/* All text and borders go dark-green */
+html.tfx-mono body *,
+body.tfx-mono * {
+  color: #e7f9e7 !important;
+  border-color: #1f2a1f !important;
+}
+
+/* Override ALL inline background styles (covers both solid + gradient) */
+html.tfx-mono body [style*="background"],
+body.tfx-mono [style*="background"] {
+  background: #000000 !important;
+}
+
+/* Slightly darker for inputs, textareas, selects */
+html.tfx-mono body input,
+html.tfx-mono body textarea,
+html.tfx-mono body select,
+body.tfx-mono input,
+body.tfx-mono textarea,
+body.tfx-mono select {
+  background: #0f1c0f !important;
+  color: #e7f9e7 !important;
+  border-color: #1f2a1f !important;
+}
+
+/* Keep links/accents green */
+html.tfx-mono body a,
+body.tfx-mono a {
+  color: #22c55e !important;
+}
+
+/* ── Cards: green background, black text ── */
+html.tfx-mono body .stat-card,
+html.tfx-mono body .section-card,
+html.tfx-mono body .metric-card,
+html.tfx-mono body .symbol-card,
+html.tfx-mono body .alerts-panel,
+html.tfx-mono body .alert-item {
+  background: #22c55e !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+}
+
+html.tfx-mono body .stat-card *,
+html.tfx-mono body .section-card *,
+html.tfx-mono body .metric-card *,
+html.tfx-mono body .symbol-card *,
+html.tfx-mono body .alerts-panel *,
+html.tfx-mono body .alert-item * {
+  color: #ffffff !important;
+}
+
+/* ── Buttons/tabs: dark, keep consistent ── */
+html.tfx-mono body .input-field,
+html.tfx-mono body .search-input,
+html.tfx-mono body .filter-btn,
+html.tfx-mono body .sector-btn,
+html.tfx-mono body .btn-outline,
+html.tfx-mono body .btn-danger,
+html.tfx-mono body .tab-btn,
+html.tfx-mono body .shell-mobile-nav {
+  background: #111827 !important;
+  border-color: #1f2a1f !important;
+  color: #e7f9e7 !important;
+}
+
+/* Input-specific: slightly darker */
+html.tfx-mono body .input-field,
+html.tfx-mono body .search-input {
+  background: #0f1c0f !important;
+}
+
+/* Row hover states */
+html.tfx-mono body .recent-row:hover,
+html.tfx-mono body .trade-row:hover,
+html.tfx-mono body .position-row:hover,
+html.tfx-mono body .user-row:hover,
+html.tfx-mono body .audit-row:hover,
+html.tfx-mono body .anomaly-row:hover,
+html.tfx-mono body .alert-item:hover {
+  background: #16a34a !important;
+}
+
+/* Keep active/selected state visibly green */
+html.tfx-mono body .sector-btn.active,
+html.tfx-mono body .filter-btn.active,
+html.tfx-mono body .tab-btn.active {
+  background: #16A34A !important;
+  color: #ffffff !important;
+  border-color: #16A34A !important;
+}
+
+/* Nav links */
+html.tfx-mono body .nav-link,
+html.tfx-mono body .shell-mobile-nav-link {
+  color: #e7f9e7 !important;
+  background: transparent !important;
+}
+html.tfx-mono body .nav-link:hover,
+html.tfx-mono body .shell-mobile-nav-link:hover {
+  background: #1a2e1a !important;
+  color: #4ADE80 !important;
+}
+html.tfx-mono body .nav-link.active,
+html.tfx-mono body .shell-mobile-nav-link.active {
+  background: #1a2e1a !important;
+  color: #4ADE80 !important;
 }
 
 .card-shell {

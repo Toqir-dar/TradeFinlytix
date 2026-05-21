@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "../app/globals.css";
 import { AppQueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/lib/auth";
 import { RagChatWidget } from "@/components/rag-chat-widget";

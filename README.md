@@ -1,775 +1,928 @@
 # TradeFinlytix
 
-> **AI-Powered PSX Trading Intelligence Platform**  
-> Stacking ensemble of XGBoost · LightGBM · LSTM with SHAP explainability, adaptive security, and RBAC — purpose-built for the Pakistan Stock Exchange.
+AI-powered trading intelligence platform for the Pakistan Stock Exchange (PSX). This repository contains a FastAPI backend (ML, security, audit, and RAG) and a Next.js frontend (role-based dashboards and workflows).
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.3-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
-[![Redis](https://img.shields.io/badge/Redis-7.2-DC382D?logo=redis&logoColor=white)](https://redis.io)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+If you are looking for backend-only or frontend-only details, see these dedicated docs:
 
----
+- backend README: backend/README.md
+- frontend README: frontend/README.md
 
-## Table of Contents
+This README is the full, end-to-end system specification and implementation guide.
 
-- [Overview](#overview)
-- [Problem Statement](#problem-statement)
-- [Solution Highlights](#solution-highlights)
-- [AI Pipeline](#ai-pipeline)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [API Reference](#api-reference)
-- [Model Validation](#model-validation)
-- [Security Architecture](#security-architecture)
-- [Roles & Permissions](#roles--permissions)
-- [Roadmap](#roadmap)
-- [Team](#team)
-- [License](#license)
+## Table of contents
 
----
+- Overview
+- Feature matrix
+- Architecture
+- Repository layout
+- Backend
+  - App lifecycle and middleware
+  - Configuration and environment variables
+  - Authentication and sessions
+  - RBAC and permissions
+  - API routes
+  - ML prediction pipeline
+  - Market data
+  - Screener engine
+  - Portfolio and trades
+  - Alerts
+  - Admin and CISO operations
+  - Audit chain and RAG search
+  - Core RAG module
+  - StockX RAG pipeline
+  - NewsRAG pipeline
+  - Security controls
+  - Data storage and indexes
+  - Scripts and tests
+  - Background workers
+- Frontend
+  - App runtime and providers
+  - Routing and pages
+  - Shared components
+  - Data fetching
+  - Theming
+- Setup and run
+  - Local backend
+  - Local frontend
+  - Docker compose
+  - RAG and NewsRAG prerequisites
+- Known gaps and placeholders
+- Team
 
 ## Overview
 
-TradeFinlytix is a production-grade AI trading platform built specifically for the **Pakistan Stock Exchange (PSX)**. It generates actionable trading signals — **BUY / HOLD / TRIM / SELL** — by combining a calibrated stacking ensemble with live market data, adaptive security scoring, RAG-powered audit log search, and an immutable audit chain.
+TradeFinlytix delivers PSX trading intelligence with four core pillars:
 
----
+- Predictive signals from a stacked ML ensemble (XGBoost, LightGBM, LSTM)
+- Explainability via SHAP feature attribution
+- Adaptive security with anomaly detection and tamper-evident audit logs
+- Retrieval-augmented generation (RAG) for platform knowledge and audit search
 
-## Problem Statement
+The system is role-aware and ships dedicated dashboards for investors, admins, and CISOs.
 
-Existing PSX analytics tools suffer from critical gaps:
+## Feature matrix
 
-| Gap | Impact |
-|-----|--------|
-| No AI-based prediction | Traders rely on manual TA only |
-| No actionable signals | Missing entry, target, stop-loss |
-| No sentiment integration | News and social data ignored |
-| Black-box models | Zero explainability for decisions — SHAP attribution per prediction |
-| Insecure pipelines | No audit trail or model integrity checks |
+Investor
 
----
+- AI buy/hold/trim/sell signals for any PSX symbol
+- Confidence score, targets, stop-loss, and time horizon
+- Portfolio snapshot and encrypted trade history
+- Alerts for prediction risk and security events
 
-## Solution Highlights
+Admin
 
-- **AI trading signals** with calibrated confidence scores
-- **SHAP explainability** — every prediction includes per-feature attribution showing exactly which indicators drove the signal and by how much
-- **Adaptive security engine** — per-request risk scoring that dynamically tightens rate limits
-- **Immutable audit chain** — tamper-evident, hash-linked prediction and event log
-- **RAG-powered audit search** — natural language queries over audit logs via semantic retrieval + LLM (Groq / LLaMA)
-- **RBAC** — investor, admin, and CISO roles with distinct permission scopes
-- **59-feature technical pipeline** — RSI, MACD, Bollinger Bands, ATR, OBV, cross-sectional ranks, and more computed live from yfinance
+- User directory with filters
+- Activate/deactivate users
+- Reset user passwords
+- Per-user activity view (audit logs)
 
----
+CISO
 
-## AI Pipeline
+- Audit log explorer with pagination
+- Tamper-evident chain verification
+- Anomaly log viewer and stats
+- Risk snapshot history and trends
+- Natural language audit search (RAG over audit logs)
 
-```
-yfinance OHLCV → 59 Technical Features → Feature Engineering
-                                                    │
-                                              Base Models
-                                        ┌─────────────────┐
-                                        │ XGBoost (tabular)│
-                                        │ LightGBM (tabular│
-                                        │ LSTM (time-seq)  │
-                                        └────────┬────────┘
-                                          Meta-Learner (LR)
-                                                 │
-                                   ┌─────────────┴─────────────┐
-                             Final Signal                  SHAP Explainer
-                           + ATR levels              (TreeExplainer on XGB)
-                                                      Top-10 feature attribution
-                                                      per prediction response
-```
+AI and data
 
-### 1 · Data Ingestion
+- 59-feature technical pipeline from yfinance OHLCV
+- Stacked ensemble model with meta-learner
+- SHAP attributions for top factors
+- StockX RAG pipeline with FAISS index and query routing
+- NewsRAG pipeline for PSX announcements with Self-RAG evaluators
 
-| Source | Provider | Status |
-|--------|----------|--------|
-| Price & OHLCV | `yfinance` — any ticker | ✅ Implemented |
-| SPY market-wide features | `yfinance` | ✅ Implemented |
-| Financial News / Social Sentiment | Google News, Reddit | ❌ Not implemented |
+## Architecture
 
----
+```mermaid
+flowchart LR
+  subgraph Frontend[Next.js Frontend]
+    UI[Role-based UI]
+    RAGWidget[RAG Chat Widget]
+  end
 
-### 2 · Sentiment Processing
+  subgraph Backend[FastAPI Backend]
+    API[REST API /api/v1]
+    ML[ML Engine]
+    SEC[Adaptive Security]
+    AUD[Audit Chain + RAG]
+    NEWS[NewsRAG]
+    STOCKX[StockX RAG]
+  end
 
-> **Not implemented.** `sentiment.py` is a placeholder. FinBERT sentiment features are not included in the live prediction pipeline. The 59-feature set is purely technical.
+  subgraph Data[Data Stores]
+    MONGO[(MongoDB)]
+    REDIS[(Redis)]
+  end
 
----
-
-### 3 · Event Detection
-
-> **Not implemented.** `event_detection.py` is a placeholder. Event flags are not computed at inference time.
-
----
-
-### 4 · Feature Engineering
-
-59 features computed live from OHLCV data:
-
-| Category | Features |
-|----------|----------|
-| Price Structure | close/open ratio, high-low range, upper/lower wick, body size |
-| Returns | 1d/5d/10d/20d/60d/120d returns, log return |
-| MA Ratios | price-to-SMA20, price-to-EMA26, SMA5 cross SMA20 |
-| Momentum | RSI(14), ROC(10), Williams %R, Stochastic K/D |
-| Volatility | Bollinger width/pct, ATR%, volatility 5d/10d/20d |
-| Volume | volume ratio, OBV z-score |
-| Lag Returns | lag 1d–5d |
-| Time | day of week, month, quarter, month-end, quarter-end |
-| V2 | overnight gap, direction streak, Sharpe 5d/20d |
-| Cross-Sectional Ranks | 10 rolling percentile rank features |
-| Market-Wide | SPY return, breadth, volatility |
-| MACD | MACD%, signal%, histogram% (normalised) |
-
----
-
-### 5 · Base Models (Parallel Ensemble)
-
-Each model independently outputs an up/down probability pair:
-
-| Model | Framework | Status |
-|-------|-----------|--------|
-| **XGBoost** | `xgboost` | ✅ Trained, loaded at startup |
-| **LightGBM** | `lightgbm` | ✅ Trained, loaded at startup |
-| **LSTM** | TensorFlow / Keras | ✅ Trained, loaded at startup |
-
----
-
-### 6 · Meta-Learner (Stacking)
-
-- **Model:** Logistic Regression (`scikit-learn`)
-- **Input:** 6 stacked base-model probabilities `[lgb_0, lgb_1, xgb_0, xgb_1, lstm_0, lstm_1]`
-- **Scaler:** StandardScaler applied before meta-learner
-- **Output:** Final calibrated probability in `[0, 1]` — used directly as confidence
-
----
-
-### 7 · Signal Generation
-
-```
-confidence ≥ 0.65  →  BUY
-confidence ≥ 0.55  →  HOLD
-confidence ≥ 0.45  →  TRIM
-confidence <  0.45 →  SELL
+  UI --> API
+  RAGWidget --> API
+  API --> ML
+  API --> SEC
+  API --> AUD
+  API --> NEWS
+  API --> STOCKX
+  ML --> MONGO
+  SEC --> REDIS
+  AUD --> MONGO
+  API --> MONGO
 ```
 
-Each signal carries `entry_price`, `target_price`, `stop_loss`, `expected_gain_pct`, and `time_horizon_days`.
-
----
-
-### 8 · Explainability (SHAP)
-
-Every prediction response includes a `explanation` block powered by **SHAP TreeExplainer** applied to the XGBoost base model (fastest and most accurate for tree-based models at inference time).
+## Repository layout
 
 ```
-59 Features → XGBoost base model
-                      │
-              shap.TreeExplainer
-                      │
-          Per-feature SHAP values (Shapley attribution)
-                      │
-          Top-10 features ranked by |SHAP value|
-          (direction: bullish / bearish per feature)
+TradeFinlytix/
+  README.md
+  backend/
+    app/
+      api/
+      core/
+      ml_engine/
+      NewsX/
+      rag/
+        embedder.py
+        retriever.py
+        rag_service.py
+      repositories/
+        audit_chain_state.py
+      schemas/
+      security/
+        anomaly_detection.py
+        csrf.py
+        hmac_signing.py
+        input_validator.py
+        rate_limiter.py
+        security_alerts.py
+        security_orchestrator.py
+        zscore_detection.py
+      services/
+      StockX/
+      utils/
+      workers/
+        alert_worker.py
+        data_collector.py
+        scheduler.py
+    scripts/
+    tests/
+    docker-compose.yml
+    Dockerfile
+    requirements.txt
+  frontend/
+    public/
+    src/
+      app/
+      components/
+      lib/
+      providers/
+    package.json
+    tailwind.config.ts
 ```
 
-**What each field means:**
+Other directories of note:
 
-| Field | Description |
-|-------|-------------|
-| `method` | Explainer variant used (e.g. `shap_tree_explainer_xgb`) |
-| `base_value` | Model's expected output before observing any features (prior) |
-| `top_features[].feature` | Technical feature name (from the 59-feature set) |
-| `top_features[].shap_value` | Raw SHAP value — positive = pushed toward BUY, negative = pushed toward SELL |
-| `top_features[].feature_value` | Observed value of that feature at inference time |
-| `top_features[].direction` | `"bullish"` if `shap_value > 0`, else `"bearish"` |
+- backend/trade/ is a local Python venv directory
+- backend/zap-reports/ and frontend/zap-reports/ store security scan output
 
-**Example explanation (OGDC, HOLD signal, confidence 0.632):**
+## Backend
 
-```json
-"explanation": {
-  "method": "shap_tree_explainer_xgb",
-  "base_value": 0.015483,
-  "top_features": [
-    { "feature": "obv_zscore",      "shap_value":  0.340298, "feature_value":  1.4820, "direction": "bullish" },
-    { "feature": "macd_signal_pct", "shap_value":  0.291460, "feature_value":  0.0273, "direction": "bullish" },
-    { "feature": "sharpe_20d",      "shap_value":  0.133623, "feature_value":  4.6943, "direction": "bullish" },
-    { "feature": "quarter",         "shap_value": -0.110121, "feature_value":  2.0000, "direction": "bearish" },
-    { "feature": "volatility_20d",  "shap_value": -0.097885, "feature_value":  0.0229, "direction": "bearish" },
-    { "feature": "direction_streak","shap_value": -0.085704, "feature_value": -1.0000, "direction": "bearish" }
-  ]
-}
+### App lifecycle and middleware
+
+The backend entrypoint is backend/app/main.py. Key startup steps:
+
+- Structured logging setup
+- MongoDB connect and index creation
+- HTTP client initialization
+- Audit chain verification (optional)
+- Bootstrap admin and CISO accounts (optional)
+- Ensemble model pre-load
+
+Middleware and safety layers:
+
+- CORS with allowlist from settings
+- Optional CSRF enforcement for mutating requests
+- Audit chain safety guard (blocks /admin, /ciso, /predict when chain is untrusted)
+- Request logging with X-Request-ID header
+
+Health endpoints:
+
+- GET /health (no DB hit)
+- GET /health/db (ping MongoDB)
+- OpenAPI docs are exposed at /docs and /redoc only when EXPOSE_OPENAPI=true
+
+### Configuration and environment variables
+
+Settings are defined in backend/app/core/config.py via Pydantic Settings. Key groups:
+
+- App: APP_NAME, APP_ENV, DEBUG, EXPOSE_OPENAPI
+- Server: HOST, PORT
+- MongoDB: MONGODB_URI, MONGODB_DB_NAME
+- Redis: REDIS_URL, RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_SECONDS
+- Auth and JWT: JWT_SECRET_KEY, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+- OTP and lockout: AUTH_LOCKOUT_FAILED_ATTEMPTS, AUTH_LOCKOUT_MINUTES, PASSWORD_RESET_OTP_* settings
+- Crypto: AES_SECRET_KEY (32 bytes), HMAC_SECRET_KEY
+- CORS: ALLOWED_ORIGINS
+- RAG: GROQ_API_KEY, OPENAI_API_KEY
+- Audit chain: AUDIT_STARTUP_VERIFY_CHAIN, AUDIT_REJECT_NEW_EVENTS_WHEN_CHAIN_UNTRUSTED
+- Bootstrap: ENABLE_BOOTSTRAP and BOOTSTRAP_* credentials
+- Security alert webhook: SECURITY_ALERT_WEBHOOK_URL
+
+Strict validation:
+
+- JWT_SECRET_KEY must be set (cannot contain CHANGE_THIS)
+- AES_SECRET_KEY must be exactly 32 bytes
+- Risk thresholds must satisfy 0 <= medium < high < critical <= 100
+
+### Authentication and sessions
+
+Auth flows are implemented in backend/app/api/routes/auth.py and backend/app/services/auth_service.py.
+
+- Register: POST /api/v1/auth/register
+- Login: POST /api/v1/auth/login
+- Refresh: POST /api/v1/auth/refresh
+- Logout: POST /api/v1/auth/logout
+- Logout all: POST /api/v1/auth/logout-all
+- Me: GET /api/v1/auth/me
+- Password reset: POST /api/v1/auth/forgot-password
+- Resend OTP: POST /api/v1/auth/forgot-password/resend
+- Verify OTP: POST /api/v1/auth/forgot-password/verify-otp
+- Reset password: POST /api/v1/auth/forgot-password/reset
+
+Security details:
+
+- JWT access tokens and refresh tokens are signed with python-jose
+- Refresh tokens are stored hashed and revoked on logout or rotation
+- Account lockout after repeated failed logins
+- Password reset uses short-lived OTPs stored in MongoDB
+- Email is encrypted at rest and hashed for lookup
+- Logout all increments jwt_version to revoke existing access tokens
+- Refresh token misuse is recorded as audit events
+
+### RBAC and permissions
+
+Role types:
+
+- investor
+- admin
+- ciso
+
+Permission matrix (backend/app/core/roles.py):
+
+- investor: predict:read, portfolio:read, portfolio:write, alerts:read, alerts:write, screener:read
+- admin: predict:read, portfolio:read, alerts:read, alerts:write, screener:read, admin:read, admin:write, audit:read, users:read, users:write
+- ciso: predict:read, alerts:read, audit:read, audit:write, anomaly:read, users:read, admin:read
+
+Dependencies:
+
+- get_current_user validates JWT, jwt_version, and active status
+- require_permission enforces the permission matrix
+
+### API routes
+
+Base prefix: /api/v1
+
+Auth
+
+- POST /auth/register
+- POST /auth/login
+- POST /auth/refresh
+- POST /auth/logout
+- POST /auth/logout-all
+- GET /auth/me
+- POST /auth/forgot-password
+- POST /auth/forgot-password/resend
+- POST /auth/forgot-password/verify-otp
+- POST /auth/forgot-password/reset
+
+Prediction
+
+- GET /predict/{symbol}
+- POST /predict/verify-integrity
+
+Portfolio
+
+- GET /portfolio
+- PUT /portfolio
+- POST /portfolio/trades
+- GET /portfolio/trades
+
+Alerts
+
+- GET /alerts
+- PATCH /alerts/{alert_id}/read
+- PATCH /alerts/read-all
+- GET /alerts/unread-count
+
+Screener
+
+- POST /screener
+
+Market
+
+- GET /market/intraday
+
+Admin
+
+- GET /admin/users
+- GET /admin/users/{user_id}
+- POST /admin/users/{user_id}/deactivate
+- POST /admin/users/{user_id}/activate
+- POST /admin/users/{user_id}/reset-password
+- GET /admin/users/{user_id}/activity
+
+CISO
+
+- GET /ciso/audit
+- GET /ciso/audit/logs
+- GET /ciso/audit/verify
+- GET /ciso/anomalies
+- GET /ciso/anomalies/stats
+- GET /ciso/risk/snapshots
+- GET /ciso/risk/trend
+- GET /ciso/risk/top
+- GET /ciso/risk/recent
+- POST /ciso/audit/search
+
+RAG
+
+- POST /rag/query
+- GET /rag/health
+
+NewsRAG
+
+- POST /news-rag/query
+- POST /news-rag/parse-preview
+- GET /news-rag/health
+
+System
+
+- GET /health
+- GET /health/db
+
+### ML prediction pipeline
+
+The prediction flow is driven by backend/app/ml_engine/ensemble_predict.py and backend/app/ml_engine/models/ensemble_model.py.
+
+1. Live data fetch
+   - yfinance 2-year OHLCV data
+   - PSX symbols are retried with .KA suffix
+   - 5-minute OHLCV cache in memory
+
+Input validation and errors:
+
+- Symbol must match ^[A-Z0-9._-]+$ after uppercasing
+- Market data failures return HTTP 502
+- When the ensemble is not loaded or inference fails, a neutral fallback is returned
+
+2. Feature engineering (59 features)
+   - Implemented in backend/app/ml_engine/features/feature_engineering.py
+   - Feature order is fixed to match training
+
+Full feature list:
+
+```
+close_open_ratio
+high_low_range
+upper_wick
+lower_wick
+body_size
+return_1d
+return_5d
+return_10d
+return_20d
+return_60d
+return_120d
+log_return_1d
+price_to_sma20
+price_to_ema26
+sma5_cross_sma20
+rsi_14
+roc_10
+williams_r_14
+stoch_k
+stoch_d
+bb_width
+bb_pct
+atr_pct
+volatility_5d
+volatility_10d
+volatility_20d
+volume_ratio
+lag_return_1d
+lag_return_2d
+lag_return_3d
+lag_return_4d
+lag_return_5d
+day_of_week
+month
+quarter
+is_month_end
+is_quarter_end
+overnight_gap
+direction_streak
+sharpe_5d
+sharpe_20d
+return_1d_xrank
+return_5d_xrank
+return_20d_xrank
+return_60d_xrank
+rsi_14_xrank
+stoch_k_xrank
+bb_pct_xrank
+volume_ratio_xrank
+atr_pct_xrank
+volatility_20d_xrank
+market_return_1d
+market_breadth
+market_vol
+macd_pct
+macd_signal_pct
+macd_hist_pct
+obv_zscore
 ```
 
-> Interpretation: OBV accumulation and MACD momentum are the primary bullish drivers, but elevated 20-day volatility and a negative price streak are pulling the signal short of a BUY threshold.
+3. Base learners
 
-**Implementation notes:**
-- SHAP explainer is initialised at startup alongside the model load — zero per-request overhead beyond the SHAP pass itself
-- LightGBM explainer is also initialised and available as a fallback
-- Returns `null` gracefully when legacy (non-59-feature) payloads are used or if SHAP computation fails — prediction flow is never blocked
+- XGBoost (xgb_model.pkl)
+- LightGBM (lgb_model.pkl)
+- LSTM (lstm_model.keras)
 
----
+4. Meta-learner
 
-### 9 · Risk Management (ATR-Based)
+- Logistic regression meta model (meta_learner.pkl)
+- StandardScaler for stacked inputs (meta_scaler.pkl)
 
-| Parameter | Calculation |
-|-----------|-------------|
-| **Entry** | Current price at signal time |
-| **Target** | Entry × (1 + expected_gain_pct / 100) |
-| **Stop-Loss** | Entry × 0.975 (2.5% fixed floor) |
+5. Outputs and thresholds
 
----
+Confidence thresholds in backend/app/ml_engine/ensemble_predict.py:
 
-### 10 · RAG Audit Search *(New)*
+- confidence >= 0.65 -> buy
+- confidence >= 0.55 -> hold
+- confidence >= 0.45 -> trim
+- confidence < 0.45 -> sell
 
-Natural language search over the security audit log using semantic retrieval and an LLM.
+Each response includes:
 
-```
-CISO question (natural language)
-        │
-        ▼
-  Embed query (all-MiniLM-L6-v2)
-        │
-        ▼
-  Cosine similarity search over stored audit log embeddings (MongoDB)
-        │
-        ▼
-  Top-K relevant logs → LLM prompt (Groq / LLaMA 3.3 70B)
-        │
-        ▼
-  Grounded natural language answer + source logs
-```
+- signal and confidence
+- entry_price, target_price, stop_loss
+- expected_gain_pct and time_horizon_days
+- base model scores
+- SHAP explanation (when available)
+- model_version and engine (ensemble_v1 or fallback)
 
-- Embeddings stored automatically on every new audit log write
-- Model: `all-MiniLM-L6-v2` (reused from anomaly detection — no extra memory)
-- LLM: Groq API (`llama-3.3-70b-versatile`)
-- Endpoint: `POST /api/v1/ciso/audit/search`
+6. Explainability
 
----
+SHAP TreeExplainer for XGBoost and LightGBM. Explanation block includes:
 
-## Tech Stack
+- method
+- base_value
+- top_features (feature name, shap_value, feature_value, direction)
 
-### AI / ML
-- **XGBoost** + **LightGBM** — tabular base models (trained, loaded at startup)
-- **TensorFlow / Keras** — LSTM model (trained, loaded at startup)
-- **scikit-learn** — meta-learner (Logistic Regression), StandardScaler, walk-forward validation
-- **SHAP** (`shap.TreeExplainer`) — per-prediction feature attribution for XGBoost and LightGBM
-- **sentence-transformers** (`all-MiniLM-L6-v2`) — behavioral anomaly detection + RAG embeddings
-- **Groq API** (`llama-3.3-70b-versatile`) — LLM for RAG audit search
-- **yfinance** — live OHLCV data fetch with 5-minute TTL cache
+7. Integrity
 
-### Backend
-- **FastAPI 0.111** — async REST API
-- **Pydantic v2** — strict request/response validation
-- **Motor + PyMongo** — async MongoDB driver
-- **Redis** — rate limiting and adaptive security counters
-- **python-jose + passlib** — JWT auth and bcrypt password hashing
-- **cryptography (AES)** — portfolio data encrypted at rest
-- **HMAC-SHA256** — prediction response signing
-- **httpx** — async HTTP client (Groq API calls)
+Responses include HMAC-SHA256 signature. POST /predict/verify-integrity checks it.
 
-### Database & Infrastructure
-- **MongoDB 7.0** — predictions, audit logs (with embeddings), users, portfolios
-- **Redis 7.2** — rate limiting, anomaly feature store
-- **Docker / Docker Compose** — fully containerized (backend + MongoDB + Redis)
+### Market data
 
----
+Public intraday endpoint:
 
-## Project Structure
+- GET /market/intraday?symbols=OGDC,HBL&interval=1m&limit=60
 
-```
-tradefinlytix/
-└── backend/
-    ├── app/
-    │   ├── main.py                  # FastAPI entry point, middleware, lifespan
-    │   ├── core/
-    │   │   ├── config.py            # Pydantic Settings — all env vars
-    │   │   ├── database.py          # MongoDB connect/disconnect + index setup
-    │   │   ├── bootstrap.py         # Seed admin/CISO accounts on startup
-    │   │   ├── logging.py           # JSON structured logging
-    │   │   └── roles.py             # RBAC role definitions
-    │   ├── api/
-    │   │   ├── dependencies.py      # CurrentUser, DB injection, require_permission
-    │   │   └── routes/
-    │   │       ├── auth.py          # Register, login, refresh, logout
-    │   │       ├── prediction.py    # GET /predict/{symbol}
-    │   │       ├── portfolio.py     # Portfolio + trade history
-    │   │       ├── alerts.py        # User alerts
-    │   │       ├── screener.py      # Stock screener
-    │   │       ├── admin.py         # User lifecycle (admin only)
-    │   │       └── ciso.py          # Audit chain, anomaly dashboard, RAG search (CISO only)
-    │   ├── ml_engine/
-    │   │   ├── ensemble_predict.py  # Top-level ensemble inference
-    │   │   ├── models/
-    │   │   │   ├── ensemble_model.py  # EnsembleModel class (XGB + LGB + LSTM + meta)
-    │   │   │   ├── xgb_model.pkl      # Trained XGBoost model
-    │   │   │   ├── lgb_model.pkl      # Trained LightGBM model
-    │   │   │   ├── lstm_model.keras   # Trained LSTM model
-    │   │   │   ├── meta_learner.pkl   # Trained meta-learner (LR)
-    │   │   │   ├── lstm_scaler.pkl    # LSTM input scaler
-    │   │   │   └── meta_scaler.pkl    # Meta-learner input scaler
-    │   │   ├── features/
-    │   │   │   ├── feature_engineering.py  # 59-feature extraction + LSTM sequences
-    │   │   │   ├── event_detection.py      # placeholder
-    │   │   │   └── preprocessing.py
-    │   │   ├── data/
-    │   │   │   ├── market_data.py   # yfinance live OHLCV + 59-feature computation
-    │   │   │   ├── ingestion.py
-    │   │   │   ├── sentiment.py     # placeholder
-    │   │   │   └── aggregation.py
-    │   │   ├── evaluation/
-    │   │   │   ├── backtesting.py
-    │   │   │   └── metrics.py
-    │   │   ├── explainability/
-    │   │   │   └── shap_explainer.py  # SHAPExplainer — TreeExplainer for XGB + LGB
-    │   │   └── utils/
-    │   │       └── atr_levels.py
-    │   ├── rag/                          # RAG audit search (new)
-    │   │   ├── embedder.py              # log dict → 384-dim vector (all-MiniLM-L6-v2)
-    │   │   ├── retriever.py             # store embeddings + cosine similarity search
-    │   │   └── rag_service.py           # retrieval + Groq LLM answer generation
-    │   ├── security/
-    │   │   ├── security_orchestrator.py  # Adaptive risk scoring engine
-    │   │   ├── anomaly_detection.py      # IsolationForest + sentence-transformer vectors
-    │   │   ├── zscore_detection.py       # Rolling z-score request-rate check
-    │   │   ├── hmac_signing.py           # HMAC-SHA256 prediction signing
-    │   │   ├── rate_limiter.py           # Redis-backed sliding window rate limiting
-    │   │   ├── csrf.py                   # CSRF middleware (disabled by default)
-    │   │   ├── security_alerts.py        # Structured log + optional webhook alerts
-    │   │   └── input_validator.py
-    │   ├── repositories/
-    │   │   ├── audit_repo.py             # Append-only hash-chained audit log + embedding trigger
-    │   │   ├── audit_chain_state.py      # In-process chain trust flag
-    │   │   ├── prediction_repo.py
-    │   │   ├── portfolio_repo.py
-    │   │   ├── trade_repo.py
-    │   │   ├── risk_history_repo.py
-    │   │   ├── user_repo.py
-    │   │   ├── stock_repo.py
-    │   │   └── alert_repo.py
-    │   ├── services/
-    │   │   ├── prediction_service.py
-    │   │   ├── auth_service.py
-    │   │   ├── portfolio_service.py
-    │   │   ├── alert_service.py
-    │   │   ├── screener_service.py
-    │   │   ├── admin_service.py
-    │   │   └── ciso_service.py
-    │   ├── schemas/                  # Pydantic v2 request/response models
-    │   ├── workers/                  # placeholders (scheduler, alert_worker, data_collector)
-    │   └── utils/
-    ├── scripts/
-    │   ├── train_model.py
-    │   ├── seed_db.py
-    │   └── migrate.py
-    ├── docker-compose.yml
-    ├── Dockerfile
-    └── requirements.txt
-```
+Implementation details:
 
----
+- yfinance intraday data with 55-second cache
+- Valid intervals: 1m, 2m, 5m, 15m, 30m, 60m
+- Symbols are validated to allow letters, digits, dot, underscore, hyphen
 
-## Getting Started
+### Screener engine
 
-> **Recommended: Run locally without Docker.** Docker Compose is available for production deployments but adds overhead during development. Follow the local setup steps below to get started quickly.
+Endpoint:
 
----
+- POST /screener
 
-### Option A — Run Locally (Recommended for Development)
+Implementation details:
 
-#### Prerequisites
+- Rule-based scoring over live features
+- Presets: custom, growing, low_risk, trending
+- Default universe is a small US liquid list (AAPL, MSFT, NVDA, TSLA, AMZN, GOOGL, META, SPY)
+- Trend logic uses return_20d, SMA cross, and price_to_sma20
 
-- Python 3.10+
-- MongoDB 7.0 — [Download](https://www.mongodb.com/try/download/community)
-- Redis 7.2 — [Download for Windows](https://github.com/tporadowski/redis/releases) · [macOS](https://formulae.brew.sh/formula/redis) · [Linux](https://redis.io/docs/install/install-redis/)
+### Portfolio and trades
 
-#### Step 1 · Clone the repo
+Endpoints:
+
+- GET /portfolio
+- PUT /portfolio
+- POST /portfolio/trades
+- GET /portfolio/trades
+
+Storage:
+
+- Portfolio positions and metadata are AES-256-GCM encrypted
+- Trades are AES-256-GCM encrypted
+
+### Alerts
+
+Endpoints:
+
+- GET /alerts
+- PATCH /alerts/{alert_id}/read
+- PATCH /alerts/read-all
+- GET /alerts/unread-count
+
+Implementation details:
+
+- Alerts are stored in MongoDB and auto-expire after 30 days
+- High or critical risk predictions trigger alerts
+- Security alerts are de-duplicated within 60 seconds
+
+### Admin and CISO operations
+
+Admin operations:
+
+- Paginated user list with filters
+- Activate/deactivate user (cannot target admin or ciso accounts)
+- Reset password and invalidate sessions
+- User activity from audit logs
+
+CISO operations:
+
+- Audit log listing with pagination
+- Audit chain verification
+- Anomaly logs and daily stats
+- Risk snapshot listing and trend buckets
+- Top risky subjects and recent critical events
+- Audit RAG search: natural language over embedded audit logs
+
+### Audit chain and RAG search
+
+Audit chain:
+
+- Each audit log includes prev_hash and chain_hash
+- AuditRepository.verify_chain replays the chain to detect tampering
+- When strict mode is enabled and chain is untrusted, sensitive endpoints are blocked
+- backend/app/repositories/audit_chain_state.py holds a process-local boolean flag that tracks whether the chain is currently trusted. set_audit_chain_trusted is called at startup after verification, and audit_chain_append_allowed is checked before every record() call so that new log writes become no-ops when the chain is known to be broken.
+
+Embeddings:
+
+- Each audit log is embedded using the sentence-transformers model from anomaly detection
+- Embeddings are stored in audit_logs.embedding
+- search_logs uses cosine similarity over a candidate set and returns top_k
+
+Audit RAG search:
+
+- POST /ciso/audit/search
+- Builds context from top-K log rows
+- Calls Groq Chat Completions with llama-3.3-70b-versatile
+- Returns answer plus sources
+
+### Core RAG module
+
+The shared RAG infrastructure lives in backend/app/rag/ and is used by the audit search flow (POST /ciso/audit/search). It is not the StockX pipeline, which has its own directory.
+
+backend/app/rag/embedder.py
+
+- Converts an audit log document into a text string (event_type, user_id, ip, path, payload)
+- Encodes it with the same sentence-transformers all-MiniLM-L6-v2 model used by anomaly detection, producing a normalised float vector
+
+backend/app/rag/retriever.py
+
+- store_embedding: runs embed_log_document in a thread executor and upserts the vector into audit_logs.embedding via MongoDB $set
+- search_logs: embeds the query text, streams up to 500 candidate documents from audit_logs (those that have an embedding field), scores each by cosine similarity, and returns the top_k documents sorted by score. Embeddings are stripped from results; a _score field is added.
+
+backend/app/rag/rag_service.py
+
+- answer_query: calls search_logs to retrieve relevant log rows, formats them into a single context block (timestamp, event_type, user_id, ip, path, score), then calls Groq llama-3.3-70b-versatile with a security-analyst system prompt. Returns answer and the raw source documents.
+
+### StockX RAG pipeline
+
+The general RAG endpoint is /rag/query. The pipeline lives in backend/app/StockX/query.py.
+
+Models and embeddings:
+
+- ChatGroq llama-3.1-8b-instant for routing and query transforms
+- OpenAI gpt-4o-mini for final answer generation
+- OpenAI text-embedding-3-small for embeddings
+
+Vector store:
+
+- FAISS index at backend/app/StockX/faiss_vectorstore
+- If loading fails, an empty FAISS index is created
+
+Query techniques (router selects up to 3):
+
+- rewrite
+- step_back
+- multi_query
+- hyde
+- decompose
+- rag_fusion
+
+Contextual compression removes irrelevant chunks before answer generation.
+
+Prediction tool integration:
+
+- If a query looks like a stock prediction request, the pipeline calls GET /predict/{symbol}
+- Symbol extraction is handled by a Groq LLM prompt with explicit PSX ticker rules
+- A service token is obtained via bootstrap admin credentials
+
+### NewsRAG pipeline
+
+NewsRAG provides PSX company announcement intelligence with a Self-RAG pipeline.
+
+Endpoints:
+
+- POST /news-rag/query
+- POST /news-rag/parse-preview
+- GET /news-rag/health
+
+Implementation details:
+
+- Parses ticker and result count from a natural language question
+- Runs a subprocess to avoid Playwright and anyio event-loop conflicts
+- Self-RAG steps: IsRel, IsSup, IsUse evaluators plus a final briefing
+- Uses OpenAI for the evaluator prompts
+- Scrapes PSX announcements and can download PDF reports
+- Returns a downloadable .txt report
+
+### Security controls
+
+Core security features:
+
+- AES-256-GCM encryption for sensitive fields
+- HMAC-SHA256 signing for prediction payload integrity
+- JWT auth with refresh token rotation
+- Role-based access control
+- Adaptive rate limiting based on risk level
+- Behavioral anomaly detection
+- Z-score request-rate spikes
+- Optional CSRF protection
+- Structured logging and security alert webhook
+
+backend/app/security/rate_limiter.py
+
+- Redis sorted-set sliding-window limiter exposed as a FastAPI dependency (Depends(rate_limit))
+- Per-IP key; window and max-request count come from settings (RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_SECONDS)
+- Returns HTTP 429 when the count exceeds the threshold
+
+backend/app/security/zscore_detection.py
+
+- Redis-backed rolling z-score over per-user per-minute request counts
+- record_and_score appends a value to a capped list in Redis and returns (z_score, is_anomaly) where anomaly is flagged when abs(z) >= zscore_threshold
+- request_rate_zscore is called per request: it increments the current-minute bucket counter and, on the first hit of each new minute, scores the previous minute's count against the rolling history
+- Window size and threshold are configurable via settings (ZSCORE_WINDOW_SAMPLES, ZSCORE_THRESHOLD)
+
+backend/app/security/security_alerts.py
+
+- emit_security_alert logs at CRITICAL level and optionally POSTs to SECURITY_ALERT_WEBHOOK_URL with up to 3 retries and 0.5 s back-off
+- Log payloads are sanitised by redact_security_log_payload, which truncates chain digest fields to prevent full hash leakage in log aggregators
+- Fire-and-forget: failures are swallowed and never propagate to request handlers
+
+Adaptive security scoring (backend/app/security/security_orchestrator.py):
+
+- Factors include failed logins, sensitive path access, anonymous sensitive access, rate spikes, and anomaly score
+- Risk thresholds are configurable
+- Medium and high risk apply tighter rate limits
+- Critical risk blocks the request with HTTP 403
+- High risk marks request.state.high_risk and triggers alerts
+
+Anomaly detection (backend/app/security/anomaly_detection.py):
+
+- Sentence-transformers all-MiniLM-L6-v2
+- IsolationForest on combined behavioral + semantic vector
+- Fallback to centroid distance and rule-based scoring
+
+### Data storage and indexes
+
+Collections and key usage:
+
+- users: encrypted emails, roles, auth metadata
+- refresh_tokens: hashed refresh tokens with TTL
+- password_reset_otps: OTP records with TTL
+- predictions: encrypted prediction payloads
+- portfolio: encrypted portfolio snapshots
+- transactions: encrypted trade entries
+- alerts: alert records with TTL
+- audit_logs: hash-chained audit events with TTL and embeddings
+- anomaly_logs: anomaly entries with TTL
+- risk_snapshots: risk events with TTL
+- psx_eod, psx_intraday, sentiment_raw, sentiment_daily: data caches and history
+
+Indexing and TTL policies are created at startup in backend/app/core/database.py.
+
+Index highlights:
+
+- users.email_hash is unique (partial index)
+- alerts, audit_logs, anomaly_logs use 30-day TTL on created_at
+- refresh_tokens and password_reset_otps use expires_at TTL
+- risk_snapshots uses 90-day TTL on created_at
+
+### Scripts and tests
+
+Scripts (backend/scripts):
+
+- pentest_smoke.py: quick security smoke checks
+- migrate.py: placeholder
+- seed_db.py: placeholder
+- train_model.py: placeholder
+
+Tests (backend/tests):
+
+- Auth flows
+- Prediction pipeline
+- Ensemble model
+- Anomaly detection
+- Screener
+- Portfolio
+- Admin routes
+- Security edge cases
+- Password policy (test_password_policy.py): validates the 72-byte bcrypt hard limit and password strength rules in app/utils/helpers.py
+
+backend/tests/seed.py is a test-only helper that pre-populates the database with fixture data used by integration tests.
+
+### Background workers
+
+The backend/app/workers/ directory is reserved for background job processes. All three files are currently placeholders:
+
+- alert_worker.py: intended for async alert dispatch (pushing alerts to users outside the request cycle)
+- data_collector.py: intended for scheduled market data ingestion (PSX OHLCV snapshots, sentiment feeds)
+- scheduler.py: intended for APScheduler or similar job scheduling wiring
+
+These are listed in Known gaps and placeholders below.
+
+## Frontend
+
+### App runtime and providers
+
+The Next.js app uses:
+
+- AuthProvider for session state
+- React Query for data fetching and caching
+- RagChatWidget injected in the root layout
+
+### Routing and pages
+
+Public:
+
+- /: marketing and entry point
+
+Auth:
+
+- /login
+- /register
+- /forgot-password
+
+Protected (role gated by ProtectedShell):
+
+- /dashboard
+- /predict
+- /predict/[symbol]
+- /portfolio
+- /trades
+- /profile
+- /admin/users
+- /admin/users/[userId]
+- /ciso/audit
+- /ciso/risk
+
+### Shared components
+
+- ProtectedShell: navigation, alert bell, role gating, mobile nav
+- PsxLiveChartCard: intraday PSX chart using /market/intraday
+- RagChatWidget: conversational UI calling /rag/query
+- ThemeToggle: toggles normal vs tfx-mono (green-on-black) mode
+
+### Data fetching
+
+The frontend uses Axios and React Query. All API calls target NEXT_PUBLIC_API_BASE_URL + /api/v1. The implementation is split across four files in frontend/src/lib/:
+
+frontend/src/lib/api.ts
+
+- Creates and exports the shared Axios instance (api) with the base URL and Content-Type header
+- Manages accessToken and refreshToken in module scope, mirrored to localStorage under the keys tfx_access_token and tfx_refresh_token
+- Request interceptor attaches the Bearer token to every request
+- Response interceptor automatically retries a failed request once after refreshing via POST /auth/refresh on 401; subsequent 401s are passed through
+
+frontend/src/lib/queries.ts
+
+- All React Query hooks for the app, grouped by domain:
+  - Predictions: useMarketPrediction
+  - Portfolio: usePortfolio, useTrades
+  - Admin: useAdminUsers, useAdminUser, useAdminUserActivity
+  - CISO audit: useAudit, useAuditLogs, useAuditVerify
+  - CISO anomalies: useAnomalies, useAnomalyStats
+  - CISO risk: useRiskTrend, useTopRisk, useRiskRecent, useRiskSnapshots
+  - Alerts: useAlerts, useUnreadAlertCount (both poll every 30 s)
+  - Screener: useScreener
+  - Market: usePsxIntraday (polls every 60 s, stale after 55 s)
+
+frontend/src/lib/types.ts
+
+- Shared TypeScript types: Role (investor | admin | ciso), UserPublic, TokenResponse
+
+frontend/src/lib/utils.ts
+
+- cn(): merges Tailwind class strings via clsx and tailwind-merge
+
+### Theming
+
+- Default theme: light, green accents
+- Mono theme: black background with green text
+- Toggle stored in localStorage key tfx_theme
+
+### Mock data behavior
+
+Several pages render mock data when the backend is unavailable. Examples include:
+
+- Dashboard cards and charts
+- Predict list and predict details
+- Portfolio positions
+- Trades list
+- Admin and CISO pages
+
+This allows UI demos without a live backend, but should not be confused with real data.
+
+## Setup and run
+
+### Local backend
+
+From the repository root:
 
 ```bash
-git clone https://github.com/Toqir-dar/TradeFinlytix.git
-cd TradeFinlytix/backend
-```
-
-#### Step 2 · Create and activate a virtual environment
-
-```bash
+cd backend
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# macOS / Linux
-source venv/bin/activate
-```
-
-#### Step 3 · Install dependencies
-
-```bash
+venv\Scripts\activate  # Windows
 pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-#### Step 4 · Start MongoDB and Redis
-
-Make sure both services are running **before** starting the backend.
+### Local frontend
 
 ```bash
-# MongoDB (runs on port 27017 by default)
-mongod
-
-# Redis (runs on port 6379 by default)
-redis-server
+cd frontend
+npm install
+npm run dev
 ```
 
-> On Windows you can also start them from Services if installed as a Windows service.
+Frontend runs on http://localhost:3000
 
-#### Step 5 · Configure environment variables
-
-Copy the example env file and fill in the required values:
+### Docker compose
 
 ```bash
-cp .env.example .env   # or manually create backend/.env
+cd backend
+docker compose up --build
 ```
 
-Minimum required variables:
+Services:
 
-```env
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DB_NAME=tradefinlytix_db
+- API: http://localhost:8000
+- Docs: http://localhost:8000/docs
+- MongoDB: localhost:27017
+- Redis: localhost:6379
+- Mongo Express: http://localhost:8081
 
-# Must be a strong random string — app will refuse to start with the default placeholder
-JWT_SECRET_KEY=your-strong-random-secret-here
+### RAG and NewsRAG prerequisites
 
-# Must be exactly 32 bytes (characters)
-AES_SECRET_KEY=your-exactly-32-byte-key-here!!
+StockX RAG:
 
-HMAC_SECRET_KEY=your-hmac-secret-here
-REDIS_URL=redis://localhost:6379/0
+- GROQ_API_KEY (for routing and query transforms)
+- OPENAI_API_KEY (for gpt-4o-mini and embeddings)
+- FAISS index present at backend/app/StockX/faiss_vectorstore
 
-# Seed admin and CISO accounts on first startup
-ENABLE_BOOTSTRAP=true
-BOOTSTRAP_ADMIN_EMAIL=admin@example.com
-BOOTSTRAP_ADMIN_PASSWORD=AdminPass123
-BOOTSTRAP_CISO_EMAIL=ciso@example.com
-BOOTSTRAP_CISO_PASSWORD=CisoPass123
-```
+NewsRAG:
 
-#### Step 6 · Start the backend
+- OPENAI_API_KEY
+- playwright installed: playwright install chromium
 
-```bash
-uvicorn app.main:app --reload
-```
+## Known gaps and placeholders
 
-The API will be available at `http://localhost:8000`.  
-Interactive docs (Swagger UI) at `http://localhost:8000/docs`.
+These files exist but are placeholders or not wired to live routes:
 
-#### Step 7 · Train models (first time only)
+- backend/app/api/routes/audit.py
+- backend/app/security/input_validator.py
+- backend/app/ml_engine/utils/atr_levels.py
+- backend/app/utils/constants.py
+- backend/app/utils/decorators.py
+- backend/app/repositories/stock_repo.py
+- backend/app/schemas/stock_schema.py
+- backend/scripts/migrate.py
+- backend/scripts/seed_db.py
+- backend/scripts/train_model.py
+- backend/app/workers/alert_worker.py
+- backend/app/workers/data_collector.py
+- backend/app/workers/scheduler.py
 
-The trained model files (`.pkl`, `.keras`) are included in the repo under `app/ml_engine/models/`. If you need to retrain from scratch:
+Frontend gaps:
 
-```bash
-python scripts/train_model.py --symbol OGDC --start 2020-01-01 --end 2025-01-01
-```
+- The profile page calls /auth/change-password, which is not implemented in the backend
 
----
+Operational notes:
 
-### Option B — Run with Docker Compose (Production / CI)
-
-> Requires Docker and Docker Compose installed. This spins up the backend, MongoDB, and Redis together in containers.
-
-#### Prerequisites
-
-- Docker & Docker Compose
-
-#### Step 1 · Clone and configure
-
-```bash
-git clone https://github.com/Toqir-dar/TradeFinlytix.git
-cd TradeFinlytix/backend
-cp .env.example .env   # fill in JWT_SECRET_KEY, AES_SECRET_KEY, HMAC_SECRET_KEY
-```
-
-#### Step 2 · Start all services
-
-```bash
-# Backend + MongoDB + Redis
-docker-compose up --build
-
-# Add Mongo Express browser UI (development only)
-docker-compose --profile dev up --build
-```
-
-#### Services and ports
-
-| Service | Port |
-|---------|------|
-| FastAPI backend | `8000` |
-| MongoDB | `27017` |
-| Redis | `6379` |
-| Mongo Express (dev profile) | `8081` |
-
----
-
-## API Reference
-
-Interactive docs are available at `http://localhost:8000/docs` when `EXPOSE_OPENAPI=true` (default in development).
-
-### Authentication
-
-All prediction, portfolio, admin, and CISO routes require:
-
-```
-Authorization: Bearer <access_token>
-```
-
-Obtain tokens via `POST /api/v1/auth/login`.
-
----
-
-### Auth Routes
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/auth/register` | Register new investor account |
-| `POST` | `/api/v1/auth/login` | Login, returns access + refresh tokens |
-| `POST` | `/api/v1/auth/refresh` | Exchange refresh token for new access token |
-| `POST` | `/api/v1/auth/logout` | Revoke refresh token |
-| `GET` | `/api/v1/auth/me` | Current user profile |
-
----
-
-### Prediction Routes
-
-#### `GET /api/v1/predict/{symbol}`
-
-Requires: any active authenticated user.
-
-**Response:**
-```json
-{
-  "symbol": "OGDC",
-  "user_id": "69f5ee8c...",
-  "predicted_at": "2026-05-10T07:40:00.630853+00:00",
-  "prediction": {
-    "signal": "hold",
-    "confidence": 0.632,
-    "model_version": "stacked_ensemble_v1",
-    "engine": "ensemble_v1",
-    "tier": "core",
-    "rationale": ["stacked_ensemble_prediction", "confidence=0.632", "base_learners_consensus"],
-    "entry_price": 329.68,
-    "target_price": 331.33,
-    "stop_loss": 321.44,
-    "expected_gain_pct": 0.5,
-    "time_horizon_days": 2,
-    "explanation": {
-      "method": "shap_tree_explainer_xgb",
-      "base_value": 0.015483,
-      "top_features": [
-        { "feature": "obv_zscore",      "shap_value":  0.340298, "feature_value":  1.482,  "direction": "bullish" },
-        { "feature": "macd_signal_pct", "shap_value":  0.291460, "feature_value":  0.0273, "direction": "bullish" },
-        { "feature": "sharpe_20d",      "shap_value":  0.133623, "feature_value":  4.6943, "direction": "bullish" },
-        { "feature": "quarter",         "shap_value": -0.110121, "feature_value":  2.0,    "direction": "bearish" },
-        { "feature": "volatility_20d",  "shap_value": -0.097885, "feature_value":  0.0229, "direction": "bearish" }
-      ]
-    }
-  },
-  "risk": {
-    "score": 10,
-    "level": "LOW",
-    "dynamic_score": 10.4,
-    "recent_request_count_10m": 1,
-    "historical_high_risk_events": 0
-  },
-  "integrity": {
-    "algorithm": "HMAC-SHA256",
-    "signature": "0cdc9f..."
-  }
-}
-```
-
-#### `POST /api/v1/predict/verify-integrity`
-
-Verify the HMAC signature of a previously returned prediction payload.
-
-```json
-{ "payload": "...", "signature": "hmac-sha256:..." }
-```
-
----
-
-### Portfolio Routes
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/portfolio` | Portfolio snapshot |
-| `POST` | `/api/v1/portfolio/trade` | Record a trade |
-| `GET` | `/api/v1/portfolio/history` | Trade history |
-
----
-
-### Admin Routes *(role: admin)*
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/admin/users` | Paginated user list |
-| `PATCH` | `/api/v1/admin/users/{id}` | Update user (activate/deactivate) |
-| `GET` | `/api/v1/admin/audit` | Paginated audit log |
-
----
-
-### CISO Routes *(role: ciso)*
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/ciso/audit` | Paginated audit log |
-| `GET` | `/api/v1/ciso/audit/logs` | Alias of above |
-| `GET` | `/api/v1/ciso/audit/verify` | Verify audit chain integrity |
-| `POST` | `/api/v1/ciso/audit/search` | Natural language search over audit logs (RAG) |
-| `GET` | `/api/v1/ciso/anomalies` | Behavioral anomaly events |
-| `GET` | `/api/v1/ciso/anomalies/stats` | Anomaly frequency by day |
-| `GET` | `/api/v1/ciso/risk/snapshots` | Adaptive risk snapshot history |
-| `GET` | `/api/v1/ciso/risk/trend` | Daily risk score trend |
-| `GET` | `/api/v1/ciso/risk/top` | Top risky subjects |
-| `GET` | `/api/v1/ciso/risk/recent` | Recent critical block events |
-
-#### `POST /api/v1/ciso/audit/search`
-
-Requires: role `ciso`.
-
-```json
-{ "question": "show me suspicious login attempts from unusual IPs" }
-```
-
-**Response:**
-```json
-{
-  "answer": "Two login attempts from IP 1.2.3.4 at unusual hours...",
-  "sources": [
-    { "event_type": "login_success", "ip": "1.2.3.4", "_score": 0.87, ... }
-  ]
-}
-```
-
----
-
-### System Routes
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Liveness check — no DB hit |
-| `GET` | `/health/db` | Deep check — pings MongoDB |
-
-## Environment Variables
-
-Key variables required in `backend/.env`:
-
-| Variable | Description |
-|----------|-------------|
-| `MONGODB_URI` | MongoDB connection string |
-| `MONGODB_DB_NAME` | Database name |
-| `JWT_SECRET_KEY` | Strong random string for JWT signing |
-| `AES_SECRET_KEY` | Exactly 32 bytes for portfolio encryption |
-| `HMAC_SECRET_KEY` | Secret for prediction response signing |
-| `REDIS_URL` | Redis connection URL |
-| `GROQ_API_KEY` | Groq API key for RAG audit search |
-| `ENABLE_BOOTSTRAP` | `true` to seed admin/CISO on first startup |
-| `BOOTSTRAP_ADMIN_EMAIL` | Admin account email |
-| `BOOTSTRAP_ADMIN_PASSWORD` | Admin account password |
-| `BOOTSTRAP_CISO_EMAIL` | CISO account email |
-| `BOOTSTRAP_CISO_PASSWORD` | CISO account password |
-
----
-
-
-
-All models are validated using **walk-forward time-series cross-validation** (`TimeSeriesSplit`) to prevent look-ahead bias.
-
-| Metric | Description |
-|--------|-------------|
-| Accuracy | Overall classification accuracy |
-| F1-Score (macro) | Balanced across BUY / HOLD / TRIM / SELL |
-| Directional Accuracy | % of correct up/down calls (most financially relevant) |
-| Calibration Error (ECE) | Measures how well confidence matches actual outcome rate |
-
----
-
-## Security Architecture
-
-| Layer | Implementation |
-|-------|----------------|
-| **Input validation** | Pydantic v2 strict schemas on all endpoints |
-| **Authentication** | JWT (HS256) access tokens + refresh token rotation |
-| **Authorization** | RBAC: investor / admin / ciso |
-| **Account lockout** | Configurable failed-attempt threshold + lockout window |
-| **Rate limiting** | Redis-backed sliding window; limits tighten per risk level |
-| **Adaptive risk scoring** | Per-request cumulative score (LOW → MEDIUM → HIGH → CRITICAL) |
-| **Behavioral anomaly detection** | IsolationForest on request feature vectors |
-| **Z-score request monitoring** | Rolling z-score over per-user request rates |
-| **Prediction signing** | HMAC-SHA256 per prediction response |
-| **Portfolio encryption** | AES-256 at-rest encryption for portfolio data |
-| **Audit chain** | Append-only, hash-linked tamper-evident log |
-| **Audit chain guard** | Startup verification; optionally blocks sensitive endpoints if chain is broken |
-| **CSRF protection** | Configurable middleware (disabled by default for bearer-token APIs) |
-| **Security alerts** | Structured log emission + optional outbound JSON webhook |
-
-### Audit Chain Safety Mode
-
-When `AUDIT_REJECT_NEW_EVENTS_WHEN_CHAIN_UNTRUSTED=true` and the chain is found broken, the following endpoints return **503** until the chain is re-verified:
-
-- `POST /api/v1/admin/*`
-- `POST /api/v1/ciso/*`
-- `GET /api/v1/predict/*`
-
----
-
-## Roles & Permissions
-
-| Permission | investor | admin | ciso |
-|-----------|----------|-------|------|
-| `predict:read` | ✓ | ✓ | ✓ |
-| `portfolio:read/write` | ✓ | ✓ | — |
-| `alerts:read/write` | ✓ | ✓ | — |
-| `screener:read` | ✓ | ✓ | — |
-| `admin:read/write` | — | ✓ | ✓ (read) |
-| `users:read/write` | — | ✓ | ✓ (read) |
-| `audit:read/write` | — | ✓ (read) | ✓ |
-| `anomaly:read` | — | — | ✓ |
-
-Privileged accounts (admin / CISO) cannot be deactivated or password-reset via the admin API (returns 403).
-
----
-
-## Roadmap
-
-- [ ] FinBERT sentiment pipeline (`sentiment.py` — currently placeholder)
-- [x] SHAP explainability per prediction — live, returned in every `GET /predict/{symbol}` response
-- [ ] Event detection at inference time (`event_detection.py` — currently placeholder)
-- [ ] APScheduler background jobs — scheduled retraining, data collection, alert worker
-- [ ] Real-time streaming signals via WebSockets
-- [ ] Frontend React dashboard with TradingView chart overlay
-- [ ] PSX-fine-tuned FinBERT (Urdu + English financial corpus)
-- [ ] Reinforcement learning for dynamic position sizing
-
----
+- Screener defaults to a US symbol universe, not PSX
+- NewsRAG is not connected to any frontend page
 
 ## Team
 
-| Name | Roll No |
-|------|---------|
-| Aleena Ahmed | DS-09 |
-| Seerat Fatima | DS-32 |
-| Toqir Dar | DS-34 |
-| Ayan Ahmed | DS-40 |
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-*TradeFinlytix — bringing institutional-grade AI to the Pakistan Stock Exchange.*
+- Aleena Ahmed (DS-09)
+- Seerat Fatima (DS-32)
+- Toqir Dar (DS-34)
+- Ayan Ahmed (DS-40)

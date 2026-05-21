@@ -595,7 +595,11 @@ backend/app/rag/rag_service.py
 
 ### StockX RAG pipeline
 
+<<<<<<< HEAD
 The general RAG endpoint is /rag/query. The pipeline lives in the backend/app/StockX/query.py.
+=======
+The general RAG endpoint is /rag/query. The pipeline lives in backend/app/StockX/query.py.
+>>>>>>> 683ea58 (fix: update import path for global styles in layout component)
 
 Models and embeddings:
 

@@ -8,17 +8,6 @@ import { api } from "@/lib/api";
 import { useTrades } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 
-const MOCK_TRADES = [
-  { _id: "1", timestamp: new Date(Date.now() - 1000*60*30).toISOString(), trade: { symbol: "OGDC", side: "buy", quantity: 500, price: 173.2 } },
-  { _id: "2", timestamp: new Date(Date.now() - 1000*60*90).toISOString(), trade: { symbol: "HBL", side: "sell", quantity: 200, price: 141.5 } },
-  { _id: "3", timestamp: new Date(Date.now() - 1000*60*150).toISOString(), trade: { symbol: "ENGRO", side: "buy", quantity: 100, price: 316.0 } },
-  { _id: "4", timestamp: new Date(Date.now() - 1000*60*240).toISOString(), trade: { symbol: "PSO", side: "buy", quantity: 300, price: 218.5 } },
-  { _id: "5", timestamp: new Date(Date.now() - 1000*60*60*5).toISOString(), trade: { symbol: "LUCK", side: "sell", quantity: 150, price: 895.0 } },
-  { _id: "6", timestamp: new Date(Date.now() - 1000*60*60*8).toISOString(), trade: { symbol: "MARI", side: "buy", quantity: 80, price: 1420.0 } },
-  { _id: "7", timestamp: new Date(Date.now() - 1000*60*60*24).toISOString(), trade: { symbol: "MCB", side: "buy", quantity: 400, price: 185.5 } },
-  { _id: "8", timestamp: new Date(Date.now() - 1000*60*60*26).toISOString(), trade: { symbol: "OGDC", side: "sell", quantity: 200, price: 176.0 } },
-];
-
 const MOCK_CHART = [
   { day: "Mon", buy: 4, sell: 2 },
   { day: "Tue", buy: 3, sell: 1 },
@@ -41,7 +30,7 @@ export default function TradesPage() {
   const [filter, setFilter] = useState<"all" | "buy" | "sell">("all");
   const [search, setSearch] = useState("");
 
-  const items = data?.items?.length ? data.items : MOCK_TRADES;
+  const items: any[] = data?.items ?? [];
 
   const filtered = items.filter((t: any) => {
     const matchFilter = filter === "all" || t.trade.side === filter;

@@ -7,18 +7,8 @@ import { useAuth } from "@/lib/auth";
 import { useAdminUsers } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 import { api } from "@/lib/api";
-import { Users, UserCheck, UserX, Shield, Search } from "lucide-react";
+import { Users, UserCheck, UserX, Shield, Search, Copy, Check } from "lucide-react";
 
-const MOCK_USERS = [
-  { _id: "1", full_name: "Ahmed Khan", email: "ahmed@example.com", role: "investor", is_active: true, created_at: "2026-01-15T10:00:00Z" },
-  { _id: "2", full_name: "Sara Malik", email: "sara@example.com", role: "investor", is_active: true, created_at: "2026-02-20T10:00:00Z" },
-  { _id: "3", full_name: "Usman Ali", email: "usman@example.com", role: "admin", is_active: true, created_at: "2026-01-01T10:00:00Z" },
-  { _id: "4", full_name: "Fatima Zahra", email: "fatima@example.com", role: "investor", is_active: false, created_at: "2026-03-10T10:00:00Z" },
-  { _id: "5", full_name: "Bilal Hassan", email: "bilal@example.com", role: "ciso", is_active: true, created_at: "2026-01-05T10:00:00Z" },
-  { _id: "6", full_name: "Ayesha Siddiqi", email: "ayesha@example.com", role: "investor", is_active: true, created_at: "2026-04-01T10:00:00Z" },
-  { _id: "7", full_name: "Zain Raza", email: "zain@example.com", role: "investor", is_active: false, created_at: "2026-02-14T10:00:00Z" },
-  { _id: "8", full_name: "Hina Baig", email: "hina@example.com", role: "investor", is_active: true, created_at: "2026-05-01T10:00:00Z" },
-];
 
 const ROLE_CONFIG: Record<string, { bg: string; color: string }> = {
   investor: { bg: "#DCFCE7", color: "#15803D" },
@@ -34,6 +24,8 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [resetResult, setResetResult] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const th = mono ? {
     heading: "#f1f5f9",
@@ -85,7 +77,7 @@ export default function AdminUsersPage() {
     footerBorder: "#F3F4F6",
   };
 
-  const items = data?.items?.length ? data.items : MOCK_USERS;
+  const items: any[] = data?.items ?? [];
 
   const filtered = items.filter((u: any) => {
     if (u._id === user?._id || u.email === user?.email) return false;
@@ -105,7 +97,11 @@ export default function AdminUsersPage() {
   });
 
   const resetPassword = useMutation({
-    mutationFn: async (id: string) => api.post(`/admin/users/${id}/reset-password`),
+    mutationFn: async (id: string) => (await api.post(`/admin/users/${id}/reset-password`)).data,
+    onSuccess: (result: any) => {
+      setResetResult({ email: result.email, password: result.new_password });
+      setCopied(false);
+    },
   });
 
   if (user?.role !== "admin") return (
@@ -274,6 +270,33 @@ export default function AdminUsersPage() {
           <span style={{ fontSize: 13, color: th.muted }}>Showing {filtered.length} of {items.length} users</span>
         </div>
       </div>
+
+      {/* Password reset modal */}
+      {resetResult && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 24 }}>
+          <div style={{ background: mono ? "#1e293b" : "white", border: `1px solid ${mono ? "#334155" : "#E5E7EB"}`, borderRadius: 20, padding: 32, maxWidth: 440, width: "100%", boxShadow: "0 24px 60px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, textAlign: "center", marginBottom: 6, color: mono ? "#f1f5f9" : "#111827" }}>Password Reset</h3>
+            <p style={{ fontSize: 14, color: mono ? "#94a3b8" : "#6B7280", textAlign: "center", marginBottom: 20 }}>
+              New password for <strong>{resetResult.email}</strong>. Copy it now — it won&apos;t be shown again.
+            </p>
+            <div style={{ background: mono ? "#111827" : "#F9FAFB", border: `1.5px solid ${mono ? "#334155" : "#E5E7EB"}`, borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
+              <code style={{ fontSize: 15, fontWeight: 700, letterSpacing: 1, color: mono ? "#4ade80" : "#16A34A", wordBreak: "break-all" }}>
+                {resetResult.password}
+              </code>
+              <button
+                onClick={() => { navigator.clipboard.writeText(resetResult.password); setCopied(true); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "#16A34A" : (mono ? "#64748b" : "#9CA3AF"), flexShrink: 0 }}>
+                {copied ? <Check size={18} strokeWidth={2.5} /> : <Copy size={18} strokeWidth={2} />}
+              </button>
+            </div>
+            <button
+              onClick={() => setResetResult(null)}
+              style={{ width: "100%", background: "#16A34A", color: "white", border: "none", padding: "11px 0", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

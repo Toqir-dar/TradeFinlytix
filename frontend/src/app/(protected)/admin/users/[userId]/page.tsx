@@ -2,25 +2,11 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAdminUser, useAdminUserActivity } from "@/lib/queries";
-import { ChevronLeft, UserCheck, UserX, KeyRound, User, Mail, Shield, CalendarDays, Hash, LogIn, LogOut, TrendingUp, Briefcase, BarChart3, Activity } from "lucide-react";
-
-const MOCK_USER = {
-  _id: "1", full_name: "Ahmed Khan", email: "ahmed@example.com",
-  role: "investor", is_active: true, created_at: "2026-01-15T10:00:00Z",
-};
-
-const MOCK_ACTIVITY = {
-  items: [
-    { _id: "a1", timestamp: new Date(Date.now() - 1000*60*10).toISOString(), action: "login", ip: "192.168.1.1", details: "Successful login" },
-    { _id: "a2", timestamp: new Date(Date.now() - 1000*60*30).toISOString(), action: "predict", ip: "192.168.1.1", details: "Fetched prediction for OGDC" },
-    { _id: "a3", timestamp: new Date(Date.now() - 1000*60*60).toISOString(), action: "portfolio_update", ip: "192.168.1.1", details: "Updated portfolio positions" },
-    { _id: "a4", timestamp: new Date(Date.now() - 1000*60*120).toISOString(), action: "trade_log", ip: "192.168.1.1", details: "Logged trade: BUY ENGRO x100" },
-    { _id: "a5", timestamp: new Date(Date.now() - 1000*60*60*5).toISOString(), action: "login", ip: "192.168.1.2", details: "Successful login from new device" },
-  ]
-};
+import { ChevronLeft, UserCheck, UserX, KeyRound, User, Mail, Shield, CalendarDays, Hash, LogIn, LogOut, TrendingUp, Briefcase, BarChart3, Activity, Copy, Check } from "lucide-react";
 
 const ROLE_CONFIG: Record<string, { bg: string; color: string }> = {
   investor: { bg: "#DCFCE7", color: "#15803D" },
@@ -48,23 +34,40 @@ const ACTION_ICONS: Record<string, any> = {
 export default function AdminUserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const qc = useQueryClient();
-  const { data: raw } = useAdminUser(userId);
+  const { data, isLoading } = useAdminUser(userId);
   const { data: activityRaw } = useAdminUserActivity(userId);
+  const [resetResult, setResetResult] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const data = raw ?? MOCK_USER;
-  const activity = activityRaw ?? MOCK_ACTIVITY;
-  const activityItems = activity?.items ?? [];
+  const activityItems: any[] = activityRaw?.items ?? [];
 
   const roleConfig = ROLE_CONFIG[data?.role ?? "investor"] ?? ROLE_CONFIG.investor;
   const initials = data?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) ?? "??";
 
   const action = useMutation({
     mutationFn: async (path: string) => (await api.post(path)).data,
-    onSuccess: () => {
+    onSuccess: (result: any, path: string) => {
       qc.invalidateQueries({ queryKey: ["admin-user", userId] });
       qc.invalidateQueries({ queryKey: ["admin-user-activity", userId] });
-    }
+      if (path.endsWith("/reset-password") && result?.new_password) {
+        setResetResult({ email: result.email, password: result.new_password });
+        setCopied(false);
+      }
+    },
   });
+
+  if (isLoading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: "#9CA3AF" }}>
+      <div style={{ textAlign: "center" }}>Loading user...</div>
+    </div>
+  );
+
+  if (!data) return (
+    <div style={{ textAlign: "center", padding: 48 }}>
+      <Link href="/admin/users" style={{ color: "#16A34A", fontSize: 14 }}>← Back to Users</Link>
+      <div style={{ fontWeight: 600, fontSize: 18, color: "#111827", marginTop: 16 }}>User not found</div>
+    </div>
+  );
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
@@ -201,6 +204,33 @@ export default function AdminUserDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Password reset modal */}
+      {resetResult && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 24 }}>
+          <div style={{ background: "white", border: "1px solid #E5E7EB", borderRadius: 20, padding: 32, maxWidth: 440, width: "100%", boxShadow: "0 24px 60px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, textAlign: "center", marginBottom: 6, color: "#111827" }}>Password Reset</h3>
+            <p style={{ fontSize: 14, color: "#6B7280", textAlign: "center", marginBottom: 20 }}>
+              New password for <strong>{resetResult.email}</strong>. Copy it now — it won&apos;t be shown again.
+            </p>
+            <div style={{ background: "#F9FAFB", border: "1.5px solid #E5E7EB", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
+              <code style={{ fontSize: 15, fontWeight: 700, letterSpacing: 1, color: "#16A34A", wordBreak: "break-all" }}>
+                {resetResult.password}
+              </code>
+              <button
+                onClick={() => { navigator.clipboard.writeText(resetResult.password); setCopied(true); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "#16A34A" : "#9CA3AF", flexShrink: 0 }}>
+                {copied ? <Check size={18} strokeWidth={2.5} /> : <Copy size={18} strokeWidth={2} />}
+              </button>
+            </div>
+            <button
+              onClick={() => setResetResult(null)}
+              style={{ width: "100%", background: "#16A34A", color: "white", border: "none", padding: "11px 0", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

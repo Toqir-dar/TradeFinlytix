@@ -11,13 +11,6 @@ import Link from "next/link";
 
 const COLORS = ["#4ADE80", "#16A34A", "#86EFAC", "#15803D", "#BBF7D0", "#166534", "#22C55E", "#14532D"];
 
-const MOCK_POSITIONS = [
-  { symbol: "OGDC", quantity: 500, avg_price: 173.2, current_price: 175.5, sector: "Energy" },
-  { symbol: "HBL", quantity: 200, avg_price: 141.5, current_price: 142.0, sector: "Banking" },
-  { symbol: "ENGRO", quantity: 100, avg_price: 316.0, current_price: 318.5, sector: "Chemicals" },
-  { symbol: "PSO", quantity: 300, avg_price: 218.5, current_price: 221.0, sector: "Energy" },
-];
-
 const MOCK_CHART = [
   { day: "Mon", value: 245000 }, { day: "Tue", value: 251000 },
   { day: "Wed", value: 248000 }, { day: "Thu", value: 263000 },
@@ -34,7 +27,7 @@ export default function PortfolioPage() {
   const [avgPrice, setAvgPrice] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const rows = data?.positions?.length ? data.positions : MOCK_POSITIONS;
+  const rows: any[] = data?.positions ?? [];
 
   const totalValue = useMemo(() =>
     rows.reduce((sum: number, p: any) => sum + p.quantity * (p.current_price ?? p.avg_price), 0), [rows]);
@@ -53,7 +46,7 @@ export default function PortfolioPage() {
   const savePortfolio = useMutation({
     mutationFn: async () =>
       api.put("/portfolio", {
-        positions: [...rows, { symbol, quantity: Number(quantity), avg_price: Number(avgPrice) }],
+        positions: [...(data?.positions ?? []), { symbol, quantity: Number(quantity), avg_price: Number(avgPrice) }],
         metadata: data?.metadata ?? {},
       }),
     onSuccess: () => {

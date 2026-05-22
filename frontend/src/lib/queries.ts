@@ -133,6 +133,100 @@ export const useScreener = () =>
       (await api.post("/screener", { preset: "trending", limit: 20 })).data,
   });
 
+// ── Analytics ─────────────────────────────────────────────────
+export type GainerLoserItem = {
+  symbol: string;
+  price: number;
+  change_pct: number;
+  volume: number;
+  high: number;
+  low: number;
+};
+
+export type MarketSummaryData = {
+  index: string;
+  price: number;
+  change: number;
+  change_pct: number;
+  volume: number;
+  high: number;
+  low: number;
+  updated_at: string;
+  source: string;
+};
+
+export type GainersLosersData = {
+  gainers: GainerLoserItem[];
+  losers: GainerLoserItem[];
+  updated_at: string;
+};
+
+export type OHLCPoint = {
+  time: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+export type OHLCData = {
+  symbol: string;
+  interval: string;
+  candles: OHLCPoint[];
+  updated_at: string;
+};
+
+export type CompanyProfileData = {
+  symbol: string;
+  name: string;
+  sector: string;
+  industry: string;
+  market_cap: number;
+  pe_ratio: number;
+  eps: number;
+  description: string;
+  website: string;
+  employees: number;
+  country: string;
+  exchange: string;
+  updated_at: string;
+};
+
+export const useMarketSummary = () =>
+  useQuery<MarketSummaryData>({
+    queryKey: ["analytics-market-summary"],
+    queryFn: async () => (await api.get("/analytics/market-summary")).data,
+    refetchInterval: 60000,
+    staleTime: 55000,
+  });
+
+export const useGainersLosers = () =>
+  useQuery<GainersLosersData>({
+    queryKey: ["analytics-gainers-losers"],
+    queryFn: async () => (await api.get("/analytics/market-summary/gainers-losers")).data,
+    refetchInterval: 60000,
+    staleTime: 55000,
+  });
+
+export const useOhlc = (symbol: string, interval: string) =>
+  useQuery<OHLCData>({
+    queryKey: ["analytics-ohlc", symbol, interval],
+    queryFn: async () =>
+      (await api.get("/analytics/ohlc", { params: { symbol, interval } })).data,
+    enabled: !!symbol && !!interval,
+    staleTime: 55000,
+  });
+
+export const useCompanyProfile = (symbol: string) =>
+  useQuery<CompanyProfileData>({
+    queryKey: ["analytics-company-profile", symbol],
+    queryFn: async () =>
+      (await api.get(`/analytics/company-profile/${symbol.toUpperCase().trim()}`)).data,
+    enabled: !!symbol,
+    staleTime: 55000,
+  });
+
 // ── Market ───────────────────────────────────────────────────
 export type IntradayPoint = { ts: string; price: number };
 export type IntradayResponse = {

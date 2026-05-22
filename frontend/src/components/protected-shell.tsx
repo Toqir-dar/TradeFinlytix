@@ -8,12 +8,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, type LucideIcon } from "lucide-react";
-=======
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, BarChart2, type LucideIcon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/analytics", label: "Analytics", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/predict", label: "Predictions", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/screener", label: "Screener", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/portfolio", label: "Portfolio", roles: ["investor"] as Role[] },
@@ -32,6 +32,7 @@ const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string }> 
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   "/dashboard": LayoutDashboard,
+  "/analytics": BarChart2,
   "/predict": TrendingUp,
   "/screener": Filter,
   "/portfolio": Briefcase,

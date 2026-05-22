@@ -176,5 +176,23 @@ async def _create_indexes() -> None:
         expireAfterSeconds=60 * 60 * 24 * 90,
     )
 
+    # Analytics cache collections
+    await db["analytics_market_summary"].create_index(
+        [("updated_at", DESCENDING)],
+        name="analytics_market_summary_updated_at",
+    )
+    await db["analytics_movers"].create_index(
+        [("updated_at", DESCENDING)],
+        name="analytics_movers_updated_at",
+    )
+    await db["analytics_ohlc"].create_index(
+        [("symbol", ASCENDING), ("interval", ASCENDING)],
+        name="analytics_ohlc_symbol_interval",
+    )
+    await db["analytics_company_profiles"].create_index(
+        [("symbol", ASCENDING)],
+        name="analytics_company_profiles_symbol",
+    )
+
     logger.info("All MongoDB indexes verified/created.")
 

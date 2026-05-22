@@ -148,8 +148,8 @@ export default function TradesPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.text }}>Trade History</h1>
-          <p style={{ fontSize: 14, color: th.subtext }}>All your PSX buy and sell transactions</p>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.heading }}>Trade History</h1>
+          <p style={{ fontSize: 14, color: th.bgSubtext }}>All your PSX buy and sell transactions</p>
         </div>
         <button className="add-btn" onClick={() => setShowForm(!showForm)}>
           <Plus size={16} color="white" strokeWidth={2.5} />

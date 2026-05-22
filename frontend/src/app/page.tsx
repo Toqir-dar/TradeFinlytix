@@ -36,7 +36,40 @@ function useCountUp(end: number, duration = 2000) {
   return { value, ref };
 }
 
-const NAV_LINKS = ["Features", "How it Works"];
+const NAV_LINKS = [
+  { label: "Features", href: "#features" },
+  { label: "How it Works", href: "#how-it-works" },
+  { label: "Legal", href: "/legal" },
+  { label: "FAQ", href: "/faq" },
+];
+
+const FOOTER_LINKS = [
+  {
+    title: "Platform",
+    links: [
+      { label: "Features", href: "#features" },
+      { label: "How it Works", href: "#how-it-works" },
+      { label: "FAQ", href: "/faq" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "Login", href: "/login" },
+      { label: "Register", href: "/register" },
+      { label: "Dashboard", href: "/dashboard" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Company Policy", href: "/legal" },
+      { label: "Privacy Policy", href: "/legal#privacy-policy" },
+      { label: "Terms of Use", href: "/legal#terms-of-service" },
+      
+    ],
+  },
+];
 
 const FEATURES = [
   { Icon: TrendingUp, gradient: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", darkGradient: "linear-gradient(135deg,#14532d,#166534)", iconColor: "#15803D", darkIconColor: "#4ade80", title: "AI-Driven Predictions", desc: "Get symbol-level buy/hold/trim/sell signals powered by XGBoost and transformer models with SHAP-backed rationale.", badge: "Investor" },
@@ -243,7 +276,7 @@ export default function HomePage() {
 
           <nav className="desktop-nav">
             {NAV_LINKS.map(link => (
-              <a key={link} href={`#${link.toLowerCase().replace(/ /g, "-")}`} className="nav-link">{link}</a>
+              <Link key={link.label} href={link.href} className="nav-link">{link.label}</Link>
             ))}
           </nav>
 
@@ -265,7 +298,7 @@ export default function HomePage() {
         {mobileOpen && (
           <div className="mobile-nav">
             {NAV_LINKS.map(link => (
-              <a key={link} href={`#${link.toLowerCase().replace(/ /g, "-")}`} className="mobile-nav-link" onClick={() => setMobileOpen(false)}>{link}</a>
+              <Link key={link.label} href={link.href} className="mobile-nav-link" onClick={() => setMobileOpen(false)}>{link.label}</Link>
             ))}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${th.border}` }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
@@ -626,18 +659,14 @@ export default function HomePage() {
               </div>
               <p style={{ fontSize: 14, color: "#9CA3AF", lineHeight: 1.6, maxWidth: 260 }}>Smart trading intelligence for Pakistan Stock Exchange investors and teams.</p>
             </div>
-            {[
-              { title: "Platform", links: ["Features", "How it Works", "Pricing"] },
-              { title: "Account", links: ["Login", "Register", "Dashboard"] },
-              { title: "Legal", links: ["Privacy Policy", "Terms of Use", "Security"] }
-            ].map(col => (
+            {FOOTER_LINKS.map(col => (
               <div key={col.title}>
                 <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: "white" }}>{col.title}</div>
                 {col.links.map(l => (
-                  <div key={l} style={{ marginBottom: 10 }}>
-                    <a href="#" style={{ fontSize: 14, color: "#9CA3AF", textDecoration: "none", transition: "color 0.2s" }}
+                  <div key={l.label} style={{ marginBottom: 10 }}>
+                    <Link href={l.href} style={{ fontSize: 14, color: "#9CA3AF", textDecoration: "none", transition: "color 0.2s" }}
                       onMouseEnter={e => (e.currentTarget.style.color = "#4ADE80")}
-                      onMouseLeave={e => (e.currentTarget.style.color = "#9CA3AF")}>{l}</a>
+                      onMouseLeave={e => (e.currentTarget.style.color = "#9CA3AF")}>{l.label}</Link>
                   </div>
                 ))}
               </div>

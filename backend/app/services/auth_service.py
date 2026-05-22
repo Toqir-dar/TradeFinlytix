@@ -126,6 +126,68 @@ class AuthService:
         )
         return user, tokens
 
+    async def authenticate_google(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        google_sub: str,
+        avatar_url: str | None,
+        ip: str,
+    ) -> tuple[dict[str, Any], TokenResponse]:
+        user = await self.repo.get_by_email(email)
+        if user:
+            if not user.get("is_active", True):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Account is deactivated.",
+                )
+            existing_sub = user.get("google_sub")
+            if existing_sub and existing_sub != google_sub:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="This email is already linked to a different Google account.",
+                )
+            linked = await self.repo.link_google_identity(
+                str(user["_id"]),
+                google_sub=google_sub,
+                avatar_url=avatar_url,
+            )
+            user = linked or user
+        else:
+            user = await self.repo.create(
+                email=email,
+                password_hash=hash_password(secrets.token_urlsafe(32)),
+                full_name=full_name or email.split("@", 1)[0],
+                role=UserRole.INVESTOR,
+                is_verified=True,
+                auth_provider="google",
+                google_sub=google_sub,
+                avatar_url=avatar_url,
+            )
+            logger.info("google_user_registered", extra={"user_id": str(user["_id"])})
+            await record_event(
+                self.db,
+                "google_user_registered",
+                user_id=str(user["_id"]),
+                ip=ip,
+                payload={"email": user["email"]},
+            )
+
+        await self.repo.record_successful_login(str(user["_id"]), ip)
+        user = await self.repo.get_by_id(str(user["_id"]))
+        assert user is not None
+        tokens = await self._issue_tokens(user)
+        logger.info("google_login_success", extra={"user_id": str(user["_id"]), "ip": ip})
+        await record_event(
+            self.db,
+            "google_login_success",
+            user_id=str(user["_id"]),
+            ip=ip,
+            payload={"role": user.get("role")},
+        )
+        return user, tokens
+
     async def refresh(self, refresh_token: str, ip: str) -> TokenResponse:
         invalid = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

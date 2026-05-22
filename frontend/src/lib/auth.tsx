@@ -9,6 +9,7 @@ type AuthCtx = {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
+  completeTokenLogin: (accessToken: string, refreshToken: string) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<string>;
   resendPasswordResetOtp: (email: string) => Promise<string>;
   verifyPasswordResetOtp: (email: string, otp: string) => Promise<string>;
@@ -54,6 +55,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setTokens(data.tokens.access_token, data.tokens.refresh_token);
         setUser(data.user);
+      },
+      completeTokenLogin: async (accessToken, refreshToken) => {
+        setTokens(accessToken, refreshToken);
+        const { data } = await api.get("/auth/me");
+        setUser(data);
       },
       requestPasswordReset: async (email) => {
         const { data } = await api.post("/auth/forgot-password", { email });

@@ -43,30 +43,34 @@ export default function ProfilePage() {
   const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString("en-PK", { month: "long", year: "numeric" }) : "May 2026";
 
   const th = mono ? {
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
     text: "#f1f5f9",
     subtext: "#94a3b8",
     muted: "#64748b",
     labelColor: "#cbd5e1",
     card: "#1e293b",
     border: "#334155",
-    borderSubtle: "#1e293b",
+    borderSubtle: "#253347",
     innerCard: "#111827",
-    infoRowBorder: "#1e293b",
+    infoRowBorder: "#334155",
     securityCardBg: "#111827",
     dangerCardBorder: "#7f1d1d",
     dangerTitle: "#f87171",
     modalBg: "#1e293b",
     modalBorder: "#334155",
-    outlineBtnBg: "#1e293b",
+    outlineBtnBg: "#111827",
     outlineBtnBorder: "#334155",
-    outlineBtnColor: "#cbd5e1",
-    dangerBtnBg: "#1e293b",
+    outlineBtnColor: "#94a3b8",
+    dangerBtnBg: "#111827",
     dangerBtnBorder: "#7f1d1d",
     dangerBtnColor: "#f87171",
-    successBg: "#0a1f0a",
+    successBg: "#14532d",
     successBorder: "#166534",
     successColor: "#4ade80",
   } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
     text: "#111827",
     subtext: "#6B7280",
     muted: "#9CA3AF",
@@ -118,7 +122,7 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.text }}>
+        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.heading }}>
           My Profile
         </h1>
         <p style={{ fontSize: 14, color: th.subtext }}>Manage your account and security settings</p>

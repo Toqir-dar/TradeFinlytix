@@ -11,13 +11,6 @@ import Link from "next/link";
 
 const COLORS = ["#4ADE80", "#16A34A", "#86EFAC", "#15803D", "#BBF7D0", "#166534", "#22C55E", "#14532D"];
 
-const MOCK_POSITIONS = [
-  { symbol: "OGDC", quantity: 500, avg_price: 173.2, current_price: 175.5, sector: "Energy" },
-  { symbol: "HBL", quantity: 200, avg_price: 141.5, current_price: 142.0, sector: "Banking" },
-  { symbol: "ENGRO", quantity: 100, avg_price: 316.0, current_price: 318.5, sector: "Chemicals" },
-  { symbol: "PSO", quantity: 300, avg_price: 218.5, current_price: 221.0, sector: "Energy" },
-];
-
 const MOCK_CHART = [
   { day: "Mon", value: 245000 }, { day: "Tue", value: 251000 },
   { day: "Wed", value: 248000 }, { day: "Thu", value: 263000 },
@@ -34,7 +27,7 @@ export default function PortfolioPage() {
   const [avgPrice, setAvgPrice] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const rows = data?.positions?.length ? data.positions : MOCK_POSITIONS;
+  const rows: any[] = data?.positions ?? [];
 
   const totalValue = useMemo(() =>
     rows.reduce((sum: number, p: any) => sum + p.quantity * (p.current_price ?? p.avg_price), 0), [rows]);
@@ -53,7 +46,7 @@ export default function PortfolioPage() {
   const savePortfolio = useMutation({
     mutationFn: async () =>
       api.put("/portfolio", {
-        positions: [...rows, { symbol, quantity: Number(quantity), avg_price: Number(avgPrice) }],
+        positions: [...(data?.positions ?? []), { symbol, quantity: Number(quantity), avg_price: Number(avgPrice) }],
         metadata: data?.metadata ?? {},
       }),
     onSuccess: () => {
@@ -64,18 +57,20 @@ export default function PortfolioPage() {
   });
 
   const th = mono ? {
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
     text: "#f1f5f9",
     subtext: "#94a3b8",
     muted: "#64748b",
     labelColor: "#cbd5e1",
     card: "#1e293b",
     border: "#334155",
-    borderSubtle: "#1e293b",
+    borderSubtle: "#253347",
     innerCard: "#111827",
     symbolIconBg: "#14532d",
     symbolIconColor: "#4ade80",
-    formBg: "#0a1f0a",
-    formBorder: "#166534",
+    formBg: "#111827",
+    formBorder: "#334155",
     formTitle: "#4ade80",
     chartGrid: "#334155",
     tooltipBg: "#1e293b",
@@ -83,10 +78,12 @@ export default function PortfolioPage() {
     cancelBtnBg: "#1e293b",
     cancelBtnBorder: "#334155",
     cancelBtnColor: "#94a3b8",
-    headerBtnBg: "#1e293b",
+    headerBtnBg: "#111827",
     headerBtnBorder: "#334155",
     headerBtnColor: "#cbd5e1",
   } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
     text: "#111827",
     subtext: "#6B7280",
     muted: "#9CA3AF",
@@ -141,10 +138,10 @@ export default function PortfolioPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.text }}>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.heading }}>
             My Portfolio
           </h1>
-          <p style={{ fontSize: 14, color: th.subtext }}>Track your PSX positions, P&L, and allocation</p>
+          <p style={{ fontSize: 14, color: th.bgSubtext }}>Track your PSX positions, P&L, and allocation</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/trades" style={{ background: th.headerBtnBg, color: th.headerBtnColor, border: `1.5px solid ${th.headerBtnBorder}`, padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>

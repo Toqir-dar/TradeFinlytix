@@ -9,6 +9,7 @@ Startup:
 Shutdown:
   1. Close MongoDB
 """
+import asyncio
 import logging
 import time
 import uuid
@@ -18,12 +19,14 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.analytics import routes as analytics_routes
 from app.api.routes import admin as admin_routes
 from app.api.routes import alerts as alerts_routes
 from app.api.routes import auth as auth_routes
 from app.api.routes import ciso as ciso_routes
 from app.api.routes import market as market_routes
 from app.api.routes import portfolio as portfolio_routes
+from app.api.routes import forecast as forecast_routes
 from app.api.routes import prediction as prediction_routes
 from app.api.routes import news_rag as news_rag_routes
 from app.api.routes import rag as rag_routes
@@ -58,6 +61,11 @@ OPENAPI_TAGS = [
         "name": "Prediction",
         "description": "Authenticated investors: adaptive risk envelope + ensemble "
         "model prediction output (`engine: ensemble_v1`).",
+    },
+    {
+        "name": "Forecast",
+        "description": "NHITS (Neural Hierarchical Interpolation for Time Series) "
+        "50-day close price forecasts. Results cached 1 hour per symbol.",
     },
     {
         "name": "Portfolio",
@@ -101,6 +109,12 @@ OPENAPI_TAGS = [
         "Ask e.g. 'tell me latest news of ABL stock with 16 docs' and receive a "
         "downloadable .txt report (IsRel → IsSup → IsUse evaluators + market briefing). "
         "Use /news-rag/parse-preview to dry-run the NLP parser before the full pipeline.",
+    },
+    {
+        "name": "Analytics",
+        "description": "PSX market analytics: KSE-100 summary, top gainers/losers, "
+        "OHLC candlestick data, and company profiles. "
+        "TTL-cached (60 s) with MongoDB persistence and safe-response guards.",
     },
     {"name": "System", "description": "Health checks (no JWT)."},
 ]
@@ -176,6 +190,10 @@ async def lifespan(app: FastAPI):
 
     await bootstrap_privileged_users()
 
+    # Start analytics background worker
+    from app.analytics.workers import start_analytics_worker, stop_analytics_worker
+    _analytics_worker_task = asyncio.create_task(start_analytics_worker())
+
     # Pre-load ensemble models so failures surface at startup, not first request.
     try:
         from app.ml_engine.models import get_ensemble
@@ -187,8 +205,24 @@ async def lifespan(app: FastAPI):
     except Exception as _exc:
         logger.error("Ensemble pre-load raised: %s", _exc, exc_info=True)
 
+    # Pre-load NHITS model (weights + config).
+    try:
+        from app.ml_engine.models.nhits_model import preload as nhits_preload
+        ok = nhits_preload()
+        if ok:
+            logger.info("NHITS model pre-loaded successfully")
+        else:
+            logger.warning("NHITS model FAILED to load; /forecast/nhits will return 404")
+    except Exception as _exc:
+        logger.error("NHITS pre-load raised: %s", _exc, exc_info=True)
+
     logger.info("TradeFinlytix backend ready.")
     yield
+    stop_analytics_worker()
+    try:
+        await asyncio.wait_for(_analytics_worker_task, timeout=5.0)
+    except (asyncio.TimeoutError, asyncio.CancelledError):
+        pass
     await close_db()
     await close_redis()
     await close_http_client()
@@ -213,8 +247,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(analytics_routes.router, prefix="/api/v1")
 app.include_router(auth_routes.router, prefix="/api/v1")
 app.include_router(prediction_routes.router, prefix="/api/v1")
+app.include_router(forecast_routes.router,    prefix="/api/v1")
 app.include_router(rag_routes.router, prefix="/api/v1")
 app.include_router(news_rag_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")

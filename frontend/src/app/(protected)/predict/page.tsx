@@ -53,27 +53,31 @@ export default function PredictPage() {
   };
 
   const th = mono ? {
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
     text: "#f1f5f9",
     subtext: "#94a3b8",
     muted: "#64748b",
     card: "#1e293b",
     border: "#334155",
-    borderSubtle: "#1e293b",
+    borderSubtle: "#253347",
     innerCard: "#111827",
     symbolIconBg: "#14532d",
     symbolIconColor: "#4ade80",
     sectorTagBg: "#14532d",
     sectorTagColor: "#4ade80",
-    searchBoxBg: "linear-gradient(135deg, #0a1f0a, #0d2a0d)",
+    searchBoxBg: "linear-gradient(135deg, #0f2d1a, #14532d)",
     searchBoxBorder: "#166534",
     quickBtnBg: "#1e293b",
-    quickBtnBorder: "#334155",
+    quickBtnBorder: "#166534",
     quickBtnColor: "#4ade80",
-    quickBtnHoverBg: "#14532d",
-    disclaimerBg: "#451a03",
-    disclaimerBorder: "#78350f",
-    disclaimerColor: "#fb923c",
+    quickBtnHoverBg: "#16A34A",
+    disclaimerBg: "#1e293b",
+    disclaimerBorder: "#334155",
+    disclaimerColor: "#94a3b8",
   } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
     text: "#111827",
     subtext: "#6B7280",
     muted: "#9CA3AF",
@@ -118,10 +122,10 @@ export default function PredictPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 8, color: th.text }}>
+        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 8, color: th.heading }}>
           AI Signal Predictions
         </h1>
-        <p style={{ fontSize: 15, color: th.subtext }}>
+        <p style={{ fontSize: 15, color: th.bgSubtext }}>
           Enter any PSX symbol to get AI-powered buy/hold/trim/sell signals with confidence scores.
         </p>
       </div>

@@ -7,18 +7,34 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Eye, EyeOff, ArrowRight, Lock, Shield, UserCheck, Loader2 } from "lucide-react";
 
+const STORAGE_KEY = "tfx_theme";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mono, setMono] = useState(false);
   const router = useRouter();
   const { login, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && user) router.replace("/dashboard");
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setMono(
+      document.documentElement.classList.contains("tfx-mono") ||
+      localStorage.getItem(STORAGE_KEY) === "mono"
+    );
+    const observer = new MutationObserver(() => {
+      setMono(document.documentElement.classList.contains("tfx-mono"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,29 +50,72 @@ export default function LoginPage() {
     }
   };
 
+  const th = mono ? {
+    rightBg: "#0f172a",
+    text: "#f1f5f9",
+    subtext: "#94a3b8",
+    muted: "#64748b",
+    labelColor: "#cbd5e1",
+    inputBg: "#1e293b",
+    border: "#334155",
+    divider: "#334155",
+    socialBtnBg: "#1e293b",
+    socialBtnBorder: "#334155",
+    socialBtnText: "#cbd5e1",
+    socialBtnHoverBg: "#263148",
+    socialBtnHoverBorder: "#475569",
+    trustBadgeBg: "#14532d",
+    trustBadgeColor: "#4ade80",
+    borderTopColor: "#1e293b",
+    errorBg: "#3f1515",
+    errorBorder: "#7f1d1d",
+    errorText: "#fca5a5",
+  } : {
+    rightBg: "#FAFAFA",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    labelColor: "#374151",
+    inputBg: "white",
+    border: "#E5E7EB",
+    divider: "#E5E7EB",
+    socialBtnBg: "white",
+    socialBtnBorder: "#E5E7EB",
+    socialBtnText: "#374151",
+    socialBtnHoverBg: "#F9FAFB",
+    socialBtnHoverBorder: "#D1D5DB",
+    trustBadgeBg: "#F0FDF4",
+    trustBadgeColor: "#16A34A",
+    borderTopColor: "#F3F4F6",
+    errorBg: "#FEF2F2",
+    errorBorder: "#FECACA",
+    errorText: "#DC2626",
+  };
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+    <div suppressHydrationWarning style={{ minHeight: "100vh", display: "flex", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .input-field { width: 100%; padding: 13px 16px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.2s; background: white; color: #111827; }
+        .input-field { width: 100%; padding: 13px 16px; border: 1.5px solid ${th.border}; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.2s; background: ${th.inputBg}; color: ${th.text}; }
         .input-field:focus { border-color: #4ADE80; box-shadow: 0 0 0 3px rgba(74,222,128,0.15); }
-        .input-field::placeholder { color: #9CA3AF; }
+        .input-field::placeholder { color: ${th.muted}; }
         .btn-submit { width: 100%; padding: 14px; background: #16A34A; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-submit:hover:not(:disabled) { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
         .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
-        .social-btn { width: 100%; padding: 12px; background: white; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; color: #374151; }
-        .social-btn:hover { background: #F9FAFB; border-color: #D1D5DB; }
+        .social-btn { width: 100%; padding: 12px; background: ${th.socialBtnBg}; border: 1.5px solid ${th.socialBtnBorder}; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; color: ${th.socialBtnText}; }
+        .social-btn:hover { background: ${th.socialBtnHoverBg}; border-color: ${th.socialBtnHoverBorder}; }
         .fade-in { animation: fadeUp 0.6s ease both; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .float { animation: float 5s ease-in-out infinite; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
         .ticker { display: flex; gap: 28px; animation: ticker 18s linear infinite; white-space: nowrap; }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9CA3AF; padding: 0; }
-        .eye-btn:hover { color: #6B7280; }
+        .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: ${th.muted}; padding: 0; }
+        .eye-btn:hover { color: ${th.subtext}; }
         .auth-left { width: 50%; background: linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 48px; position: relative; overflow: hidden; }
-        .auth-right { width: 50%; display: flex; flex-direction: column; justify-content: center; padding: 60px 64px; background: #FAFAFA; }
+        .auth-right { width: 50%; display: flex; flex-direction: column; justify-content: center; padding: 60px 64px; background: ${th.rightBg}; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @media (max-width: 768px) {
           .auth-left { display: none !important; }
           .auth-right { width: 100% !important; padding: 40px 24px !important; }
@@ -68,7 +127,6 @@ export default function LoginPage() {
 
       {/* Left Panel */}
       <div className="auth-left">
-        {/* Background pattern */}
         <div style={{ position: "absolute", inset: 0, opacity: 0.07 }}>
           <svg width="100%" height="100%">
             <defs>
@@ -79,12 +137,9 @@ export default function LoginPage() {
             <rect width="100%" height="100%" fill="url(#grid)"/>
           </svg>
         </div>
-
-        {/* Decorative circles */}
         <div style={{ position: "absolute", top: -80, right: -80, width: 300, height: 300, borderRadius: "50%", background: "rgba(74,222,128,0.1)", pointerEvents: "none" }}/>
         <div style={{ position: "absolute", bottom: -60, left: -60, width: 250, height: 250, borderRadius: "50%", background: "rgba(74,222,128,0.08)", pointerEvents: "none" }}/>
 
-        {/* Logo */}
         <div style={{ position: "relative", zIndex: 1 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <Image src="/logo.png" alt="TradeFinlytix" width={44} height={44} style={{ objectFit: "contain" }}/>
@@ -92,7 +147,6 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Center Content */}
         <div style={{ position: "relative", zIndex: 1 }} className="fade-in">
           <div style={{ display: "inline-block", background: "rgba(74,222,128,0.2)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ADE80", padding: "6px 14px", borderRadius: 100, fontSize: 12, fontWeight: 600, marginBottom: 24 }}>
             Pakistan Stock Exchange
@@ -104,7 +158,6 @@ export default function LoginPage() {
             AI-powered signals, portfolio intelligence, and institutional security — all in one platform.
           </p>
 
-          {/* Stats */}
           <div style={{ display: "flex", gap: 32 }}>
             {[["10K+", "Investors"], ["550+", "PSX Symbols"], ["99.9%", "Uptime"]].map(([val, label]) => (
               <div key={label}>
@@ -114,7 +167,6 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Floating card */}
           <div className="float" style={{ marginTop: 48, background: "rgba(255,255,255,0.07)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 16, padding: 20, maxWidth: 320 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div>
@@ -144,7 +196,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Ticker */}
         <div style={{ position: "relative", zIndex: 1, overflow: "hidden" }}>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 16 }}>
             <div className="ticker" style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>
@@ -156,13 +207,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel — Login Form */}
+      {/* Right Panel */}
       <div className="auth-right">
         <div style={{ maxWidth: 400, width: "100%" }} className="fade-in">
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "#111827", marginBottom: 8, letterSpacing: "-0.5px" }}>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: th.text, marginBottom: 8, letterSpacing: "-0.5px" }}>
             Welcome back
           </h1>
-          <p style={{ fontSize: 15, color: "#6B7280", marginBottom: 36 }}>
+          <p style={{ fontSize: 15, color: th.subtext, marginBottom: 36 }}>
             Sign in to your account or{" "}
             <Link href="/register" style={{ color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>
               create one
@@ -170,14 +221,14 @@ export default function LoginPage() {
           </p>
 
           {error && (
-            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
+            <div style={{ background: th.errorBg, border: `1px solid ${th.errorBorder}`, color: th.errorText, padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: 18 }}>
-              <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email Address</label>
+              <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6 }}>Email Address</label>
               <input
                 className="input-field"
                 type="email"
@@ -189,7 +240,7 @@ export default function LoginPage() {
             </div>
 
             <div style={{ marginBottom: 8 }}>
-              <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Password</label>
+              <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6 }}>Password</label>
               <div style={{ position: "relative" }}>
                 <input
                   className="input-field"
@@ -225,9 +276,9 @@ export default function LoginPage() {
           </form>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "24px 0" }}>
-            <div style={{ flex: 1, height: 1, background: "#E5E7EB" }}/>
-            <span style={{ fontSize: 13, color: "#9CA3AF" }}>or continue with</span>
-            <div style={{ flex: 1, height: 1, background: "#E5E7EB" }}/>
+            <div style={{ flex: 1, height: 1, background: th.divider }}/>
+            <span style={{ fontSize: 13, color: th.muted }}>or continue with</span>
+            <div style={{ flex: 1, height: 1, background: th.divider }}/>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
@@ -241,32 +292,29 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p style={{ textAlign: "center", fontSize: 14, color: "#6B7280" }}>
-            Don't have an account?{" "}
+          <p style={{ textAlign: "center", fontSize: 14, color: th.subtext }}>
+            Don&apos;t have an account?{" "}
             <Link href="/register" style={{ color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>
               Register now →
             </Link>
           </p>
 
-          {/* Trust badges */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 36, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 36, paddingTop: 24, borderTop: `1px solid ${th.borderTopColor}` }}>
             {[
               { label: "SSL Secure", Icon: Lock },
               { label: "RBAC Protected", Icon: Shield },
               { label: "ISO Aligned", Icon: UserCheck },
             ].map(({ label, Icon }) => (
               <div key={label} style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16A34A" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: th.trustBadgeBg, display: "flex", alignItems: "center", justifyContent: "center", color: th.trustBadgeColor }}>
                   <Icon size={14} strokeWidth={2} />
                 </div>
-                <div style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 600 }}>{label}</div>
+                <div style={{ fontSize: 10, color: th.muted, fontWeight: 600 }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

@@ -22,6 +22,7 @@ ROLE_PERMISSIONS: dict[UserRole, set[str]] = {
         "alerts:read",
         "alerts:write",
         "screener:read",
+        "analytics:read",
     },
     UserRole.ADMIN: {
         "predict:read",
@@ -34,6 +35,7 @@ ROLE_PERMISSIONS: dict[UserRole, set[str]] = {
         "audit:read",
         "users:read",
         "users:write",
+        "analytics:read",
     },
     UserRole.CISO: {
         "predict:read",
@@ -44,6 +46,7 @@ ROLE_PERMISSIONS: dict[UserRole, set[str]] = {
         "anomaly:read",
         "users:read",
         "admin:read",
+        "analytics:read",
     },
 }
 

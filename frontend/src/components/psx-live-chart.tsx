@@ -12,6 +12,7 @@ import {
 } from "recharts";
 
 import { usePsxIntraday, type IntradayResponse } from "@/lib/queries";
+import { useTheme } from "@/lib/use-theme";
 
 const DEFAULT_SYMBOLS = ["OGDC", "HBL", "ENGRO", "LUCK", "PSO"] as const;
 
@@ -83,6 +84,36 @@ export function PsxLiveChartCard({
   className,
   style,
 }: PsxLiveChartCardProps) {
+  const mono = useTheme();
+
+  const th = mono ? {
+    bg: "#1e293b",
+    border: "#334155",
+    text: "#f1f5f9",
+    muted: "#64748b",
+    subtext: "#94a3b8",
+    chartGrid: "#334155",
+    tooltipBg: "#0f172a",
+    tooltipBorder: "#334155",
+    btnBg: "#111827",
+    btnActiveBg: "#14532d",
+    badgeBg: "#14532d",
+    badgeColor: "#4ade80",
+  } : {
+    bg: "white",
+    border: "#E5E7EB",
+    text: "#111827",
+    muted: "#9CA3AF",
+    subtext: "#6B7280",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
+    btnBg: "#FFFFFF",
+    btnActiveBg: "#F0FDF4",
+    badgeBg: "#DCFCE7",
+    badgeColor: "#15803D",
+  };
+
   const resolvedSymbols = useMemo(
     () => (symbols && symbols.length ? symbols : Array.from(DEFAULT_SYMBOLS)),
     [symbols]
@@ -131,27 +162,29 @@ export function PsxLiveChartCard({
 
   return (
     <div
+      suppressHydrationWarning
       className={className}
       style={{
-        background: "white",
-        border: "1.5px solid #E5E7EB",
+        background: th.bg,
+        border: `1.5px solid ${th.border}`,
         borderRadius: 16,
         padding: 24,
+        transition: "background 0.2s ease, border-color 0.2s ease",
         ...style,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <div>
-          <h3 style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>{title}</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>{title}</h3>
           {subtitle && (
-            <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{subtitle}</p>
+            <p style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{subtitle}</p>
           )}
         </div>
         {badge && (
           <span
             style={{
-              background: "#DCFCE7",
-              color: "#15803D",
+              background: th.badgeBg,
+              color: th.badgeColor,
               padding: "4px 10px",
               borderRadius: 100,
               fontSize: 11,
@@ -173,9 +206,9 @@ export function PsxLiveChartCard({
                 type="button"
                 onClick={() => setActiveSymbol(sym)}
                 style={{
-                  border: isActive ? `1.5px solid ${LINE_COLORS[sym] ?? "#16A34A"}` : "1.5px solid #E5E7EB",
-                  background: isActive ? "#F0FDF4" : "#FFFFFF",
-                  color: "#111827",
+                  border: isActive ? `1.5px solid ${LINE_COLORS[sym] ?? "#16A34A"}` : `1.5px solid ${th.border}`,
+                  background: isActive ? th.btnActiveBg : th.btnBg,
+                  color: th.text,
                   padding: "6px 12px",
                   borderRadius: 999,
                   fontSize: 12,
@@ -201,8 +234,8 @@ export function PsxLiveChartCard({
             );
           })}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 11, color: "#6B7280", fontWeight: 600, flexWrap: "wrap" }}>
-          <span style={{ color: "#111827", fontWeight: 700 }}>{displaySymbol}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 11, color: th.subtext, fontWeight: 600, flexWrap: "wrap" }}>
+          <span style={{ color: th.text, fontWeight: 700 }}>{displaySymbol}</span>
           <span style={{ color: "#16A34A" }}>{priceLabel}</span>
           <span
             style={{
@@ -220,10 +253,10 @@ export function PsxLiveChartCard({
 
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-          <XAxis dataKey="time" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid} />
+          <XAxis dataKey="time" tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} />
           <YAxis
-            tick={{ fontSize: 11, fill: "#9CA3AF" }}
+            tick={{ fontSize: 11, fill: th.muted }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(value: number) => `${value.toFixed(0)}`}
@@ -236,7 +269,7 @@ export function PsxLiveChartCard({
               return [`PKR ${label}`, displaySymbol];
             }}
             labelFormatter={(label) => `${label}`}
-            contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 12 }}
+            contentStyle={{ borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 12, background: th.tooltipBg, color: th.text }}
           />
           <Line
             type="monotone"

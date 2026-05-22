@@ -8,6 +8,8 @@ import { PsxLiveChartCard } from "@/components/psx-live-chart";
 import { TrendingUp, BarChart2, Shield, Activity, ArrowRight, UserCheck, Search, BarChart3, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+const STORAGE_KEY = "tfx_theme";
+
 function useCountUp(end: number, duration = 2000) {
   const [value, setValue] = useState(0);
   const [started, setStarted] = useState(false);
@@ -37,10 +39,10 @@ function useCountUp(end: number, duration = 2000) {
 const NAV_LINKS = ["Features", "How it Works"];
 
 const FEATURES = [
-  { Icon: TrendingUp, gradient: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D", title: "AI-Driven Predictions", desc: "Get symbol-level buy/hold/trim/sell signals powered by XGBoost and transformer models with SHAP-backed rationale.", badge: "Investor" },
-  { Icon: BarChart2, gradient: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8", title: "Portfolio Intelligence", desc: "Real-time P&L tracking, allocation views, and trade history with full position management.", badge: "Investor" },
-  { Icon: Shield, gradient: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", iconColor: "#15803D", title: "Security & Audit", desc: "HMAC-verified audit chains, AES-GCM field encryption, anomaly detection, and RBAC role enforcement.", badge: "CISO" },
-  { Icon: Activity, gradient: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E", title: "Risk Analytics", desc: "Live risk snapshots, trend analysis, and anomaly stats for institutional-grade operational visibility.", badge: "Admin" },
+  { Icon: TrendingUp, gradient: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", darkGradient: "linear-gradient(135deg,#14532d,#166534)", iconColor: "#15803D", darkIconColor: "#4ade80", title: "AI-Driven Predictions", desc: "Get symbol-level buy/hold/trim/sell signals powered by XGBoost and transformer models with SHAP-backed rationale.", badge: "Investor" },
+  { Icon: BarChart2, gradient: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", darkGradient: "linear-gradient(135deg,#1e3a5f,#1e3a8a)", iconColor: "#1D4ED8", darkIconColor: "#60a5fa", title: "Portfolio Intelligence", desc: "Real-time P&L tracking, allocation views, and trade history with full position management.", badge: "Investor" },
+  { Icon: Shield, gradient: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", darkGradient: "linear-gradient(135deg,#14532d,#166534)", iconColor: "#15803D", darkIconColor: "#4ade80", title: "Security & Audit", desc: "HMAC-verified audit chains, AES-GCM field encryption, anomaly detection, and RBAC role enforcement.", badge: "CISO" },
+  { Icon: Activity, gradient: "linear-gradient(135deg,#FEF3C7,#FDE68A)", darkGradient: "linear-gradient(135deg,#451a03,#78350f)", iconColor: "#92400E", darkIconColor: "#fb923c", title: "Risk Analytics", desc: "Live risk snapshots, trend analysis, and anomaly stats for institutional-grade operational visibility.", badge: "Admin" },
 ];
 
 const STEPS = [
@@ -70,6 +72,7 @@ const staggerContainer: Variants = {
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mono, setMono] = useState(false);
 
   const investors = useCountUp(10000);
   const symbols = useCountUp(550);
@@ -81,34 +84,123 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Sync initial state
+    setMono(
+      document.documentElement.classList.contains("tfx-mono") ||
+      localStorage.getItem(STORAGE_KEY) === "mono"
+    );
+    // Watch for class changes (same-tab toggle)
+    const observer = new MutationObserver(() => {
+      setMono(document.documentElement.classList.contains("tfx-mono"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Theme values
+  const th = mono ? {
+    bg: "#0f172a",
+    text: "#f1f5f9",
+    subtext: "#94a3b8",
+    muted: "#64748b",
+    card: "#1e293b",
+    cardInner: "#0f172a",
+    cardInnerAlt: "#111827",
+    border: "#334155",
+    borderSubtle: "#1e293b",
+    sectionAlt: "#111827",
+    sectionGreen: "#0a1f0a",
+    chipBg: "#14532d",
+    chipColor: "#4ade80",
+    chipBorder: "#166534",
+    tickerBg: "#0a1f0a",
+    tickerText: "#4ade80",
+    tickerBorder: "#166534",
+    heroBg: "#1a2f1a",
+    heroBorder: "#1e3a2e",
+    heroPanelBg: "#0d1f0d",
+    navScrolledBg: "rgba(15,23,42,0.95)",
+    mobileNavBg: "#111827",
+    statsBg: "#0a1f0a",
+    statsBorder: "#166534",
+    stepNum: "#1e3a2e",
+    btnOutlineColor: "#4ade80",
+    btnOutlineBorder: "#4ade80",
+    btnOutlineHoverBg: "#0a2a0a",
+    navLinkColor: "#94a3b8",
+    marketDotShadow: "#14532d",
+    mobileBtnBg: "#1e293b",
+    mobileBtnBorder: "#334155",
+    mobileBtnIconColor: "#94a3b8",
+    quoteColor: "#22c55e",
+  } : {
+    bg: "#ffffff",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    cardInner: "#F9FAFB",
+    cardInnerAlt: "#F9FAFB",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    sectionAlt: "#F9FAFB",
+    sectionGreen: "#F0FDF4",
+    chipBg: "#F0FDF4",
+    chipColor: "#15803D",
+    chipBorder: "#BBF7D0",
+    tickerBg: "#F0FDF4",
+    tickerText: "#15803D",
+    tickerBorder: "#BBF7D0",
+    heroBg: "#FAFFF7",
+    heroBorder: "#BBF7D0",
+    heroPanelBg: "#F0FDF4",
+    navScrolledBg: "rgba(255,255,255,0.95)",
+    mobileNavBg: "white",
+    statsBg: "#F0FDF4",
+    statsBorder: "#BBF7D0",
+    stepNum: "#BBF7D0",
+    btnOutlineColor: "#16A34A",
+    btnOutlineBorder: "#16A34A",
+    btnOutlineHoverBg: "#F0FDF4",
+    navLinkColor: "#374151",
+    marketDotShadow: "#DCFCE7",
+    mobileBtnBg: "white",
+    mobileBtnBorder: "#E5E7EB",
+    mobileBtnIconColor: "#374151",
+    quoteColor: "#4ADE80",
+  };
+
   return (
-    <div style={{ minHeight: "100vh", background: "#ffffff", color: "#111827", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+    <div suppressHydrationWarning style={{ minHeight: "100vh", background: th.bg, color: th.text, fontFamily: "'DM Sans', 'Segoe UI', sans-serif", transition: "background 0.2s ease, color 0.2s ease" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         .btn-primary { background: #16A34A; color: white; border: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
         .btn-primary:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
-        .btn-outline { background: transparent; color: #16A34A; border: 1.5px solid #16A34A; padding: 13px 28px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-        .btn-outline:hover { background: #F0FDF4; transform: translateY(-1px); }
-        .chip { display: inline-block; background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+        .btn-outline { background: transparent; color: ${th.btnOutlineColor}; border: 1.5px solid ${th.btnOutlineBorder}; padding: 13px 28px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-outline:hover { background: ${th.btnOutlineHoverBg}; transform: translateY(-1px); }
+        .chip { display: inline-block; background: ${th.chipBg}; color: ${th.chipColor}; border: 1px solid ${th.chipBorder}; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
         .ticker-line { display: flex; gap: 32px; animation: ticker 20s linear infinite; white-space: nowrap; }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .market-section { background: radial-gradient(circle at top, #F0FDF4 0%, #FFFFFF 60%); border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; }
-        .market-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; }
+        .market-section { background: ${mono ? `linear-gradient(135deg, ${th.sectionGreen} 0%, ${th.bg} 60%)` : "radial-gradient(circle at top, #F0FDF4 0%, #FFFFFF 60%)"}; border-top: 1px solid ${th.statsBorder}; border-bottom: 1px solid ${th.statsBorder}; }
+        .market-bullet { display: flex; align-items: center; gap: 10px; font-size: 14px; color: ${th.subtext}; }
+        .market-dot { width: 10px; height: 10px; border-radius: 999px; background: #16A34A; box-shadow: 0 0 0 3px ${th.marketDotShadow}; }
         .market-bullets { display: grid; gap: 10px; margin-top: 24px; }
-        .market-bullet { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #374151; }
-        .market-dot { width: 10px; height: 10px; border-radius: 999px; background: #16A34A; box-shadow: 0 0 0 3px #DCFCE7; }
-        .step-num { font-family: 'DM Serif Display', serif; font-size: 56px; color: #BBF7D0; line-height: 1; }
-        .nav-link { color: #374151; text-decoration: none; font-weight: 500; font-size: 14px; transition: color 0.2s; }
-        .nav-link:hover { color: #16A34A; }
+        .market-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; }
+        .step-num { font-family: 'DM Serif Display', serif; font-size: 56px; color: ${th.stepNum}; line-height: 1; }
+        .nav-link { display: flex; align-items: center; padding: 8px 14px; border-radius: 10px; color: ${th.navLinkColor}; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.15s; white-space: nowrap; }
+        .nav-link:hover { background: ${mono ? "#1a2e1a" : "#F0FDF4"}; color: ${mono ? "#4ADE80" : "#16A34A"}; }
         a { text-decoration: none; }
-        .desktop-nav { display: flex; gap: 32px; align-items: center; }
+        .desktop-nav { display: flex; gap: 4px; align-items: center; }
         .desktop-auth { display: flex; gap: 10px; align-items: center; }
-        .mobile-menu-btn { display: none; background: white; border: 1.5px solid #E5E7EB; border-radius: 8px; width: 40px; height: 40px; cursor: pointer; align-items: center; justify-content: center; }
-        .mobile-nav { background: white; padding: 16px 24px 24px; border-top: 1px solid #E5E7EB; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-        .mobile-nav-link { display: block; color: #374151; text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 12px; border-radius: 8px; transition: all 0.15s; margin-bottom: 2px; }
-        .mobile-nav-link:hover { background: #F0FDF4; color: #16A34A; }
+        .mobile-menu-btn { display: none; background: ${th.mobileBtnBg}; border: 1.5px solid ${th.mobileBtnBorder}; border-radius: 8px; width: 40px; height: 40px; cursor: pointer; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
+        .mobile-menu-btn:hover { border-color: ${mono ? "#4ade80" : "#16A34A"}; }
+        .mobile-nav { background: ${th.mobileNavBg}; padding: 16px 24px 24px; border-top: 1px solid ${th.border}; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .mobile-nav-link { display: block; color: ${th.navLinkColor}; text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 12px; border-radius: 8px; transition: all 0.15s; margin-bottom: 2px; }
+        .mobile-nav-link:hover { background: ${th.chipBg}; color: ${mono ? "#4ade80" : "#16A34A"}; }
         @media (max-width: 900px) {
           .desktop-nav { display: none !important; }
           .desktop-auth { display: none !important; }
@@ -117,7 +209,7 @@ export default function HomePage() {
           .hero-card-col { display: none !important; }
           .hero-h1 { font-size: 44px !important; }
           .stats-grid { grid-template-columns: 1fr !important; }
-          .stats-grid-item { border-right: none !important; padding: 24px 0 !important; border-bottom: 1px solid #BBF7D0; }
+          .stats-grid-item { border-right: none !important; padding: 24px 0 !important; border-bottom: 1px solid ${th.statsBorder}; }
           .stats-grid-item:last-child { border-bottom: none !important; }
           .features-grid { grid-template-columns: repeat(2,1fr) !important; }
           .steps-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
@@ -138,15 +230,15 @@ export default function HomePage() {
       {/* Navbar */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: scrolled ? "rgba(255,255,255,0.95)" : "transparent",
+        background: scrolled ? th.navScrolledBg : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "1px solid #E5E7EB" : "none",
+        borderBottom: scrolled ? `1px solid ${th.border}` : "none",
         transition: "all 0.3s ease"
       }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Image src="/logo.png" alt="TradeFinlytix Logo" width={40} height={40} style={{ objectFit: "contain" }} />
-            <span style={{ fontWeight: 700, fontSize: 18, color: "#111827", letterSpacing: "-0.3px" }}>TradeFinlytix</span>
+            <span style={{ fontWeight: 700, fontSize: 18, color: th.text, letterSpacing: "-0.3px" }}>TradeFinlytix</span>
           </Link>
 
           <nav className="desktop-nav">
@@ -165,7 +257,7 @@ export default function HomePage() {
           </div>
 
           <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-            {mobileOpen ? <X size={20} color="#374151" strokeWidth={1.8} /> : <Menu size={20} color="#374151" strokeWidth={1.8} />}
+            {mobileOpen ? <X size={20} color={th.mobileBtnIconColor} strokeWidth={1.8} /> : <Menu size={20} color={th.mobileBtnIconColor} strokeWidth={1.8} />}
           </button>
         </div>
 
@@ -175,9 +267,9 @@ export default function HomePage() {
             {NAV_LINKS.map(link => (
               <a key={link} href={`#${link.toLowerCase().replace(/ /g, "-")}`} className="mobile-nav-link" onClick={() => setMobileOpen(false)}>{link}</a>
             ))}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid #E5E7EB" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${th.border}` }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>Theme</span>
+                <span style={{ fontSize: 13, color: th.muted, fontWeight: 500 }}>Theme</span>
                 <ThemeToggle variant="nav" />
               </div>
               <Link href="/login" className="btn-outline" onClick={() => setMobileOpen(false)} style={{ justifyContent: "center" }}>Login</Link>
@@ -188,8 +280,8 @@ export default function HomePage() {
       </header>
 
       {/* Ticker */}
-      <div style={{ position: "fixed", top: 68, left: 0, right: 0, zIndex: 99, background: "#F0FDF4", borderBottom: "1px solid #BBF7D0", overflow: "hidden", height: 36, display: "flex", alignItems: "center" }}>
-        <div className="ticker-line" style={{ fontSize: 12, fontWeight: 600, color: "#15803D" }}>
+      <div style={{ position: "fixed", top: 68, left: 0, right: 0, zIndex: 99, background: th.tickerBg, borderBottom: `1px solid ${th.tickerBorder}`, overflow: "hidden", height: 36, display: "flex", alignItems: "center", transition: "background 0.2s ease" }}>
+        <div className="ticker-line" style={{ fontSize: 12, fontWeight: 600, color: th.tickerText }}>
           {["OGDC ▲ 2.3%", "HBL ▲ 1.1%", "LUCK ▼ 0.5%", "PSO ▲ 3.2%", "ENGRO ▲ 0.8%", "MCB ▼ 1.4%", "MARI ▲ 4.1%", "HUBC ▲ 0.9%",
             "OGDC ▲ 2.3%", "HBL ▲ 1.1%", "LUCK ▼ 0.5%", "PSO ▲ 3.2%", "ENGRO ▲ 0.8%", "MCB ▼ 1.4%", "MARI ▲ 4.1%", "HUBC ▲ 0.9%"
           ].map((t, i) => <span key={i} style={{ marginRight: 40 }}>{t}</span>)}
@@ -205,12 +297,12 @@ export default function HomePage() {
             transition={{ duration: 0.65, ease: EASE }}
           >
             <span className="chip">Built for Pakistan Stock Exchange</span>
-            <h1 className="hero-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 58, lineHeight: 1.1, letterSpacing: "-1px", color: "#111827", marginTop: 20 }}>
+            <h1 className="hero-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 58, lineHeight: 1.1, letterSpacing: "-1px", color: th.text, marginTop: 20 }}>
               Trade Smarter<br />
               <span style={{ color: "#16A34A" }}>with AI-Backed</span><br />
               Intelligence
             </h1>
-            <p style={{ fontSize: 17, color: "#6B7280", lineHeight: 1.7, marginTop: 20, maxWidth: 460 }}>
+            <p style={{ fontSize: 17, color: th.subtext, lineHeight: 1.7, marginTop: 20, maxWidth: 460 }}>
               TradeFinlytix gives PSX investors predictive signals, portfolio control, and institutional security — all in one platform.
             </p>
             <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
@@ -227,8 +319,8 @@ export default function HomePage() {
                 { label: "Uptime", value: "99.9%", sub: "guaranteed" }
               ].map((s) => (
                 <div key={s.label}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>{s.value}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{s.label} {s.sub}</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: th.text }}>{s.value}</div>
+                  <div style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>{s.label} {s.sub}</div>
                 </div>
               ))}
             </div>
@@ -244,20 +336,20 @@ export default function HomePage() {
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.9 }}
-              style={{ background: "#FAFFF7", border: "1.5px solid #BBF7D0", borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 60px rgba(74,222,128,0.15)" }}
+              style={{ background: th.heroBg, border: `1.5px solid ${th.heroBorder}`, borderRadius: 24, overflow: "hidden", boxShadow: mono ? "0 24px 60px rgba(0,0,0,0.4)" : "0 24px 60px rgba(74,222,128,0.15)" }}
             >
-              <div style={{ background: "#F0FDF4", padding: "14px 20px", borderBottom: "1px solid #BBF7D0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 600, fontSize: 14, color: "#15803D" }}>Live Signal Panel</span>
+              <div style={{ background: th.heroPanelBg, padding: "14px 20px", borderBottom: `1px solid ${th.heroBorder}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 600, fontSize: 14, color: mono ? "#4ade80" : "#15803D" }}>Live Signal Panel</span>
                 <span style={{ background: "#4ADE80", color: "#14532D", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>LIVE</span>
               </div>
-              <div style={{ padding: 20 }}>
-                <div style={{ background: "white", borderRadius: 14, border: "1px solid #E5E7EB", padding: 16, marginBottom: 12 }}>
+              <div style={{ padding: 20, background: th.heroBg }}>
+                <div style={{ background: th.card, borderRadius: 14, border: `1px solid ${th.border}`, padding: 16, marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 16 }}>OGDC</div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>Oil & Gas Dev. Corp</div>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: th.text }}>OGDC</div>
+                      <div style={{ fontSize: 12, color: th.muted }}>Oil & Gas Dev. Corp</div>
                     </div>
-                    <div style={{ background: "#DCFCE7", color: "#15803D", padding: "6px 16px", borderRadius: 8, fontWeight: 700, fontSize: 13 }}>BUY</div>
+                    <div style={{ background: mono ? "#14532d" : "#DCFCE7", color: mono ? "#4ade80" : "#15803D", padding: "6px 16px", borderRadius: 8, fontWeight: 700, fontSize: 13 }}>BUY</div>
                   </div>
                   <svg viewBox="0 0 340 100" style={{ width: "100%", height: 80 }}>
                     <defs>
@@ -271,16 +363,16 @@ export default function HomePage() {
                   </svg>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
                     {[["Confidence", "81.4%"], ["Target", "PKR 127.5"], ["Risk", "Medium"]].map(([k, v]) => (
-                      <div key={k} style={{ background: "#F9FAFB", borderRadius: 8, padding: "8px 10px", border: "1px solid #F3F4F6" }}>
-                        <div style={{ fontSize: 10, color: "#9CA3AF" }}>{k}</div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", marginTop: 2 }}>{v}</div>
+                      <div key={k} style={{ background: th.cardInner, borderRadius: 8, padding: "8px 10px", border: `1px solid ${th.borderSubtle}` }}>
+                        <div style={{ fontSize: 10, color: th.muted }}>{k}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: th.text, marginTop: 2 }}>{v}</div>
                       </div>
                     ))}
                   </div>
                 </div>
-                {[["HBL", "+1.1%", "HOLD", "#FEF3C7", "#92400E"], ["ENGRO", "+0.8%", "BUY", "#DCFCE7", "#15803D"]].map(([sym, chg, sig, bg, col]) => (
-                  <div key={sym} style={{ background: "white", border: "1px solid #F3F4F6", borderRadius: 10, padding: "10px 14px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{sym}</div>
+                {[["HBL", "+1.1%", "HOLD", mono ? "#2d2400" : "#FEF3C7", mono ? "#fbbf24" : "#92400E"], ["ENGRO", "+0.8%", "BUY", mono ? "#14532d" : "#DCFCE7", mono ? "#4ade80" : "#15803D"]].map(([sym, chg, sig, bg, col]) => (
+                  <div key={sym} style={{ background: th.card, border: `1px solid ${th.borderSubtle}`, borderRadius: 10, padding: "10px 14px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{sym}</div>
                     <div style={{ fontSize: 13, color: "#16A34A", fontWeight: 500 }}>{chg}</div>
                     <div style={{ background: bg, color: col, fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 6 }}>{sig}</div>
                   </div>
@@ -301,10 +393,10 @@ export default function HomePage() {
                 transition={{ duration: 0.55, ease: EASE }}
               >
                 <span className="chip">Live market</span>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: "#111827", marginTop: 16, letterSpacing: "-0.4px" }}>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: th.text, marginTop: 16, letterSpacing: "-0.4px" }}>
                   PSX prices updated every minute
                 </h2>
-                <p style={{ fontSize: 16, color: "#6B7280", marginTop: 12, maxWidth: 520, lineHeight: 1.7 }}>
+                <p style={{ fontSize: 16, color: th.subtext, marginTop: 12, maxWidth: 520, lineHeight: 1.7 }}>
                   Track five liquid PSX names in a single glance. Powered by YFinance intraday data and refreshed every minute.
                 </p>
                 <div className="market-bullets">
@@ -334,7 +426,7 @@ export default function HomePage() {
                   style={{
                     borderRadius: 22,
                     padding: 28,
-                    boxShadow: "0 22px 60px rgba(22,163,74,0.15)",
+                    boxShadow: mono ? "0 22px 60px rgba(0,0,0,0.4)" : "0 22px 60px rgba(22,163,74,0.15)",
                   }}
                 />
               </motion.div>
@@ -343,7 +435,7 @@ export default function HomePage() {
         </section>
 
         {/* Stats */}
-        <section style={{ background: "#F0FDF4", borderTop: "1px solid #BBF7D0", borderBottom: "1px solid #BBF7D0", padding: "48px 24px" }}>
+        <section style={{ background: th.statsBg, borderTop: `1px solid ${th.statsBorder}`, borderBottom: `1px solid ${th.statsBorder}`, padding: "48px 24px", transition: "background 0.2s ease" }}>
           <motion.div
             className="stats-grid"
             style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, textAlign: "center" }}
@@ -362,13 +454,13 @@ export default function HomePage() {
                 ref={s.ref}
                 variants={fadeUp}
                 className="stats-grid-item"
-                style={{ padding: "0 32px", borderRight: i < 2 ? "1px solid #BBF7D0" : "none" }}
+                style={{ padding: "0 32px", borderRight: i < 2 ? `1px solid ${th.statsBorder}` : "none" }}
               >
                 <div style={{ fontSize: 44, fontWeight: 800, color: "#15803D", fontFamily: "'DM Serif Display', serif" }}>
                   {s.value.toLocaleString()}{s.suffix}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginTop: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>{s.sub}</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: th.text, marginTop: 4 }}>{s.label}</div>
+                <div style={{ fontSize: 13, color: th.muted, marginTop: 2 }}>{s.sub}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -384,8 +476,8 @@ export default function HomePage() {
             transition={{ duration: 0.55, ease: EASE }}
           >
             <span className="chip">Platform Features</span>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16, letterSpacing: "-0.5px" }}>Everything you need to trade intelligently</h2>
-            <p style={{ fontSize: 16, color: "#6B7280", marginTop: 12, maxWidth: 500, margin: "12px auto 0" }}>Built for investors, admins, and security teams — all in one unified platform.</p>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: th.text, marginTop: 16, letterSpacing: "-0.5px" }}>Everything you need to trade intelligently</h2>
+            <p style={{ fontSize: 16, color: th.subtext, marginTop: 12, maxWidth: 500, margin: "12px auto 0" }}>Built for investors, admins, and security teams — all in one unified platform.</p>
           </motion.div>
           <motion.div
             className="features-grid"
@@ -399,23 +491,23 @@ export default function HomePage() {
               <motion.div
                 key={f.title}
                 variants={fadeUp}
-                whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(74,222,128,0.18)", transition: { duration: 0.2 } }}
-                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28, cursor: "default" }}
+                whileHover={{ y: -6, boxShadow: mono ? "0 20px 40px rgba(0,0,0,0.4)" : "0 20px 40px rgba(74,222,128,0.18)", transition: { duration: 0.2 } }}
+                style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 18, padding: 28, cursor: "default", transition: "background 0.2s ease, border-color 0.2s ease" }}
               >
                 <motion.div whileHover={{ rotate: [0, -8, 8, 0], scale: 1.08 }} transition={{ duration: 0.4 }}
-                  style={{ width: 52, height: 52, borderRadius: 14, background: f.gradient, display: "flex", alignItems: "center", justifyContent: "center", color: f.iconColor, marginBottom: 16 }}>
+                  style={{ width: 52, height: 52, borderRadius: 14, background: mono ? f.darkGradient : f.gradient, display: "flex", alignItems: "center", justifyContent: "center", color: mono ? f.darkIconColor : f.iconColor, marginBottom: 16 }}>
                   <f.Icon size={24} strokeWidth={2} />
                 </motion.div>
                 <span className="chip" style={{ marginBottom: 12, display: "inline-block" }}>{f.badge}</span>
-                <h3 style={{ fontWeight: 700, fontSize: 17, color: "#111827", marginBottom: 10 }}>{f.title}</h3>
-                <p style={{ fontSize: 13.5, color: "#6B7280", lineHeight: 1.65 }}>{f.desc}</p>
+                <h3 style={{ fontWeight: 700, fontSize: 17, color: th.text, marginBottom: 10 }}>{f.title}</h3>
+                <p style={{ fontSize: 13.5, color: th.subtext, lineHeight: 1.65 }}>{f.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </section>
 
         {/* How it works */}
-        <section id="how-it-works" style={{ background: "#F9FAFB", padding: "100px 24px" }}>
+        <section id="how-it-works" style={{ background: th.sectionAlt, padding: "100px 24px", transition: "background 0.2s ease" }}>
           <div style={{ maxWidth: 1000, margin: "0 auto" }}>
             <motion.div
               style={{ textAlign: "center", marginBottom: 64 }}
@@ -425,7 +517,7 @@ export default function HomePage() {
               transition={{ duration: 0.55, ease: EASE }}
             >
               <span className="chip">Simple Process</span>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16 }}>How TradeFinlytix works</h2>
+              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: th.text, marginTop: 16 }}>How TradeFinlytix works</h2>
             </motion.div>
             <motion.div
               className="steps-grid"
@@ -446,8 +538,8 @@ export default function HomePage() {
                     style={{ width: 56, height: 56, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "12px auto 16px", boxShadow: "0 8px 20px rgba(74,222,128,0.3)" }}>
                     <s.Icon size={24} color="white" strokeWidth={2.2} />
                   </motion.div>
-                  <h3 style={{ fontWeight: 700, fontSize: 18, color: "#111827", marginBottom: 10 }}>{s.title}</h3>
-                  <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.65 }}>{s.desc}</p>
+                  <h3 style={{ fontWeight: 700, fontSize: 18, color: th.text, marginBottom: 10 }}>{s.title}</h3>
+                  <p style={{ fontSize: 14, color: th.subtext, lineHeight: 1.65 }}>{s.desc}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -464,7 +556,7 @@ export default function HomePage() {
             transition={{ duration: 0.55, ease: EASE }}
           >
             <span className="chip">Testimonials</span>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: "#111827", marginTop: 16 }}>Trusted by trading teams across Pakistan</h2>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 42, color: th.text, marginTop: 16 }}>Trusted by trading teams across Pakistan</h2>
           </motion.div>
           <motion.div
             className="testimonials-grid"
@@ -478,14 +570,14 @@ export default function HomePage() {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(74,222,128,0.14)", transition: { duration: 0.2 } }}
-                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 18, padding: 28 }}
+                whileHover={{ y: -4, boxShadow: mono ? "0 12px 32px rgba(0,0,0,0.4)" : "0 12px 32px rgba(74,222,128,0.14)", transition: { duration: 0.2 } }}
+                style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 18, padding: 28, transition: "background 0.2s ease" }}
               >
-                <div style={{ fontSize: 36, color: "#4ADE80", lineHeight: 1, marginBottom: 16, fontFamily: "serif" }}>"</div>
-                <p style={{ fontSize: 14.5, color: "#374151", lineHeight: 1.7, marginBottom: 20 }}>{t.quote}</p>
-                <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{t.name}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{t.role}</div>
+                <div style={{ fontSize: 36, color: th.quoteColor, lineHeight: 1, marginBottom: 16, fontFamily: "serif" }}>"</div>
+                <p style={{ fontSize: 14.5, color: th.subtext, lineHeight: 1.7, marginBottom: 20 }}>{t.quote}</p>
+                <div style={{ borderTop: `1px solid ${th.borderSubtle}`, paddingTop: 16 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: th.text }}>{t.name}</div>
+                  <div style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>{t.role}</div>
                 </div>
               </motion.div>
             ))}

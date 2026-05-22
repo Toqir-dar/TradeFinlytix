@@ -57,24 +57,28 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
     """
     Scrapes PSX announcements with pagination support.
     Keeps clicking 'Next' until max_results are collected.
+    Falls back to XHR-intercepted API rows if DOM table scraping yields nothing.
     """
     print(f"  Launching browser for '{ticker}'…")
-    announcements = []
+    announcements: list[dict] = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
         context = browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/124.0.0.0 Safari/537.36"
             ),
-            viewport={"width": 1280, "height": 800},
+            viewport={"width": 1280, "height": 900},
         )
         page = context.new_page()
 
-        # ── XHR interceptor ──────────────────────────────────────────────
-        xhr_rows = []
+        # ── XHR interceptor — captures JSON API rows even if DOM scraping fails ──
+        xhr_rows: list[dict] = []
         def on_response(response):
             ct = response.headers.get("content-type", "")
             if response.status == 200 and "json" in ct:
@@ -83,47 +87,67 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
                     rows = body if isinstance(body, list) else body.get("data", [])
                     if isinstance(rows, list) and rows:
                         sample = rows[0] if rows else {}
-                        if any(k in sample for k in ("title","subject","TITLE","heading")):
+                        if any(k in sample for k in ("title", "subject", "TITLE", "heading", "AnnouncementTitle")):
                             xhr_rows.extend(rows)
                 except Exception:
                     pass
         page.on("response", on_response)
 
         # ── Navigate ─────────────────────────────────────────────────────
-        page.goto(
-            "https://dps.psx.com.pk/announcements/companies",
-            wait_until="domcontentloaded",
-            timeout=30_000,
-        )
         try:
-            page.wait_for_load_state("networkidle", timeout=15_000)
+            page.goto(
+                "https://dps.psx.com.pk/announcements/companies",
+                wait_until="domcontentloaded",
+                timeout=90_000,
+            )
+        except PWTimeout:
+            print("  ⚠ Initial page load timed out — continuing with partial load")
+        try:
+            page.wait_for_load_state("networkidle", timeout=20_000)
         except PWTimeout:
             pass
+        time.sleep(3)
+        print(f"  Page title: {page.title()!r}")
+
+        # ── Fill symbol input — try multiple selector strategies ──────────
+        _INPUT_SELECTORS = [
+            "#announcementsSearch",
+            "input[placeholder*='symbol' i]",
+            "input[placeholder*='ticker' i]",
+            "input[placeholder*='company' i]",
+            "input[placeholder*='search' i]",
+            "input[type='search']",
+        ]
+        input_filled = False
+        for sel in _INPUT_SELECTORS:
+            try:
+                loc = page.locator(sel).first
+                loc.wait_for(state="visible", timeout=4_000)
+                loc.click()
+                time.sleep(0.3)
+                loc.fill("")
+                loc.type(ticker.upper(), delay=120)
+                print(f"  ✓ Typed '{ticker}' using selector '{sel}'")
+                input_filled = True
+                break
+            except Exception:
+                continue
+
+        if not input_filled:
+            snippet = page.evaluate("() => document.body.innerHTML.slice(0, 3000)")
+            print(f"  ⚠ Could not fill any input — body snippet:\n{snippet}")
+
         time.sleep(2)
-
-        # ── Fill symbol input ─────────────────────────────────────────────
-        try:
-            symbol_input = page.locator("#announcementsSearch")
-            symbol_input.wait_for(state="visible", timeout=10_000)
-            symbol_input.click()
-            time.sleep(0.3)
-            symbol_input.fill("")
-            symbol_input.type(ticker.upper(), delay=150)
-            print(f"  ✓ Typed '{ticker}' into symbol field")
-        except Exception as e:
-            print(f"  ⚠ Could not fill symbol: {e}")
-
-        time.sleep(1.5)
 
         # ── Select exact ticker from autocomplete ─────────────────────────
         clicked_suggestion = page.evaluate(f"""
             () => {{
                 const items = document.querySelectorAll(
-                    'li, [class*="option"], [class*="suggest"], [class*="item"]'
+                    'li, [class*="option"], [class*="suggest"], [class*="item"], [class*="dropdown"]'
                 );
                 for (const item of items) {{
                     const t = item.innerText.trim().toUpperCase();
-                    if (t === '{ticker.upper()}' || t.startsWith('{ticker.upper()} ')) {{
+                    if (t === '{ticker.upper()}' || t.startsWith('{ticker.upper()} ') || t.startsWith('{ticker.upper()}-')) {{
                         const r = item.getBoundingClientRect();
                         if (r.width > 0 && r.height > 0) {{
                             item.click();
@@ -141,21 +165,36 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
 
         time.sleep(0.5)
 
-        # ── Click SEARCH ──────────────────────────────────────────────────
-        try:
-            page.locator("#annSearchBtn").click(timeout=5_000)
-            print("  ✓ Clicked SEARCH")
-        except Exception:
+        # ── Click SEARCH — try multiple selector strategies ───────────────
+        _SEARCH_SELECTORS = [
+            "#annSearchBtn",
+            "button[id*='search' i]",
+            "button:has-text('SEARCH')",
+            "button:has-text('Search')",
+            "input[type='submit']",
+            "button[type='submit']",
+        ]
+        search_clicked = False
+        for sel in _SEARCH_SELECTORS:
             try:
-                page.locator("button:has-text('SEARCH')").click(timeout=5_000)
-            except Exception as e:
-                print(f"  ⚠ Search click failed: {e}")
+                loc = page.locator(sel).first
+                if loc.is_visible(timeout=3_000):
+                    loc.click(timeout=5_000)
+                    print(f"  ✓ Clicked search using '{sel}'")
+                    search_clicked = True
+                    break
+            except Exception:
+                continue
+
+        if not search_clicked:
+            print("  ⚠ No search button found — pressing Enter")
+            page.keyboard.press("Enter")
 
         try:
-            page.wait_for_load_state("networkidle", timeout=20_000)
+            page.wait_for_load_state("networkidle", timeout=25_000)
         except PWTimeout:
             pass
-        time.sleep(3)
+        time.sleep(6)  # extra buffer for JS table re-render after search
 
         # ── Paginate until we have enough results ─────────────────────────
         page_num = 1
@@ -182,17 +221,21 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
 
                 if len(texts) < 5:
                     continue
+                # Skip DataTables "no data" placeholder rows
+                joined = " ".join(texts).lower()
+                if any(p in joined for p in ("no data", "no record", "no result", "no matching")):
+                    continue
 
                 # Columns: DATE(0) | TIME(1) | SYMBOL(2) | NAME(3) | TITLE(4)
-                title      = texts[4]
-                date       = texts[0]
+                title = texts[4]
+                date  = texts[0]
 
                 # PDF link
                 pdf_url = ""
                 for link in row_el.query_selector_all("a[href]"):
                     href = link.get_attribute("href") or ""
-                    text = link.inner_text().strip().upper()
-                    if "PDF" in text:
+                    link_text = link.inner_text().strip().upper()
+                    if "PDF" in link_text or href.lower().endswith(".pdf"):
                         if not href.startswith("http"):
                             href = "https://dps.psx.com.pk" + href
                         pdf_url = href
@@ -209,7 +252,6 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
 
             print(f"  + {new_this_page} announcements from page {page_num}")
 
-            # Stop if we have enough
             if len(announcements) >= max_results:
                 print(f"  ✓ Reached {max_results} — stopping")
                 break
@@ -217,10 +259,8 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
             # ── Click Next page ───────────────────────────────────────────
             next_clicked = False
             try:
-                # PSX has multiple Prev/Next pairs — first one belongs to the table
                 next_btn = page.locator("button:has-text('Next')").first
-                is_disabled = next_btn.is_disabled()
-                if is_disabled:
+                if next_btn.is_disabled():
                     print("  ⚠ Next button disabled — no more pages")
                     break
                 next_btn.click(timeout=5_000)
@@ -239,6 +279,26 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
             if not next_clicked:
                 break
 
+        # ── XHR fallback — use API-captured rows if DOM table was empty ───
+        if not announcements and xhr_rows:
+            ticker_up = ticker.upper()
+            matched = [
+                r for r in xhr_rows
+                if ticker_up in str(
+                    r.get("symbol") or r.get("SYMBOL") or r.get("ticker") or ""
+                ).upper()
+            ] or xhr_rows  # if no symbol field to filter on, use all captured rows
+            print(f"  ℹ DOM table empty — falling back to {len(matched)} XHR-captured rows")
+            for row in matched[:max_results]:
+                title = str(
+                    row.get("title") or row.get("TITLE") or row.get("subject") or
+                    row.get("heading") or row.get("AnnouncementTitle") or ""
+                ).strip()
+                date = str(row.get("date") or row.get("DATE") or row.get("announcementDate") or "")
+                url  = str(row.get("url") or row.get("URL") or row.get("pdfUrl") or row.get("pdf_url") or "")
+                if title:
+                    announcements.append({"title": title, "date": date, "category": "", "url": url})
+
         browser.close()
 
     # deduplicate
@@ -250,7 +310,7 @@ def scrape_psx_announcements(ticker: str, max_results: int = 20) -> list[dict]:
             unique.append(a)
 
     print(f"  → {len(unique)} unique announcements for {ticker}")
-    return unique[:max_results]  # trim to exactly what was requested
+    return unique[:max_results]
 # ══════════════════════════════════════════════════════════════════════════════
 # STEP 5 — PDF DOWNLOADER
 # ══════════════════════════════════════════════════════════════════════════════

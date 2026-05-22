@@ -70,6 +70,9 @@ class UserRepository:
         role: UserRole = UserRole.INVESTOR,
         is_active: bool = True,
         is_verified: bool = False,
+        auth_provider: str = "password",
+        google_sub: str | None = None,
+        avatar_url: str | None = None,
     ) -> dict[str, Any]:
         now = datetime.now(timezone.utc)
         email_norm = normalize_email(email)
@@ -81,6 +84,9 @@ class UserRepository:
             "role": role.value,
             "is_active": is_active,
             "is_verified": is_verified,
+            "auth_provider": auth_provider,
+            "google_sub": google_sub,
+            "avatar_url": avatar_url,
             "jwt_version": 1,
             "failed_login_attempts": 0,
             "locked_until": None,
@@ -99,6 +105,9 @@ class UserRepository:
         role: UserRole = UserRole.INVESTOR,
         is_active: bool = True,
         is_verified: bool = False,
+        auth_provider: str = "password",
+        google_sub: str | None = None,
+        avatar_url: str | None = None,
     ) -> dict[str, Any]:
         try:
             result = await self.users.insert_one(
@@ -109,11 +118,37 @@ class UserRepository:
                     role=role,
                     is_active=is_active,
                     is_verified=is_verified,
+                    auth_provider=auth_provider,
+                    google_sub=google_sub,
+                    avatar_url=avatar_url,
                 )
             )
         except DuplicateKeyError as e:
             raise ValueError("Email already registered.") from e
         doc = await self.users.find_one({"_id": result.inserted_id})
+        return await self._inflate_user_doc(doc)
+
+    async def link_google_identity(
+        self,
+        user_id: str,
+        *,
+        google_sub: str,
+        avatar_url: str | None,
+    ) -> dict[str, Any] | None:
+        now = datetime.now(timezone.utc)
+        doc = await self.users.find_one_and_update(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "auth_provider": "google",
+                    "google_sub": google_sub,
+                    "avatar_url": avatar_url,
+                    "is_verified": True,
+                    "updated_at": now,
+                }
+            },
+            return_document=ReturnDocument.AFTER,
+        )
         return await self._inflate_user_doc(doc)
 
     async def get_by_email(self, email: str) -> dict[str, Any] | None:

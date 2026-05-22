@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, Zap, ArrowRight, Clock, Info } from "lucide-react";
+import { useTheme } from "@/lib/use-theme";
 
 const POPULAR_SYMBOLS = [
   { symbol: "OGDC", name: "Oil & Gas Dev. Corp", sector: "Energy" },
@@ -38,9 +39,9 @@ const SIGNAL_COLORS: Record<string, { bg: string; color: string; border: string 
 
 export default function PredictPage() {
   const router = useRouter();
+  const mono = useTheme();
   const [symbol, setSymbol] = useState("");
   const [selectedSector, setSelectedSector] = useState("All");
-  const [focused, setFocused] = useState(false);
 
   const filtered = POPULAR_SYMBOLS.filter(s =>
     (selectedSector === "All" || s.sector === selectedSector) &&
@@ -100,19 +101,19 @@ export default function PredictPage() {
   };
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
+    <div suppressHydrationWarning style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
-        .search-input { width: 100%; padding: 16px 20px 16px 52px; border: 2px solid #E5E7EB; border-radius: 14px; font-size: 16px; font-family: inherit; outline: none; transition: all 0.2s; background: white; color: #111827; }
+        .search-input { width: 100%; padding: 16px 20px 16px 52px; border: 2px solid ${th.border}; border-radius: 14px; font-size: 16px; font-family: inherit; outline: none; transition: all 0.2s; background: ${th.card}; color: ${th.text}; }
         .search-input:focus { border-color: #4ADE80; box-shadow: 0 0 0 4px rgba(74,222,128,0.1); }
-        .search-input::placeholder { color: #9CA3AF; }
-        .sector-btn { padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1.5px solid #E5E7EB; background: white; color: #6B7280; font-family: inherit; }
+        .search-input::placeholder { color: ${th.muted}; }
+        .sector-btn { padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1.5px solid ${th.border}; background: ${th.card}; color: ${th.subtext}; font-family: inherit; }
         .sector-btn:hover { border-color: #4ADE80; color: #16A34A; }
         .sector-btn.active { background: #16A34A; color: white; border-color: #16A34A; }
-        .symbol-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 14px; padding: 18px; cursor: pointer; transition: all 0.25s; text-decoration: none; display: block; }
-        .symbol-card:hover { border-color: #4ADE80; box-shadow: 0 8px 24px rgba(74,222,128,0.15); transform: translateY(-3px); }
+        .symbol-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 14px; padding: 18px; cursor: pointer; transition: all 0.25s; text-decoration: none; display: block; }
+        .symbol-card:hover { border-color: #4ADE80; box-shadow: ${mono ? "0 8px 24px rgba(74,222,128,0.2)" : "0 8px 24px rgba(74,222,128,0.15)"}; transform: translateY(-3px); }
         .recent-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 10px; transition: background 0.15s; cursor: pointer; }
-        .recent-row:hover { background: #F9FAFB; }
+        .recent-row:hover { background: ${th.innerCard}; }
         .chip { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
         .predict-btn { background: #16A34A; color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 8px; }
         .predict-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
@@ -130,9 +131,9 @@ export default function PredictPage() {
       </div>
 
       {/* Search Box */}
-      <div style={{ background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", border: "1.5px solid #BBF7D0", borderRadius: 20, padding: 32, marginBottom: 32 }}>
+      <div style={{ background: th.searchBoxBg, border: `1.5px solid ${th.searchBoxBorder}`, borderRadius: 20, padding: 32, marginBottom: 32 }}>
         <div style={{ position: "relative", marginBottom: 16 }}>
-          <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+          <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
             <Search size={20} strokeWidth={2} />
           </div>
           <input
@@ -140,8 +141,6 @@ export default function PredictPage() {
             placeholder="Search symbol e.g. OGDC, HBL, ENGRO..."
             value={symbol}
             onChange={e => setSymbol(e.target.value.toUpperCase())}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
             onKeyDown={e => e.key === "Enter" && handleSearch()}
           />
         </div>
@@ -155,14 +154,13 @@ export default function PredictPage() {
           Get AI Prediction
         </button>
 
-        {/* Quick symbols */}
         <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
-          <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 500, alignSelf: "center" }}>Quick:</span>
+          <span style={{ fontSize: 12, color: th.subtext, fontWeight: 500, alignSelf: "center" }}>Quick:</span>
           {["OGDC", "HBL", "ENGRO", "PSO", "MARI"].map(s => (
             <button key={s} onClick={() => router.push(`/predict/${s}`)}
-              style={{ background: "white", border: "1px solid #BBF7D0", color: "#16A34A", padding: "5px 14px", borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#16A34A"; e.currentTarget.style.color = "white"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "#16A34A"; }}
+              style={{ background: th.quickBtnBg, border: `1px solid ${th.quickBtnBorder}`, color: th.quickBtnColor, padding: "5px 14px", borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = th.quickBtnHoverBg; e.currentTarget.style.color = "white"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = th.quickBtnBg; e.currentTarget.style.color = th.quickBtnColor; }}
             >{s}</button>
           ))}
         </div>
@@ -171,7 +169,6 @@ export default function PredictPage() {
       <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
         {/* Left — Browse Symbols */}
         <div>
-          {/* Sector Filter */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
             {SECTORS.map(s => (
               <button key={s} className={`sector-btn ${selectedSector === s ? "active" : ""}`}
@@ -179,20 +176,19 @@ export default function PredictPage() {
             ))}
           </div>
 
-          {/* Symbol Grid */}
           <div className="responsive-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {filtered.map(s => (
               <Link key={s.symbol} href={`/predict/${s.symbol}`} className="symbol-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                  <div style={{ width: 40, height: 40, background: "#F0FDF4", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: "#16A34A" }}>
+                  <div style={{ width: 40, height: 40, background: th.symbolIconBg, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: th.symbolIconColor }}>
                     {s.symbol.slice(0, 3)}
                   </div>
-                  <span style={{ background: "#F0FDF4", color: "#16A34A", padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600 }}>
+                  <span style={{ background: th.sectorTagBg, color: th.sectorTagColor, padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600 }}>
                     {s.sector}
                   </span>
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{s.symbol}</div>
-                <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{s.name}</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: th.text }}>{s.symbol}</div>
+                <div style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>{s.name}</div>
                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 4, color: "#16A34A", fontSize: 13, fontWeight: 600 }}>
                   Get Signal
                   <ArrowRight size={13} strokeWidth={2.5} />
@@ -202,8 +198,8 @@ export default function PredictPage() {
           </div>
 
           {filtered.length === 0 && (
-            <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-              <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No symbols found</div>
+            <div style={{ textAlign: "center", padding: "48px 24px", color: th.muted }}>
+              <div style={{ fontWeight: 600, fontSize: 16, color: th.subtext }}>No symbols found</div>
               <div style={{ fontSize: 14, marginTop: 4 }}>Try searching directly above</div>
             </div>
           )}
@@ -211,36 +207,34 @@ export default function PredictPage() {
 
         {/* Right — Recent Searches + Info */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Recent */}
-          <div style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 20 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 20 }}>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: th.text, display: "flex", alignItems: "center", gap: 8 }}>
               <Clock size={15} color="#16A34A" strokeWidth={2} />
               Recent Signals
             </h3>
             {MOCK_RECENT.map((r, i) => (
               <div key={i} className="recent-row" onClick={() => router.push(`/predict/${r.symbol}`)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#16A34A" }}>
+                  <div style={{ width: 32, height: 32, background: th.symbolIconBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: th.symbolIconColor }}>
                     {r.symbol.slice(0, 3)}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{r.symbol}</div>
-                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>{r.time}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{r.symbol}</div>
+                    <div style={{ fontSize: 11, color: th.muted }}>{r.time}</div>
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <span className="chip" style={{ background: SIGNAL_COLORS[r.signal]?.bg, color: SIGNAL_COLORS[r.signal]?.color }}>
                     {r.signal}
                   </span>
-                  <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{r.confidence}%</div>
+                  <div style={{ fontSize: 11, color: th.muted, marginTop: 2 }}>{r.confidence}%</div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* How it works */}
-          <div style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 20 }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 20 }}>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: th.text, display: "flex", alignItems: "center", gap: 8 }}>
               <Info size={15} color="#16A34A" strokeWidth={2} />
               How it works
             </h3>
@@ -254,14 +248,13 @@ export default function PredictPage() {
                 <div style={{ width: 22, height: 22, background: "#4ADE80", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#14532D", flexShrink: 0 }}>
                   {s.num}
                 </div>
-                <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.5 }}>{s.text}</span>
+                <span style={{ fontSize: 13, color: th.subtext, lineHeight: 1.5 }}>{s.text}</span>
               </div>
             ))}
           </div>
 
-          {/* Disclaimer */}
-          <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: 16 }}>
-            <div style={{ fontSize: 12, color: "#92400E", lineHeight: 1.6 }}>
+          <div style={{ background: th.disclaimerBg, border: `1px solid ${th.disclaimerBorder}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 12, color: th.disclaimerColor, lineHeight: 1.6 }}>
               <strong>Disclaimer:</strong> AI signals are for informational purposes only. Always do your own research before trading.
             </div>
           </div>

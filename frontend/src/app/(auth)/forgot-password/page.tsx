@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/use-theme";
 import { Eye, EyeOff, Loader2, ArrowRight, Mail, CheckCircle2 } from "lucide-react";
 
 type Step = "email" | "otp" | "password" | "done";
@@ -30,6 +31,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const mono = useTheme();
   const {
     user,
     loading: authLoading,
@@ -131,26 +133,70 @@ export default function ForgotPasswordPage() {
   const strengthColor = ["#E5E7EB", "#EF4444", "#F59E0B", "#16A34A"][strength];
   const strengthLabel = ["", "Weak", "Fair", "Strong"][strength];
 
+  const th = mono ? {
+    rightBg: "#0f172a",
+    text: "#f1f5f9",
+    subtext: "#94a3b8",
+    muted: "#64748b",
+    labelColor: "#cbd5e1",
+    inputBg: "#1e293b",
+    border: "#334155",
+    strengthBarEmpty: "#334155",
+    errorBg: "#450a0a",
+    errorBorder: "#991b1b",
+    errorText: "#fca5a5",
+    successBg: "#052e16",
+    successBorder: "#166534",
+    successText: "#4ade80",
+    ghostColor: "#4ade80",
+    ghostDisabled: "#64748b",
+    eyeColor: "#64748b",
+    linkColor: "#4ade80",
+    bottomText: "#94a3b8",
+    mismatchColor: "#f87171",
+  } : {
+    rightBg: "#FAFAFA",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    labelColor: "#374151",
+    inputBg: "white",
+    border: "#E5E7EB",
+    strengthBarEmpty: "#E5E7EB",
+    errorBg: "#FEF2F2",
+    errorBorder: "#FECACA",
+    errorText: "#DC2626",
+    successBg: "#F0FDF4",
+    successBorder: "#BBF7D0",
+    successText: "#15803D",
+    ghostColor: "#16A34A",
+    ghostDisabled: "#9CA3AF",
+    eyeColor: "#9CA3AF",
+    linkColor: "#16A34A",
+    bottomText: "#6B7280",
+    mismatchColor: "#EF4444",
+  };
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+    <div suppressHydrationWarning style={{ minHeight: "100vh", display: "flex", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .input-field { width: 100%; padding: 13px 16px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.2s; background: white; color: #111827; }
+        .input-field { width: 100%; padding: 13px 16px; border: 1.5px solid ${th.border}; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.2s; background: ${th.inputBg}; color: ${th.text}; }
         .input-field:focus { border-color: #4ADE80; box-shadow: 0 0 0 3px rgba(74,222,128,0.15); }
-        .input-field:disabled { background: #F3F4F6; color: #6B7280; }
-        .input-field::placeholder { color: #9CA3AF; }
+        .input-field:disabled { background: ${mono ? "#111827" : "#F3F4F6"}; color: ${th.muted}; }
+        .input-field::placeholder { color: ${th.muted}; }
         .btn-submit { width: 100%; padding: 14px; background: #16A34A; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-submit:hover:not(:disabled) { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
         .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
-        .btn-ghost { border: none; background: transparent; color: #16A34A; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-        .btn-ghost:disabled { color: #9CA3AF; cursor: not-allowed; }
+        .btn-ghost { border: none; background: transparent; color: ${th.ghostColor}; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: color 0.15s; }
+        .btn-ghost:disabled { color: ${th.ghostDisabled}; cursor: not-allowed; }
         .fade-in { animation: fadeUp 0.5s ease both; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9CA3AF; padding: 0; }
+        .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: ${th.eyeColor}; padding: 0; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .auth-left { width: 50%; }
-        .auth-right { width: 50%; }
+        .auth-right { width: 50%; background: ${th.rightBg}; }
         @media (max-width: 768px) {
           .auth-left { display: none !important; }
           .auth-right { width: 100% !important; padding: 40px 24px !important; }
@@ -160,6 +206,7 @@ export default function ForgotPasswordPage() {
         }
       `}</style>
 
+      {/* Left panel — stays dark green always */}
       <div className="auth-left" style={{ width: "50%", background: "linear-gradient(145deg, #052e16 0%, #14532d 50%, #166534 100%)", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "40px 48px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, opacity: 0.07 }}>
           <svg width="100%" height="100%">
@@ -209,22 +256,23 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
 
-      <div className="auth-right" style={{ width: "50%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", background: "#FAFAFA" }}>
+      {/* Right panel — theme-aware */}
+      <div className="auth-right" style={{ width: "50%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px" }}>
         <div style={{ maxWidth: 420, width: "100%" }} className="fade-in">
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "#111827", marginBottom: 8, letterSpacing: "-0.5px" }}>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: th.text, marginBottom: 8, letterSpacing: "-0.5px" }}>
             {title}
           </h1>
-          <p style={{ fontSize: 15, color: "#6B7280", marginBottom: 28, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 15, color: th.subtext, marginBottom: 28, lineHeight: 1.6 }}>
             {subtitle}
           </p>
 
           {error && (
-            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 18 }}>
+            <div style={{ background: th.errorBg, border: `1px solid ${th.errorBorder}`, color: th.errorText, padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 18 }}>
               {error}
             </div>
           )}
           {message && (
-            <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#15803D", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ background: th.successBg, border: `1px solid ${th.successBorder}`, color: th.successText, padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
               <CheckCircle2 size={15} strokeWidth={2.5} />
               {message}
             </div>
@@ -233,8 +281,8 @@ export default function ForgotPasswordPage() {
           {step === "email" && (
             <form onSubmit={handleEmailSubmit}>
               <div style={{ marginBottom: 22 }}>
-                <label style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-                  <Mail size={13} strokeWidth={2} color="#9CA3AF" /> Email Address
+                <label style={{ display: "flex", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6, alignItems: "center", gap: 6 }}>
+                  <Mail size={13} strokeWidth={2} color={th.muted} /> Email Address
                 </label>
                 <input className="input-field" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required/>
               </div>
@@ -247,11 +295,11 @@ export default function ForgotPasswordPage() {
           {step === "otp" && (
             <form onSubmit={handleVerifyOtp}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email Address</label>
+                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6 }}>Email Address</label>
                 <input className="input-field" type="email" value={email} disabled/>
               </div>
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>6-digit OTP</label>
+                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6 }}>6-digit OTP</label>
                 <input className="input-field" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} placeholder="000000" value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ""))} required/>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
@@ -269,22 +317,18 @@ export default function ForgotPasswordPage() {
           {step === "password" && (
             <form onSubmit={handleResetPassword}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>New Password</label>
+                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6 }}>New Password</label>
                 <div style={{ position: "relative" }}>
                   <input className="input-field" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required style={{ paddingRight: 44 }}/>
                   <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? (
-                      <EyeOff size={18} strokeWidth={2} />
-                    ) : (
-                      <Eye size={18} strokeWidth={2} />
-                    )}
+                    {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
                   </button>
                 </div>
                 {password.length > 0 && (
                   <div style={{ marginTop: 8 }}>
                     <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
                       {[1, 2, 3].map(i => (
-                        <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: strength >= i ? strengthColor : "#E5E7EB", transition: "background 0.3s" }}/>
+                        <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: strength >= i ? strengthColor : th.strengthBarEmpty, transition: "background 0.3s" }}/>
                       ))}
                     </div>
                     <span style={{ fontSize: 12, color: strengthColor, fontWeight: 500 }}>{strengthLabel}</span>
@@ -292,10 +336,10 @@ export default function ForgotPasswordPage() {
                 )}
               </div>
               <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Confirm New Password</label>
-                <input className="input-field" type="password" placeholder="••••••••" value={confirm} onChange={e => setConfirm(e.target.value)} required style={{ borderColor: confirm && confirm !== password ? "#EF4444" : undefined }}/>
+                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: th.labelColor, marginBottom: 6 }}>Confirm New Password</label>
+                <input className="input-field" type="password" placeholder="••••••••" value={confirm} onChange={e => setConfirm(e.target.value)} required style={{ borderColor: confirm && confirm !== password ? th.mismatchColor : undefined }}/>
                 {confirm && confirm !== password && (
-                  <p style={{ fontSize: 12, color: "#EF4444", marginTop: 4 }}>Passwords do not match</p>
+                  <p style={{ fontSize: 12, color: th.mismatchColor, marginTop: 4 }}>Passwords do not match</p>
                 )}
               </div>
               <button type="submit" className="btn-submit" disabled={loading || !password || password !== confirm}>
@@ -312,9 +356,9 @@ export default function ForgotPasswordPage() {
             </div>
           )}
 
-          <p style={{ textAlign: "center", fontSize: 14, color: "#6B7280", marginTop: 24 }}>
+          <p style={{ textAlign: "center", fontSize: 14, color: th.bottomText, marginTop: 24 }}>
             Remember your password?{" "}
-            <Link href="/login" style={{ color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>
+            <Link href="/login" style={{ color: th.linkColor, fontWeight: 600, textDecoration: "none" }}>
               Sign in
             </Link>
           </p>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/use-theme";
 import { useAnomalies, useAudit } from "@/lib/queries";
 import { api } from "@/lib/api";
 import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX, Sparkles, Bot, ArrowRight } from "lucide-react";
@@ -64,6 +65,7 @@ const ANOMALY_ICONS: Record<string, any> = {
 
 export default function CisoAuditPage() {
   const { user } = useAuth();
+  const mono = useTheme();
   const [activeTab, setActiveTab] = useState<"events" | "anomalies" | "ai">("events");
   const [eventFilter, setEventFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -103,6 +105,105 @@ export default function CisoAuditPage() {
   );
   const totalPages = Math.max(1, Math.ceil((audit?.total ?? 0) / PAGE_SIZE));
 
+  const th = mono ? {
+    text: "#f1f5f9",
+    subtext: "#94a3b8",
+    muted: "#64748b",
+    card: "#1e293b",
+    border: "#334155",
+    borderSubtle: "#1f2937",
+    innerCard: "#111827",
+    inputBg: "#111827",
+    inputBorder: "#334155",
+    inputText: "#f1f5f9",
+    inputPlaceholder: "#64748b",
+    filterBg: "#1e293b",
+    filterBorder: "#334155",
+    filterText: "#cbd5e1",
+    filterActiveBg: "#111827",
+    filterActiveText: "#f8fafc",
+    filterActiveBorder: "#111827",
+    tabBg: "#1e293b",
+    tabBorder: "#334155",
+    tabText: "#cbd5e1",
+    tabActiveBg: "#111827",
+    tabActiveText: "#f8fafc",
+    tabActiveBorder: "#111827",
+    aiTabBg: "#16A34A",
+    aiTabText: "#ffffff",
+    aiTabBorder: "#16A34A",
+    actionBg: "#1f2937",
+    actionText: "#f8fafc",
+    bannerSuccessBg: "#0a1f0a",
+    bannerSuccessBorder: "#166534",
+    bannerSuccessText: "#4ade80",
+    bannerErrorBg: "#3f1515",
+    bannerErrorBorder: "#7f1d1d",
+    bannerErrorText: "#fca5a5",
+    sourceBg: "#0f172a",
+    sourceBorder: "#1f2937",
+    aiAnswerBg: "linear-gradient(135deg,#0a1f0a,#14532d)",
+    aiAnswerBorder: "#166534",
+    aiAnswerTitle: "#4ade80",
+  } : {
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    inputBg: "white",
+    inputBorder: "#E5E7EB",
+    inputText: "#111827",
+    inputPlaceholder: "#9CA3AF",
+    filterBg: "white",
+    filterBorder: "#E5E7EB",
+    filterText: "#6B7280",
+    filterActiveBg: "#111827",
+    filterActiveText: "#FFFFFF",
+    filterActiveBorder: "#111827",
+    tabBg: "white",
+    tabBorder: "#E5E7EB",
+    tabText: "#374151",
+    tabActiveBg: "#111827",
+    tabActiveText: "#FFFFFF",
+    tabActiveBorder: "#111827",
+    aiTabBg: "#16A34A",
+    aiTabText: "#FFFFFF",
+    aiTabBorder: "#16A34A",
+    actionBg: "#111827",
+    actionText: "white",
+    bannerSuccessBg: "#F0FDF4",
+    bannerSuccessBorder: "#BBF7D0",
+    bannerSuccessText: "#15803D",
+    bannerErrorBg: "#FEF2F2",
+    bannerErrorBorder: "#FECACA",
+    bannerErrorText: "#991B1B",
+    sourceBg: "#F9FAFB",
+    sourceBorder: "#F3F4F6",
+    aiAnswerBg: "linear-gradient(135deg,#F0FDF4,#DCFCE7)",
+    aiAnswerBorder: "#BBF7D0",
+    aiAnswerTitle: "#15803D",
+  };
+
+  const verifyStyles = verifyResult?.ok ? {
+    bg: th.bannerSuccessBg,
+    border: th.bannerSuccessBorder,
+    title: th.bannerSuccessText,
+    subtext: th.subtext,
+  } : {
+    bg: th.bannerErrorBg,
+    border: th.bannerErrorBorder,
+    title: th.bannerErrorText,
+    subtext: th.subtext,
+  };
+
+  const aiBadgeBg = mono
+    ? "linear-gradient(135deg,#0a1f0a,#14532d)"
+    : "linear-gradient(135deg,#DCFCE7,#BBF7D0)";
+  const aiBadgeColor = mono ? "#4ade80" : "#15803D";
+
   const handleVerify = async () => {
     setVerifying(true);
     try {
@@ -117,30 +218,30 @@ export default function CisoAuditPage() {
 
   if (user?.role !== "ciso") return (
     <div style={{ textAlign: "center", padding: 48 }}>
-      <div style={{ fontWeight: 600, fontSize: 18, color: "#374151" }}>CISO Access Required</div>
+      <div style={{ fontWeight: 600, fontSize: 18, color: th.subtext }}>CISO Access Required</div>
     </div>
   );
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
+    <div suppressHydrationWarning style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; }
-        .section-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; }
-        .stat-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 22px; transition: all 0.2s; }
-        .stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .section-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; }
+        .stat-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 22px; transition: all 0.2s; }
+        .stat-card:hover { box-shadow: ${mono ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(0,0,0,0.08)"}; transform: translateY(-2px); }
         .chip { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
-        .input-field { padding: 10px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: all 0.2s; background: white; color: #111827; }
+        .input-field { padding: 10px 14px; border: 1.5px solid ${th.inputBorder}; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: all 0.2s; background: ${th.inputBg}; color: ${th.inputText}; }
         .input-field:focus { border-color: #4ADE80; box-shadow: 0 0 0 3px rgba(74,222,128,0.1); }
-        .input-field::placeholder { color: #9CA3AF; }
-        .filter-btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #E5E7EB; background: white; color: #6B7280; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
-        .filter-btn.active { background: #111827; color: white; border-color: #111827; }
+        .input-field::placeholder { color: ${th.inputPlaceholder}; }
+        .filter-btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid ${th.filterBorder}; background: ${th.filterBg}; color: ${th.filterText}; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+        .filter-btn.active { background: ${th.filterActiveBg}; color: ${th.filterActiveText}; border-color: ${th.filterActiveBorder}; }
         .tab-btn { padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s; }
-        .audit-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #F3F4F6; align-items: center; transition: background 0.15s; }
-        .audit-row:hover { background: #F9FAFB; border-radius: 8px; }
+        .audit-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid ${th.borderSubtle}; align-items: center; transition: background 0.15s; }
+        .audit-row:hover { background: ${th.innerCard}; border-radius: 8px; }
         .audit-row:last-child { border-bottom: none; }
-        .anomaly-row { padding: 14px 16px; border-bottom: 1px solid #F3F4F6; transition: background 0.15s; }
-        .anomaly-row:hover { background: #F9FAFB; }
+        .anomaly-row { padding: 14px 16px; border-bottom: 1px solid ${th.borderSubtle}; transition: background 0.15s; }
+        .anomaly-row:hover { background: ${th.innerCard}; }
         .anomaly-row:last-child { border-bottom: none; }
       `}</style>
 
@@ -148,10 +249,10 @@ export default function CisoAuditPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Audit Explorer</h1>
-          <p style={{ fontSize: 14, color: "#6B7280" }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
+          <p style={{ fontSize: 14, color: th.subtext }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
         </div>
         <button onClick={handleVerify} disabled={verifying}
-          style={{ background: verifyResult?.ok ? "#16A34A" : "#111827", color: "white", border: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, opacity: verifying ? 0.7 : 1, transition: "all 0.2s" }}>
+          style={{ background: verifyResult?.ok ? "#16A34A" : th.actionBg, color: verifyResult?.ok ? "white" : th.actionText, border: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, opacity: verifying ? 0.7 : 1, transition: "all 0.2s" }}>
           {verifying ? (
             <><Loader2 size={16} strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />Verifying...</>
           ) : verifyResult?.ok ? (
@@ -164,12 +265,12 @@ export default function CisoAuditPage() {
 
       {/* Chain Verify Result */}
       {verifyResult && (
-        <div style={{ background: verifyResult.ok ? "#F0FDF4" : "#FEF2F2", border: `1.5px solid ${verifyResult.ok ? "#BBF7D0" : "#FECACA"}`, borderRadius: 14, padding: 20, marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ background: verifyStyles.bg, border: `1.5px solid ${verifyStyles.border}`, borderRadius: 14, padding: 20, marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: verifyResult.ok ? "#15803D" : "#991B1B" }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: verifyStyles.title }}>
               {verifyResult.ok ? "Audit Chain Verified — Tamper-Free" : "Chain Verification Failed!"}
             </div>
-            <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: verifyStyles.subtext, marginTop: 4 }}>
               {verifyResult.checked} documents checked
               {verifyResult.broken_at && ` — Broken at: ${verifyResult.broken_at}`}
             </div>
@@ -188,9 +289,9 @@ export default function CisoAuditPage() {
           <div key={s.label} className="stat-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                <p style={{ fontSize: 22, fontWeight: 800, color: s.color ?? "#111827" }}>{s.value}</p>
-                <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{s.sub}</p>
+                <p style={{ fontSize: 12, color: th.muted, fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: s.color ?? th.text }}>{s.value}</p>
+                <p style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{s.sub}</p>
               </div>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
                 <s.Icon size={18} strokeWidth={2} />
@@ -203,15 +304,15 @@ export default function CisoAuditPage() {
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         <button className="tab-btn" onClick={() => setActiveTab("events")}
-          style={{ background: activeTab === "events" ? "#111827" : "white", color: activeTab === "events" ? "white" : "#374151", border: activeTab === "events" ? "none" : "1.5px solid #E5E7EB" }}>
+          style={{ background: activeTab === "events" ? th.tabActiveBg : th.tabBg, color: activeTab === "events" ? th.tabActiveText : th.tabText, border: activeTab === "events" ? "none" : `1.5px solid ${th.tabBorder}` }}>
           Audit Events ({auditItems.length})
         </button>
         <button className="tab-btn" onClick={() => setActiveTab("anomalies")}
-          style={{ background: activeTab === "anomalies" ? "#111827" : "white", color: activeTab === "anomalies" ? "white" : "#374151", border: activeTab === "anomalies" ? "none" : "1.5px solid #E5E7EB" }}>
+          style={{ background: activeTab === "anomalies" ? th.tabActiveBg : th.tabBg, color: activeTab === "anomalies" ? th.tabActiveText : th.tabText, border: activeTab === "anomalies" ? "none" : `1.5px solid ${th.tabBorder}` }}>
           Anomalies ({anomalyItems.length})
         </button>
         <button className="tab-btn" onClick={() => setActiveTab("ai")}
-          style={{ background: activeTab === "ai" ? "#16A34A" : "white", color: activeTab === "ai" ? "white" : "#374151", border: activeTab === "ai" ? "none" : "1.5px solid #E5E7EB", display: "flex", alignItems: "center", gap: 6 }}>
+          style={{ background: activeTab === "ai" ? th.aiTabBg : th.tabBg, color: activeTab === "ai" ? th.aiTabText : th.tabText, border: activeTab === "ai" ? "none" : `1.5px solid ${th.tabBorder}`, display: "flex", alignItems: "center", gap: 6 }}>
           <Sparkles size={14} strokeWidth={2} />AI Search
         </button>
       </div>
@@ -222,7 +323,7 @@ export default function CisoAuditPage() {
           {/* Filters */}
           <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-              <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+              <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
                 <Search size={14} strokeWidth={2} />
               </div>
               <input className="input-field" style={{ paddingLeft: 32, width: "100%" }} placeholder="Search event type, user, path..."
@@ -240,17 +341,17 @@ export default function CisoAuditPage() {
           <div className="table-scroll">
             <div className="table-min">
               {/* Table Header */}
-              <div className="audit-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
+              <div className="audit-row" style={{ borderBottom: `2px solid ${th.borderSubtle}`, padding: "8px 16px" }}>
                 {["Event Type", "User / Path", "Time", "Details"].map(h => (
-                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
+                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
                 ))}
               </div>
 
               {isLoading ? (
-                <div style={{ textAlign: "center", padding: "32px", color: "#9CA3AF" }}>Loading audit events...</div>
+                <div style={{ textAlign: "center", padding: "32px", color: th.muted }}>Loading audit events...</div>
               ) : filteredAudit.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "48px", color: "#9CA3AF" }}>
-                  <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No events found</div>
+                <div style={{ textAlign: "center", padding: "48px", color: th.muted }}>
+                  <div style={{ fontWeight: 600, fontSize: 16, color: th.text }}>No events found</div>
                 </div>
               ) : (
                 filteredAudit.map((item: any) => {
@@ -266,14 +367,14 @@ export default function CisoAuditPage() {
                         </span>
                       </div>
                       <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{item.user_id?.slice(0, 16) ?? "—"}</div>
-                        <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 1 }}>{item.path}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: th.text }}>{item.user_id?.slice(0, 16) ?? "—"}</div>
+                        <div style={{ fontSize: 11, color: th.muted, marginTop: 1 }}>{item.path}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, color: "#374151" }}>{new Date(item.created_at).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
-                        <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(item.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short" })}</div>
+                        <div style={{ fontSize: 13, color: th.text }}>{new Date(item.created_at).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div style={{ fontSize: 11, color: th.muted }}>{new Date(item.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short" })}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
+                      <div style={{ fontSize: 12, color: th.subtext, fontFamily: "monospace" }}>
                         {Object.keys(item.payload ?? {}).length > 0 ? JSON.stringify(item.payload).slice(0, 40) + "..." : "—"}
                       </div>
                     </div>
@@ -283,15 +384,15 @@ export default function CisoAuditPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-            <span style={{ fontSize: 13, color: "#9CA3AF" }}>
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${th.borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <span style={{ fontSize: 13, color: th.muted }}>
               Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, audit?.total ?? 0)} of {audit?.total?.toLocaleString() ?? 0} total events
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
-                style={{ padding: "6px 14px", borderRadius: 8, border: "1.5px solid #E5E7EB", background: page === 0 ? "#F9FAFB" : "white", color: page === 0 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 600, cursor: page === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${th.tabBorder}`, background: page === 0 ? th.innerCard : th.tabBg, color: page === 0 ? th.muted : th.tabText, fontSize: 13, fontWeight: 600, cursor: page === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
                 Previous
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -303,7 +404,7 @@ export default function CisoAuditPage() {
                   else pageNum = page - 2 + i;
                   return (
                     <button key={pageNum} onClick={() => setPage(pageNum)}
-                      style={{ width: 32, height: 32, borderRadius: 8, border: "1.5px solid", borderColor: pageNum === page ? "#111827" : "#E5E7EB", background: pageNum === page ? "#111827" : "white", color: pageNum === page ? "white" : "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                      style={{ width: 32, height: 32, borderRadius: 8, border: "1.5px solid", borderColor: pageNum === page ? th.tabActiveBorder : th.tabBorder, background: pageNum === page ? th.tabActiveBg : th.tabBg, color: pageNum === page ? th.tabActiveText : th.tabText, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
                       {pageNum + 1}
                     </button>
                   );
@@ -312,7 +413,7 @@ export default function CisoAuditPage() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                style={{ padding: "6px 14px", borderRadius: 8, border: "1.5px solid #E5E7EB", background: page >= totalPages - 1 ? "#F9FAFB" : "white", color: page >= totalPages - 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 600, cursor: page >= totalPages - 1 ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${th.tabBorder}`, background: page >= totalPages - 1 ? th.innerCard : th.tabBg, color: page >= totalPages - 1 ? th.muted : th.tabText, fontSize: 13, fontWeight: 600, cursor: page >= totalPages - 1 ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
                 Next
               </button>
             </div>
@@ -325,12 +426,12 @@ export default function CisoAuditPage() {
         <div className="section-card">
           <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h3 style={{ fontWeight: 700, fontSize: 16 }}>Detected Anomalies</h3>
-            <span style={{ fontSize: 13, color: "#9CA3AF" }}>{anomalyItems.length} anomalies</span>
+            <span style={{ fontSize: 13, color: th.muted }}>{anomalyItems.length} anomalies</span>
           </div>
 
           {anomalyItems.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "48px", color: "#9CA3AF" }}>
-              <div style={{ fontWeight: 600, color: "#374151" }}>No anomalies detected</div>
+            <div style={{ textAlign: "center", padding: "48px", color: th.muted }}>
+              <div style={{ fontWeight: 600, color: th.text }}>No anomalies detected</div>
             </div>
           ) : (
             anomalyItems.map((a: any) => {
@@ -344,19 +445,19 @@ export default function CisoAuditPage() {
                       </div>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>
+                          <span style={{ fontWeight: 700, fontSize: 14, color: th.text }}>
                             {a.anomaly_type?.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                           </span>
                           <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
                         </div>
-                        <div style={{ fontSize: 13, color: "#6B7280" }}>{a.details ?? "Suspicious activity detected"}</div>
-                        <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>Subject: {a.subject}</div>
+                        <div style={{ fontSize: 13, color: th.subtext }}>{a.details ?? "Suspicious activity detected"}</div>
+                        <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>Subject: {a.subject}</div>
                       </div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
                       <div style={{ fontSize: 20, fontWeight: 800, color: cfg.color }}>{(a.score * 100).toFixed(0)}%</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF" }}>risk score</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>
+                      <div style={{ fontSize: 11, color: th.muted }}>risk score</div>
+                      <div style={{ fontSize: 11, color: th.muted, marginTop: 4 }}>
                         {new Date(a.created_at).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}
                       </div>
                     </div>
@@ -372,12 +473,12 @@ export default function CisoAuditPage() {
         <div className="section-card">
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", display: "flex", alignItems: "center", justifyContent: "center", color: "#15803D", flexShrink: 0 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: aiBadgeBg, display: "flex", alignItems: "center", justifyContent: "center", color: aiBadgeColor, flexShrink: 0 }}>
               <Bot size={22} strokeWidth={2} />
             </div>
             <div>
-              <h3 style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>AI Audit Search</h3>
-              <p style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>Ask a natural-language question — the AI searches embedded audit logs and answers with sources.</p>
+              <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>AI Audit Search</h3>
+              <p style={{ fontSize: 13, color: th.subtext, marginTop: 2 }}>Ask a natural-language question — the AI searches embedded audit logs and answers with sources.</p>
             </div>
           </div>
 
@@ -385,7 +486,7 @@ export default function CisoAuditPage() {
           <form onSubmit={e => { e.preventDefault(); if (ragQuestion.trim()) ragMutation.mutate(ragQuestion.trim()); }}
             style={{ display: "flex", gap: 10, marginBottom: 24 }}>
             <div style={{ position: "relative", flex: 1 }}>
-              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
                 <Sparkles size={16} strokeWidth={2} />
               </div>
               <input className="input-field" style={{ paddingLeft: 40, width: "100%", fontSize: 15 }}
@@ -404,7 +505,7 @@ export default function CisoAuditPage() {
 
           {/* Error */}
           {ragMutation.isError && (
-            <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
+            <div style={{ background: th.bannerErrorBg, border: `1px solid ${th.bannerErrorBorder}`, color: th.bannerErrorText, padding: "12px 16px", borderRadius: 10, fontSize: 14, marginBottom: 20 }}>
               Search failed — check that the backend RAG service is running.
             </div>
           )}
@@ -412,36 +513,36 @@ export default function CisoAuditPage() {
           {/* Answer */}
           {ragResult && (
             <div>
-              <div style={{ background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", border: "1.5px solid #BBF7D0", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+              <div style={{ background: th.aiAnswerBg, border: `1.5px solid ${th.aiAnswerBorder}`, borderRadius: 14, padding: 20, marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <Bot size={16} strokeWidth={2} color="#15803D" />
-                  <span style={{ fontWeight: 700, fontSize: 14, color: "#15803D" }}>AI Answer</span>
+                  <Bot size={16} strokeWidth={2} color={th.aiAnswerTitle} />
+                  <span style={{ fontWeight: 700, fontSize: 14, color: th.aiAnswerTitle }}>AI Answer</span>
                 </div>
-                <p style={{ fontSize: 15, color: "#111827", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{ragResult.answer}</p>
+                <p style={{ fontSize: 15, color: th.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{ragResult.answer}</p>
               </div>
 
               {/* Sources */}
               {ragResult.sources?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>
                     {ragResult.sources.length} Source{ragResult.sources.length !== 1 ? "s" : ""} Retrieved
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {ragResult.sources.map((src: any, i: number) => {
                       const cfg = EVENT_CONFIG[src.event_type] ?? EVENT_CONFIG.default;
                       return (
-                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: "#F9FAFB", border: "1px solid #F3F4F6", borderRadius: 10 }}>
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: th.sourceBg, border: `1px solid ${th.sourceBorder}`, borderRadius: 10 }}>
                           <div style={{ width: 32, height: 32, background: cfg.bg, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: cfg.color }}>
                             {(() => { const Icon = EVENT_ICONS[src.event_type] ?? Activity; return <Icon size={14} strokeWidth={2} />; })()}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
                               <span className="chip" style={{ background: cfg.bg, color: cfg.color }}>{src.event_type?.replace(/_/g, " ")}</span>
-                              <span style={{ fontSize: 12, color: "#9CA3AF" }}>{src.user_id?.slice(0, 20)}</span>
+                              <span style={{ fontSize: 12, color: th.muted }}>{src.user_id?.slice(0, 20)}</span>
                             </div>
-                            <div style={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{src.path}</div>
+                            <div style={{ fontSize: 12, color: th.subtext, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{src.path}</div>
                             {src.created_at && (
-                              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>
+                              <div style={{ fontSize: 11, color: th.muted, marginTop: 2 }}>
                                 {new Date(src.created_at).toLocaleString("en-PK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                               </div>
                             )}
@@ -457,11 +558,11 @@ export default function CisoAuditPage() {
 
           {/* Empty state */}
           {!ragResult && !ragMutation.isPending && !ragMutation.isError && (
-            <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", display: "flex", alignItems: "center", justifyContent: "center", color: "#15803D", margin: "0 auto 16px" }}>
+            <div style={{ textAlign: "center", padding: "48px 24px", color: th.muted }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: aiBadgeBg, display: "flex", alignItems: "center", justifyContent: "center", color: aiBadgeColor, margin: "0 auto 16px" }}>
                 <Bot size={26} strokeWidth={1.8} />
               </div>
-              <div style={{ fontWeight: 600, fontSize: 15, color: "#374151", marginBottom: 6 }}>Ask anything about your audit logs</div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: th.text, marginBottom: 6 }}>Ask anything about your audit logs</div>
               <div style={{ fontSize: 13, maxWidth: 340, margin: "0 auto", lineHeight: 1.6 }}>
                 The AI uses semantic search over embedded audit logs and a language model to answer your question in plain English.
               </div>

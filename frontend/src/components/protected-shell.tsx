@@ -4,17 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { useTheme } from "@/lib/use-theme";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, type LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/predict", label: "Predictions", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/screener", label: "Screener", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/portfolio", label: "Portfolio", roles: ["investor"] as Role[] },
   { href: "/trades", label: "Trades", roles: ["investor"] as Role[] },
   { href: "/admin/users", label: "Users", roles: ["admin"] as Role[] },
@@ -32,6 +32,7 @@ const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string }> 
 const NAV_ICONS: Record<string, LucideIcon> = {
   "/dashboard": LayoutDashboard,
   "/predict": TrendingUp,
+  "/screener": Filter,
   "/portfolio": Briefcase,
   "/trades": History,
   "/admin/users": Users,
@@ -44,16 +45,18 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const mono = useTheme();
+  const queryClient = useQueryClient();
   const [showAlerts, setShowAlerts] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Fetch unread alert count
   const { data: unreadData } = useQuery({
     queryKey: ["alerts-unread"],
     queryFn: async () => {
       try {
         return (await api.get("/alerts/unread-count")).data;
       } catch (error: any) {
+        // Backward-compatible fallback for backend instances that don't expose /unread-count yet.
         if (error?.response?.status === 404) {
           const items = (await api.get("/alerts?limit=100")).data ?? [];
           const unread = Array.isArray(items)
@@ -68,6 +71,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
     enabled: !!user,
   });
 
+  // Fetch alerts list
   const { data: alertsData } = useQuery({
     queryKey: ["alerts-list"],
     queryFn: async () => {
@@ -89,6 +93,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
     }
   }, [loading, pathname, router, user]);
 
+  // Close alerts on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -103,11 +108,22 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
   const markAllRead = async () => {
     try {
       await api.patch("/alerts/read-all");
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-list"] });
+    } catch {}
+  };
+
+  const markAlertRead = async (alertId?: string) => {
+    if (!alertId) return;
+    try {
+      await api.patch(`/alerts/${alertId}/read`);
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-list"] });
     } catch {}
   };
 
   if (loading || !user) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: mono ? "#0f172a" : "#F0FDF4", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F0FDF4", fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ textAlign: "center" }}>
         <div style={{ width: 56, height: 56, border: "3px solid #4ADE80", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }}/>
         <p style={{ color: "#16A34A", fontWeight: 600, fontSize: 15 }}>Loading secure workspace...</p>
@@ -129,68 +145,16 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
     critical: { color: "white",   bg: "#7F1D1D" },
   };
 
-  const sh = mono ? {
-    bg: "#0f172a",
-    navBg: "rgba(15,23,42,0.95)",
-    navBorder: "#1e293b",
-    navShadow: "0 1px 8px rgba(0,0,0,0.3)",
-    text: "#f1f5f9",
-    muted: "#64748b",
-    btnBg: "#1e293b",
-    btnBorder: "#334155",
-    btnHoverBg: "#273449",
-    btnHoverBorder: "#4ADE80",
-    iconColor: "#94a3b8",
-    logoText: "#f1f5f9",
-    alertDropBg: "#1e293b",
-    alertDropBorder: "#334155",
-    alertDivider: "#334155",
-    alertText: "#e2e8f0",
-    alertMuted: "#64748b",
-    alertHover: "#111827",
-    userBadgeBg: "#1e293b",
-    userBadgeBorder: "#334155",
-    userNameColor: "#f1f5f9",
-    mobileBtnBg: "#1e293b",
-    mobileBtnBorder: "#334155",
-    mobileSvgStroke: "#94a3b8",
-  } : {
-    bg: "#F9FAFB",
-    navBg: "rgba(255,255,255,0.95)",
-    navBorder: "#E5E7EB",
-    navShadow: "0 1px 8px rgba(0,0,0,0.06)",
-    text: "#111827",
-    muted: "#9CA3AF",
-    btnBg: "white",
-    btnBorder: "#E5E7EB",
-    btnHoverBg: "#F0FDF4",
-    btnHoverBorder: "#4ADE80",
-    iconColor: "#374151",
-    logoText: "#111827",
-    alertDropBg: "white",
-    alertDropBorder: "#E5E7EB",
-    alertDivider: "#F3F4F6",
-    alertText: "#374151",
-    alertMuted: "#9CA3AF",
-    alertHover: "#F9FAFB",
-    userBadgeBg: "white",
-    userBadgeBorder: "#E5E7EB",
-    userNameColor: "#111827",
-    mobileBtnBg: "white",
-    mobileBtnBorder: "#E5E7EB",
-    mobileSvgStroke: "#374151",
-  };
-
   return (
-    <div suppressHydrationWarning style={{ minHeight: "100vh", background: sh.bg, fontFamily: "'DM Sans', 'Segoe UI', sans-serif", transition: "background 0.2s ease" }}>
+    <div style={{ minHeight: "100vh", background: "#F9FAFB", fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
-        .nav-link { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; color: ${sh.iconColor}; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
-        .nav-link:hover { background: ${mono ? "#1a2e1a" : "#F0FDF4"}; color: ${mono ? "#4ADE80" : "#16A34A"}; }
-        .nav-link.active { background: ${mono ? "#1a2e1a" : "#DCFCE7"}; color: ${mono ? "#4ADE80" : "#15803D"}; font-weight: 600; }
-        .alert-item { padding: 12px 16px; border-bottom: 1px solid ${sh.alertDivider}; transition: background 0.15s; cursor: pointer; }
-        .alert-item:hover { background: ${sh.alertHover}; }
+        .nav-link { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; color: #374151; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
+        .nav-link:hover { background: #F0FDF4; color: #16A34A; }
+        .nav-link.active { background: #DCFCE7; color: #15803D; font-weight: 600; }
+        .alert-item { padding: 12px 16px; border-bottom: 1px solid #F3F4F6; transition: background 0.15s; cursor: pointer; }
+        .alert-item:hover { background: #F9FAFB; }
         .alert-item:last-child { border-bottom: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
@@ -200,12 +164,12 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         .badge-pulse { animation: badgePulse 2s ease-in-out infinite; }
         .shell-desktop-nav { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; flex-wrap: nowrap; overflow: hidden; }
         .shell-right-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        .shell-mobile-btn { display: none; background: ${sh.mobileBtnBg}; border: 1.5px solid ${sh.mobileBtnBorder}; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
-        .shell-mobile-nav { background: ${mono ? "#111827" : "white"}; border-bottom: 1px solid ${mono ? "#1e293b" : "#E5E7EB"}; padding: 12px 16px 16px; box-shadow: 0 4px 16px rgba(0,0,0,${mono ? "0.3" : "0.08"}); animation: slideDown 0.2s ease; }
-        .shell-mobile-nav-link { display: block; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: ${sh.iconColor}; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
-        .shell-mobile-nav-link:hover { background: ${mono ? "#1a2e1a" : "#F0FDF4"}; color: ${mono ? "#4ADE80" : "#16A34A"}; }
-        .shell-mobile-nav-link.active { background: ${mono ? "#1a2e1a" : "#DCFCE7"}; color: ${mono ? "#4ADE80" : "#15803D"}; font-weight: 600; }
-        .shell-user-name { font-size: 13px; font-weight: 600; color: ${sh.userNameColor}; line-height: 1.2; }
+        .shell-mobile-btn { display: none; background: white; border: 1.5px solid #E5E7EB; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
+        .shell-mobile-nav { background: white; border-bottom: 1px solid #E5E7EB; padding: 12px 16px 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); animation: slideDown 0.2s ease; }
+        .shell-mobile-nav-link { display: block; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: #374151; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
+        .shell-mobile-nav-link:hover { background: #F0FDF4; color: #16A34A; }
+        .shell-mobile-nav-link.active { background: #DCFCE7; color: #15803D; font-weight: 600; }
+        .shell-user-name { font-size: 13px; font-weight: 600; color: #111827; line-height: 1.2; }
         @media (max-width: 860px) {
           .shell-desktop-nav { display: none !important; }
           .shell-mobile-btn { display: flex !important; }
@@ -225,18 +189,17 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
       {/* Navbar */}
       <header style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: sh.navBg,
+        background: "rgba(255,255,255,0.95)",
         backdropFilter: "blur(12px)",
-        borderBottom: `1px solid ${sh.navBorder}`,
-        boxShadow: sh.navShadow,
-        transition: "background 0.2s ease, border-color 0.2s ease",
+        borderBottom: "1px solid #E5E7EB",
+        boxShadow: "0 1px 8px rgba(0,0,0,0.06)"
       }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
 
           {/* Logo */}
           <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", flexShrink: 0 }}>
             <Image src="/logo.png" alt="TradeFinlytix" width={36} height={36} style={{ objectFit: "contain" }}/>
-            <span style={{ fontWeight: 700, fontSize: 17, color: sh.logoText, letterSpacing: "-0.3px" }}>TradeFinlytix</span>
+            <span style={{ fontWeight: 700, fontSize: 17, color: "#111827", letterSpacing: "-0.3px" }}>TradeFinlytix</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -259,8 +222,8 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             <button className="shell-mobile-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                 {mobileOpen
-                  ? <path d="M4 4l12 12M4 16L16 4" stroke={sh.mobileSvgStroke} strokeWidth="1.8" strokeLinecap="round"/>
-                  : <path d="M3 5h14M3 10h14M3 15h14" stroke={sh.mobileSvgStroke} strokeWidth="1.8" strokeLinecap="round"/>
+                  ? <path d="M4 4l12 12M4 16L16 4" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
+                  : <path d="M3 5h14M3 10h14M3 15h14" stroke="#374151" strokeWidth="1.8" strokeLinecap="round"/>
                 }
               </svg>
             </button>
@@ -268,14 +231,14 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             {/* Alerts Bell */}
             <div style={{ position: "relative" }}>
               <button id="alerts-btn"
-                onClick={() => { setShowAlerts(!showAlerts); if (!showAlerts) markAllRead(); }}
-                style={{ position: "relative", width: 40, height: 40, borderRadius: 10, border: `1.5px solid ${sh.btnBorder}`, background: sh.btnBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; e.currentTarget.style.background = sh.btnHoverBg; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = sh.btnBorder; e.currentTarget.style.background = sh.btnBg; }}
+                onClick={() => setShowAlerts(!showAlerts)}
+                style={{ position: "relative", width: 40, height: 40, borderRadius: 10, border: "1.5px solid #E5E7EB", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; e.currentTarget.style.background = "#F0FDF4"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
               >
-                <Bell size={18} color={sh.iconColor} strokeWidth={2} />
+                <Bell size={18} color="#374151" strokeWidth={2} />
                 {unreadCount > 0 && (
-                  <span className="badge-pulse" style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "white", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${sh.navBg}` }}>
+                  <span className="badge-pulse" style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "white", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -283,14 +246,14 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
               {/* Alerts Dropdown */}
               {showAlerts && (
-                <div id="alerts-panel" className="alerts-panel" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: "min(360px, 90vw)", background: sh.alertDropBg, border: `1.5px solid ${sh.alertDropBorder}`, borderRadius: 16, boxShadow: `0 16px 40px rgba(0,0,0,${mono ? "0.4" : "0.12"})`, overflow: "hidden", zIndex: 100 }}>
-                  <div style={{ padding: "14px 16px", borderBottom: `1px solid ${sh.alertDivider}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontWeight: 700, fontSize: 15, color: sh.text }}>Notifications</span>
-                    <span style={{ fontSize: 12, color: sh.muted }}>{unreadCount} unread</span>
+                <div id="alerts-panel" className="alerts-panel" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: "min(360px, 90vw)", background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 100 }}>
+                  <div style={{ padding: "14px 16px", borderBottom: "1px solid #F3F4F6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontWeight: 700, fontSize: 15 }}>Notifications</span>
+                    <span style={{ fontSize: 12, color: "#9CA3AF" }}>{unreadCount} unread</span>
                   </div>
 
                   {alerts.length === 0 ? (
-                    <div style={{ padding: "32px 16px", textAlign: "center", color: sh.muted }}>
+                    <div style={{ padding: "32px 16px", textAlign: "center", color: "#9CA3AF" }}>
                       <div style={{ fontSize: 14 }}>No notifications yet</div>
                     </div>
                   ) : (
@@ -298,14 +261,20 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
                       {alerts.map((alert: any, i: number) => {
                         const sev = SEVERITY_CONFIG[alert.severity] ?? SEVERITY_CONFIG.low;
                         return (
-                          <div key={alert._id ?? i} className="alert-item">
+                          <div
+                            key={alert._id ?? i}
+                            className="alert-item"
+                            onClick={() => markAlertRead(alert._id)}
+                            title={alert.is_read ? "Already read" : "Mark as read"}
+                            style={{ background: alert.is_read ? "white" : "#F9FAFB" }}
+                          >
                             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                               <span style={{ background: sev.bg, color: sev.color, padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 700, textTransform: "uppercase", flexShrink: 0, marginTop: 2 }}>
                                 {alert.severity}
                               </span>
                               <div>
-                                <p style={{ fontSize: 13, color: sh.alertText, lineHeight: 1.5 }}>{alert.message}</p>
-                                <p style={{ fontSize: 11, color: sh.alertMuted, marginTop: 3 }}>
+                                <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.5 }}>{alert.message}</p>
+                                <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 3 }}>
                                   {alert.created_at ? new Date(alert.created_at).toLocaleString("en-PK", { dateStyle: "short", timeStyle: "short" }) : ""}
                                 </p>
                               </div>
@@ -316,7 +285,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
                     </div>
                   )}
 
-                  <div style={{ padding: "10px 16px", borderTop: `1px solid ${sh.alertDivider}`, textAlign: "center" }}>
+                  <div style={{ padding: "10px 16px", borderTop: "1px solid #F3F4F6", textAlign: "center" }}>
                     <button onClick={() => { markAllRead(); setShowAlerts(false); }}
                       style={{ fontSize: 13, color: "#16A34A", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                       Mark all as read
@@ -330,14 +299,14 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle variant="nav" />
 
             {/* User Badge */}
-            <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: `1.5px solid ${sh.userBadgeBorder}`, borderRadius: 12, background: sh.userBadgeBg, textDecoration: "none", transition: "all 0.2s" }}
+            <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: "1.5px solid #E5E7EB", borderRadius: 12, background: "white", textDecoration: "none", transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = sh.userBadgeBorder; }}>
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; }}>
               <div style={{ width: 30, height: 30, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "white", flexShrink: 0 }}>
                 {initials}
               </div>
               <div className="shell-user-name">
-                <div style={{ fontSize: 13, fontWeight: 600, color: sh.userNameColor, lineHeight: 1.2 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>
                   {user.full_name?.split(" ")[0] ?? "User"}
                 </div>
                 <span style={{ background: roleConfig.bg, color: roleConfig.color, padding: "1px 6px", borderRadius: 100, fontSize: 10, fontWeight: 700 }}>
@@ -349,9 +318,9 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             {/* Logout */}
             <button
               onClick={async () => { await logout(); router.push("/login"); }}
-              style={{ width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${sh.btnBorder}`, background: sh.btnBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#FECACA"; e.currentTarget.style.background = mono ? "#2d1111" : "#FEF2F2"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = sh.btnBorder; e.currentTarget.style.background = sh.btnBg; }}
+              style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E5E7EB", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#FECACA"; e.currentTarget.style.background = "#FEF2F2"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
               title="Logout"
             >
               <LogOut size={16} color="#DC2626" strokeWidth={2} />

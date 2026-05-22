@@ -194,6 +194,31 @@ class AuthService:
         await self.repo.revoke_refresh_token(user_id, refresh_token)
         return await self._issue_tokens(user)
 
+    async def change_password(
+        self, user_id: str, current_password: str, new_password: str, ip: str
+    ) -> str:
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+        if not verify_password(current_password, user["password_hash"]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current password is incorrect.",
+            )
+
+        if verify_password(new_password, user["password_hash"]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be different from the current password.",
+            )
+
+        await self.repo.reset_password_and_invalidate_sessions(
+            user_id, hash_password(new_password)
+        )
+        await record_event(self.db, "password_changed", user_id=user_id, ip=ip)
+        return "Password changed successfully."
+
     async def logout(self, user_id: str, refresh_token: str | None = None) -> None:
         if refresh_token:
             await self.repo.revoke_refresh_token(user_id, refresh_token)

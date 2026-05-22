@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMarketPrediction } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
-
+import NHITSForecastChart from "@/components/NHITSForecastChart";
 
 const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; darkBg: string }> = {
   BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", darkBg: "#14532d" },
@@ -32,7 +32,16 @@ export default function PredictSymbolPage() {
   const riskLevel = data?.risk?.level ?? "LOW";
   const riskConfig = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.LOW;
   const confidence = ((data?.prediction?.confidence ?? 0) * 100).toFixed(1);
-  const features: any[] = data?.prediction?.features ?? [];
+  const rawFeatures: any[] = data?.prediction?.explanation?.top_features ?? [];
+  const maxShap = rawFeatures.length
+    ? Math.max(...rawFeatures.map((f: any) => Math.abs(f.shap_value ?? 0)), 1e-9)
+    : 1;
+  const features = rawFeatures.map((f: any) => ({
+    name:      f.feature,
+    shapValue: f.shap_value ?? 0,
+    barPct:    Math.abs(f.shap_value ?? 0) / maxShap,
+    direction: f.direction ?? (f.shap_value >= 0 ? "bullish" : "bearish"),
+  }));
 
   const th = mono ? {
     text: "#f1f5f9",
@@ -267,19 +276,32 @@ export default function PredictSymbolPage() {
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 6, color: th.text }}>Signal Drivers</h3>
           <p style={{ fontSize: 12, color: th.muted, marginBottom: 20 }}>SHAP feature importance</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {features.map((f: any, i: number) => (
-              <div key={i}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: th.featureNameColor }}>{f.name}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#16A34A" }}>{(f.value * 100).toFixed(0)}%</span>
-                </div>
-                <div className="feature-bar">
-                  <div className="feature-fill" style={{ width: `${f.value * 100}%` }}/>
-                </div>
-              </div>
-            ))}
-          </div>
+          {features.length === 0 ? (
+            <p style={{ fontSize: 13, color: th.muted, textAlign: "center", padding: "16px 0" }}>
+              SHAP explanation unavailable for this prediction.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {features.map((f, i) => {
+                const isBullish = f.direction === "bullish";
+                const barColor  = isBullish ? "#16A34A" : "#DC2626";
+                const valColor  = isBullish ? "#16A34A" : "#DC2626";
+                return (
+                  <div key={i}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: th.featureNameColor }}>{f.name}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: valColor }}>
+                        {isBullish ? "▲" : "▼"} {f.shapValue.toFixed(4)}
+                      </span>
+                    </div>
+                    <div className="feature-bar">
+                      <div style={{ height: "100%", borderRadius: 100, background: barColor, width: `${f.barPct * 100}%`, transition: "width 0.8s ease" }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -333,6 +355,23 @@ export default function PredictSymbolPage() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* NHITS 50-Day Price Forecast */}
+      <div className="section-card" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+          <TrendingUp size={16} color="#F97316" strokeWidth={2} />
+          <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>
+            NHITS — 50-Day Price Forecast
+          </h3>
+          <span style={{ marginLeft: "auto", display: "inline-block", padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 700, background: "#FEF3C7", color: "#92400E" }}>
+            Neural Hierarchical Interpolation
+          </span>
+        </div>
+        <p style={{ fontSize: 12, color: th.muted, marginBottom: 16 }}>
+          Deep learning price forecast · 50 trading days · 59-feature input · Updated per request
+        </p>
+        <NHITSForecastChart symbol={symbol} isDark={mono} />
       </div>
 
       {/* Action Buttons */}

@@ -233,7 +233,7 @@ export default function ForgotPasswordPage() {
           {step === "email" && (
             <form onSubmit={handleEmailSubmit}>
               <div style={{ marginBottom: 22 }}>
-                <label style={{ display: "block", fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                <label style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <Mail size={13} strokeWidth={2} color="#9CA3AF" /> Email Address
                 </label>
                 <input className="input-field" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required/>

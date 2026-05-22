@@ -291,7 +291,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "24px 0" }}>
+          <div style={{ display: "flex", gap: 12, margin: "24px 0" }}>
             <div style={{ flex: 1, height: 1, background: th.divider }}/>
             <span style={{ fontSize: 13, color: th.muted }}>or continue with</span>
             <div style={{ flex: 1, height: 1, background: th.divider }}/>

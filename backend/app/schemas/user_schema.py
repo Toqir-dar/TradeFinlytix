@@ -77,6 +77,16 @@ class ResetPasswordWithOtpRequest(BaseModel):
         return validate_password_strength(v)
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: PasswordStr
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
 class MessageResponse(BaseModel):
     message: str
 

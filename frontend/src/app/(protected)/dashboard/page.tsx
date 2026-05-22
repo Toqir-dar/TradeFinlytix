@@ -109,6 +109,49 @@ export default function DashboardPage() {
 
   const firstName = user?.full_name?.split(" ")[0] ?? (isAdmin ? "Admin" : isCiso ? "CISO" : "Trader");
 
+<<<<<<< HEAD
+=======
+  const th = mono ? {
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    symbolIconBg: "#F0FDF4",
+    symbolIconColor: "#16A34A",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
+    headerBtnBg: "#1e293b",
+    headerBtnBorder: "#334155",
+    headerBtnColor: "#cbd5e1",
+  } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    symbolIconBg: "#F0FDF4",
+    symbolIconColor: "#16A34A",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
+    headerBtnBg: "white",
+    headerBtnBorder: "#E5E7EB",
+    headerBtnColor: "#374151",
+  };
+
+  const tooltipStyle = { borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 13, background: th.tooltipBg, color: th.text };
+
+>>>>>>> 3124c4b (Refactor theme handling and UI components for improved styling and responsiveness)
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -154,10 +197,17 @@ export default function DashboardPage() {
       >
         <div className="dash-header">
           <div>
+<<<<<<< HEAD
             <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#111827", letterSpacing: "-0.5px" }}>
               {getGreeting()}, {firstName}
             </h1>
             <p style={{ fontSize: 14, color: "#6B7280", marginTop: 4 }}>
+=======
+            <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: th.heading, letterSpacing: "-0.5px" }}>
+              {getGreeting()}, {firstName}
+            </h1>
+            <p style={{ fontSize: 14, color: th.bgSubtext, marginTop: 4 }}>
+>>>>>>> 3124c4b (Refactor theme handling and UI components for improved styling and responsiveness)
               Here&apos;s your {user?.role ?? "investor"} overview for today — {new Date().toLocaleDateString("en-PK", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
@@ -350,7 +400,11 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.65, ease: EASE }}
           >
+<<<<<<< HEAD
             <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Quick Actions</h3>
+=======
+            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12, color: th.heading }}>Quick Actions</h3>
+>>>>>>> 3124c4b (Refactor theme handling and UI components for improved styling and responsiveness)
             <motion.div
               className="dash-quick-actions"
               style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}

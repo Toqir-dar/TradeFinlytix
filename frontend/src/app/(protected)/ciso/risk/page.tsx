@@ -57,22 +57,26 @@ export default function CisoRiskPage() {
   }, [trendItems]);
 
   const th = mono ? {
-    text: "#f1f5f9",
-    subtext: "#94a3b8",
-    muted: "#64748b",
-    card: "#1e293b",
-    border: "#334155",
-    borderSubtle: "#1f2937",
-    tabBg: "#1e293b",
-    tabBorder: "#334155",
-    tabText: "#cbd5e1",
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    tabBg: "white",
+    tabBorder: "#E5E7EB",
+    tabText: "#374151",
     tabActiveBg: "#111827",
-    tabActiveText: "#f8fafc",
+    tabActiveText: "#FFFFFF",
     tabActiveBorder: "#111827",
-    chartGrid: "#334155",
-    tooltipBg: "#1e293b",
-    tooltipBorder: "#334155",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
   } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
     text: "#111827",
     subtext: "#6B7280",
     muted: "#9CA3AF",
@@ -128,8 +132,8 @@ export default function CisoRiskPage() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
         <div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6 }}>Risk Dashboard</h1>
-          <p style={{ fontSize: 14, color: th.subtext }}>Live risk trend, anomaly frequency, ranked subjects, and stored snapshots.</p>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6, color: th.heading }}>Risk Dashboard</h1>
+          <p style={{ fontSize: 14, color: th.bgSubtext }}>Live risk trend, anomaly frequency, ranked subjects, and stored snapshots.</p>
         </div>
         {(trendLoading || anomalyStatsLoading || topRiskLoading || recentLoading || snapshotsLoading || auditLoading) && (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#16A34A", fontSize: 13, fontWeight: 700 }}>

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, AlertTriangle, BarChart3, Database, FileSearch, Loader2, ShieldAlert, TrendingUp, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/use-theme";
 import { useAnomalyStats, useAuditLogs, useRiskRecent, useRiskSnapshots, useRiskTrend, useTopRisk } from "@/lib/queries";
 
 const LEVEL_STYLE: Record<string, { bg: string; color: string }> = {
@@ -29,6 +30,7 @@ function formatDate(value?: string) {
 
 export default function CisoRiskPage() {
   const { user } = useAuth();
+  const mono = useTheme();
   const [activeTab, setActiveTab] = useState<"overview" | "subjects" | "events" | "snapshots">("overview");
   const { data: auditLogs, isLoading: auditLoading } = useAuditLogs();
   const { data: anomalyStats, isLoading: anomalyStatsLoading } = useAnomalyStats(14);
@@ -54,26 +56,68 @@ export default function CisoRiskPage() {
     return total / trendItems.length;
   }, [trendItems]);
 
+  const th = mono ? {
+    text: "#f1f5f9",
+    subtext: "#94a3b8",
+    muted: "#64748b",
+    card: "#1e293b",
+    border: "#334155",
+    borderSubtle: "#1f2937",
+    tabBg: "#1e293b",
+    tabBorder: "#334155",
+    tabText: "#cbd5e1",
+    tabActiveBg: "#111827",
+    tabActiveText: "#f8fafc",
+    tabActiveBorder: "#111827",
+    chartGrid: "#334155",
+    tooltipBg: "#1e293b",
+    tooltipBorder: "#334155",
+  } : {
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    tabBg: "white",
+    tabBorder: "#E5E7EB",
+    tabText: "#374151",
+    tabActiveBg: "#111827",
+    tabActiveText: "#FFFFFF",
+    tabActiveBorder: "#111827",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
+  };
+
+  const tooltipStyle = {
+    borderRadius: 10,
+    border: `1px solid ${th.tooltipBorder}`,
+    background: th.tooltipBg,
+    color: th.text,
+    fontSize: 12,
+  };
+
   if (user?.role !== "ciso") {
     return (
       <div style={{ textAlign: "center", padding: 48 }}>
-        <div style={{ fontWeight: 700, fontSize: 18, color: "#374151" }}>CISO Access Required</div>
+        <div style={{ fontWeight: 700, fontSize: 18, color: th.subtext }}>CISO Access Required</div>
       </div>
     );
   }
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
+    <div suppressHydrationWarning style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}>
       <style>{`
         * { box-sizing: border-box; }
-        .section-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; }
-        .stat-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 22px; }
+        .section-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; }
+        .stat-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 22px; }
         .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        .tab-btn { padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1.5px solid #E5E7EB; background: white; color: #374151; font-family: inherit; }
-        .tab-btn.active { background: #111827; color: white; border-color: #111827; }
-        .risk-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #F3F4F6; }
+        .tab-btn { padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1.5px solid ${th.tabBorder}; background: ${th.tabBg}; color: ${th.tabText}; font-family: inherit; }
+        .tab-btn.active { background: ${th.tabActiveBg}; color: ${th.tabActiveText}; border-color: ${th.tabActiveBorder}; }
+        .risk-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid ${th.borderSubtle}; }
         .risk-row:last-child { border-bottom: none; }
-        .subject-row { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #F3F4F6; }
+        .subject-row { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid ${th.borderSubtle}; }
         .subject-row:last-child { border-bottom: none; }
         @media (max-width: 860px) {
           .risk-grid { grid-template-columns: 1fr !important; }
@@ -85,7 +129,7 @@ export default function CisoRiskPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6 }}>Risk Dashboard</h1>
-          <p style={{ fontSize: 14, color: "#6B7280" }}>Live risk trend, anomaly frequency, ranked subjects, and stored snapshots.</p>
+          <p style={{ fontSize: 14, color: th.subtext }}>Live risk trend, anomaly frequency, ranked subjects, and stored snapshots.</p>
         </div>
         {(trendLoading || anomalyStatsLoading || topRiskLoading || recentLoading || snapshotsLoading || auditLoading) && (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#16A34A", fontSize: 13, fontWeight: 700 }}>
@@ -105,9 +149,9 @@ export default function CisoRiskPage() {
           <div key={item.label} className="stat-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14 }}>
               <div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 700, marginBottom: 8 }}>{item.label}</p>
+                <p style={{ fontSize: 12, color: th.muted, fontWeight: 700, marginBottom: 8 }}>{item.label}</p>
                 <p style={{ fontSize: 24, fontWeight: 900, color: item.color }}>{item.value}</p>
-                <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{item.sub}</p>
+                <p style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{item.sub}</p>
               </div>
               <div style={{ width: 42, height: 42, borderRadius: 12, background: item.bg, color: item.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <item.Icon size={19} strokeWidth={2} />
@@ -134,7 +178,7 @@ export default function CisoRiskPage() {
         <div className="risk-grid" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20 }}>
           <div className="section-card">
             <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>Risk Trend</h2>
-            <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 18 }}>Average score and high risk count by day</p>
+            <p style={{ fontSize: 12, color: th.muted, marginBottom: 18 }}>Average score and high risk count by day</p>
             <ResponsiveContainer width="100%" height={270}>
               <AreaChart data={trendItems}>
                 <defs>
@@ -143,10 +187,10 @@ export default function CisoRiskPage() {
                     <stop offset="95%" stopColor="#16A34A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid} />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Area type="monotone" dataKey="avg_score" name="Avg score" stroke="#16A34A" strokeWidth={2.5} fill="url(#riskScoreFill)" />
                 <Area type="monotone" dataKey="high_risk_count" name="High risk" stroke="#DC2626" strokeWidth={2} fill="transparent" />
               </AreaChart>
@@ -155,13 +199,13 @@ export default function CisoRiskPage() {
 
           <div className="section-card">
             <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>Anomaly Frequency</h2>
-            <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 18 }}>Daily anomaly count</p>
+            <p style={{ fontSize: 12, color: th.muted, marginBottom: 18 }}>Daily anomaly count</p>
             <ResponsiveContainer width="100%" height={270}>
               <BarChart data={anomalyItems}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid} />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="count" fill="#F59E0B" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -177,16 +221,16 @@ export default function CisoRiskPage() {
           </div>
           <div className="table-scroll">
             <div className="table-min">
-              <div className="subject-row table-head" style={{ padding: "8px 16px", borderBottom: "2px solid #F3F4F6" }}>
+              <div className="subject-row table-head" style={{ padding: "8px 16px", borderBottom: `2px solid ${th.borderSubtle}` }}>
                 {["Subject", "Events", "Avg Score", "High Count"].map((head) => (
-                  <span key={head} style={{ fontSize: 11, fontWeight: 800, color: "#9CA3AF", textTransform: "uppercase" }}>{head}</span>
+                  <span key={head} style={{ fontSize: 11, fontWeight: 800, color: th.muted, textTransform: "uppercase" }}>{head}</span>
                 ))}
               </div>
               {topSubjects.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 42, color: "#9CA3AF" }}>No ranked subjects returned.</div>
+                <div style={{ textAlign: "center", padding: 42, color: th.muted }}>No ranked subjects returned.</div>
               ) : topSubjects.map((item: any) => (
                 <div key={item.subject} className="subject-row">
-                  <span style={{ fontFamily: "monospace", fontSize: 13, color: "#374151" }}>{item.subject}</span>
+                  <span style={{ fontFamily: "monospace", fontSize: 13, color: th.text }}>{item.subject}</span>
                   <span style={{ fontWeight: 800 }}>{item.count}</span>
                   <span style={{ fontWeight: 900, color: item.avg_score >= 70 ? "#991B1B" : "#15803D" }}>{Number(item.avg_score ?? 0).toFixed(1)}</span>
                   <span className="chip" style={{ background: item.high_count > 0 ? "#FEE2E2" : "#DCFCE7", color: item.high_count > 0 ? "#991B1B" : "#15803D", width: "fit-content" }}>
@@ -207,21 +251,21 @@ export default function CisoRiskPage() {
           </div>
           <div className="table-scroll">
             <div className="table-min">
-              <div className="risk-row table-head" style={{ padding: "8px 16px", borderBottom: "2px solid #F3F4F6" }}>
+              <div className="risk-row table-head" style={{ padding: "8px 16px", borderBottom: `2px solid ${th.borderSubtle}` }}>
                 {["Subject", "Level", "Score", "Time"].map((head) => (
-                  <span key={head} style={{ fontSize: 11, fontWeight: 800, color: "#9CA3AF", textTransform: "uppercase" }}>{head}</span>
+                  <span key={head} style={{ fontSize: 11, fontWeight: 800, color: th.muted, textTransform: "uppercase" }}>{head}</span>
                 ))}
               </div>
               {recentItems.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 42, color: "#9CA3AF" }}>No recent risk events returned.</div>
+                <div style={{ textAlign: "center", padding: 42, color: th.muted }}>No recent risk events returned.</div>
               ) : recentItems.map((item: any, index: number) => {
                 const style = levelStyle(item.level ?? item.risk_level);
                 return (
                   <div key={item._id ?? index} className="risk-row">
-                    <span style={{ fontFamily: "monospace", fontSize: 13, color: "#374151" }}>{item.subject ?? item.user_id ?? "-"}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: 13, color: th.text }}>{item.subject ?? item.user_id ?? "-"}</span>
                     <span className="chip" style={{ background: style.bg, color: style.color, width: "fit-content" }}>{item.level ?? item.risk_level ?? "LOW"}</span>
                     <span style={{ fontWeight: 900 }}>{Number(item.score ?? item.dynamic_score ?? 0).toFixed(1)}</span>
-                    <span style={{ fontSize: 13, color: "#6B7280" }}>{formatDate(item.created_at)}</span>
+                    <span style={{ fontSize: 13, color: th.subtext }}>{formatDate(item.created_at)}</span>
                   </div>
                 );
               })}
@@ -238,21 +282,21 @@ export default function CisoRiskPage() {
           </div>
           <div className="table-scroll">
             <div className="table-min">
-              <div className="risk-row table-head" style={{ padding: "8px 16px", borderBottom: "2px solid #F3F4F6" }}>
+              <div className="risk-row table-head" style={{ padding: "8px 16px", borderBottom: `2px solid ${th.borderSubtle}` }}>
                 {["Subject", "Level", "Score", "Time"].map((head) => (
-                  <span key={head} style={{ fontSize: 11, fontWeight: 800, color: "#9CA3AF", textTransform: "uppercase" }}>{head}</span>
+                  <span key={head} style={{ fontSize: 11, fontWeight: 800, color: th.muted, textTransform: "uppercase" }}>{head}</span>
                 ))}
               </div>
               {snapshotItems.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 42, color: "#9CA3AF" }}>No snapshots returned.</div>
+                <div style={{ textAlign: "center", padding: 42, color: th.muted }}>No snapshots returned.</div>
               ) : snapshotItems.map((item: any, index: number) => {
                 const style = levelStyle(item.level);
                 return (
                   <div key={item._id ?? index} className="risk-row">
-                    <span style={{ fontFamily: "monospace", fontSize: 13, color: "#374151" }}>{item.subject ?? "-"}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: 13, color: th.text }}>{item.subject ?? "-"}</span>
                     <span className="chip" style={{ background: style.bg, color: style.color, width: "fit-content" }}>{item.level ?? "LOW"}</span>
                     <span style={{ fontWeight: 900 }}>{Number(item.score ?? item.dynamic_score ?? 0).toFixed(1)}</span>
-                    <span style={{ fontSize: 13, color: "#6B7280" }}>{formatDate(item.created_at)}</span>
+                    <span style={{ fontSize: 13, color: th.subtext }}>{formatDate(item.created_at)}</span>
                   </div>
                 );
               })}

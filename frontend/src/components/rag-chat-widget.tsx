@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
 
 type ChatRole = "user" | "assistant" | "system";
 
@@ -1059,6 +1060,13 @@ export function RagChatWidget() {
                   {health.faiss_loaded ? "Online" : "Degraded"}
                 </span>
               )}
+            <div className="tfx-mode-tabs" style={{ marginTop: 6 }}>
+              <button type="button" className={`tfx-mode-tab ${mode === "rag" ? "active" : ""}`} onClick={() => switchMode("rag")}>
+                <Sparkles size={11} strokeWidth={2} />Market AI
+              </button>
+              <button type="button" className={`tfx-mode-tab ${mode === "news" ? "active" : ""}`} onClick={() => switchMode("news")}>
+                <Newspaper size={11} strokeWidth={2} />PSX News
+              </button>
             </div>
           </div>
           <button
@@ -1071,29 +1079,49 @@ export function RagChatWidget() {
           </button>
         </div>
 
-        <div className="tfx-chat-body">
-          {!loading && !user && (
-            <div className="tfx-chat-auth">
-              <span>Sign in to use the assistant.</span>
-              <Link href="/login">Login</Link>
-            </div>
-          )}
+          <div className="tfx-chat-body">
+            {!loading && !user && (
+              <div className="tfx-chat-auth">
+                <span>Sign in to use the assistant.</span>
+                <Link href="/login">Login</Link>
+              </div>
+            )}
 
-          <div className="tfx-chat-messages" ref={listRef}>
-            {messages.map((message) => {
-              const isAssistant = message.role === "assistant";
-              const report = isAssistant ? parsePredictionReport(message.content) : null;
-              const pretty = isAssistant && !report ? renderPrettyMessage(message.content) : null;
-              const bubbleClass = report
-                ? "tfx-chat-bubble-report"
-                : pretty
+            <div className="tfx-chat-messages" ref={listRef}>
+              {messages.map((message) => {
+                const isAssistant = message.role === "assistant";
+                const isNewsReport = isAssistant && !!message.newsReport;
+                const report = isAssistant && !isNewsReport ? parsePredictionReport(message.content) : null;
+                const pretty = isAssistant && !report && !isNewsReport ? renderPrettyMessage(message.content) : null;
+                const bubbleClass = isNewsReport
                   ? "tfx-chat-bubble-pretty"
-                  : "";
+                  : report
+                    ? "tfx-chat-bubble-report"
+                    : pretty
+                      ? "tfx-chat-bubble-pretty"
+                      : "";
 
               return (
                 <div key={message.id} className={`tfx-chat-row ${message.role}`}>
                   <div className={`tfx-chat-bubble ${bubbleClass}`}>
-                    {report ? (
+                    {isNewsReport ? (
+                      <div style={{ padding: "10px 12px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                          <Newspaper size={13} strokeWidth={2} />
+                          <span style={{ fontSize: 12, fontWeight: 700 }}>PSX News Report</span>
+                          <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 4 }}>{message.newsReport!.filename}</span>
+                        </div>
+                        <pre className="tfx-news-report">{message.newsReport!.text}</pre>
+                        <button
+                          type="button"
+                          className="tfx-news-dl-btn"
+                          onClick={() => downloadReport(message.newsReport!.text, message.newsReport!.filename)}
+                        >
+                          <Download size={12} strokeWidth={2} />
+                          Download .txt
+                        </button>
+                      </div>
+                    ) : report ? (
                       <div className="tfx-report-card">
                         <div className="tfx-report-header">
                           <div className="tfx-report-title">{report.title}</div>
@@ -1102,65 +1130,67 @@ export function RagChatWidget() {
                           )}
                         </div>
 
-                        {report.metrics.length > 0 && (
-                          <div className="tfx-report-metrics">
-                            {report.metrics.map((metric) => (
-                              <div key={metric.label} className="tfx-report-metric">
-                                <div className="tfx-report-label">{metric.label}</div>
-                                <div className="tfx-report-value">{metric.value}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {report.sections.map((section) => (
-                          <div key={section.title} className="tfx-report-section">
-                            <div className="tfx-report-section-title">{section.title}</div>
-                            {section.items.map((item, index) => {
-                              const split = splitKeyValue(item);
-                              return (
-                                <div key={`${section.title}-${index}`} className="tfx-report-item">
-                                  {split.hasLabel ? (
-                                    <>
-                                      <span className="tfx-report-item-label">{split.label}</span>
-                                      <span className="tfx-report-item-value">{split.value}</span>
-                                    </>
-                                  ) : (
-                                    <span className="tfx-report-item-value">{split.value}</span>
-                                  )}
+                          {report.metrics.length > 0 && (
+                            <div className="tfx-report-metrics">
+                              {report.metrics.map((metric) => (
+                                <div key={metric.label} className="tfx-report-metric">
+                                  <div className="tfx-report-label">{metric.label}</div>
+                                  <div className="tfx-report-value">{metric.value}</div>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        ))}
+                              ))}
+                            </div>
+                          )}
 
-                        {report.footer && (
-                          <div className="tfx-report-footer">{report.footer}</div>
-                        )}
-                      </div>
-                    ) : pretty ? (
-                      pretty
-                    ) : (
-                      message.content
-                    )}
+                          {report.sections.map((section) => (
+                            <div key={section.title} className="tfx-report-section">
+                              <div className="tfx-report-section-title">{section.title}</div>
+                              {section.items.map((item, index) => {
+                                const split = splitKeyValue(item);
+                                return (
+                                  <div key={`${section.title}-${index}`} className="tfx-report-item">
+                                    {split.hasLabel ? (
+                                      <>
+                                        <span className="tfx-report-item-label">{split.label}</span>
+                                        <span className="tfx-report-item-value">{split.value}</span>
+                                      </>
+                                    ) : (
+                                      <span className="tfx-report-item-value">{split.value}</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
+
+                          {report.footer && (
+                            <div className="tfx-report-footer">{report.footer}</div>
+                          )}
+                        </div>
+                      ) : pretty ? (
+                        pretty
+                      ) : (
+                        message.content
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
           {sending && (
             <div className="tfx-chat-typing">
               <span className="tfx-chat-dot" />
               <span className="tfx-chat-dot" />
               <span className="tfx-chat-dot" />
-              <span className="tfx-chat-typing-text">Thinking...</span>
+              <span className="tfx-chat-typing-text">
+                {mode === "news" ? "Running pipeline — may take 1–3 min..." : "Thinking..."}
+              </span>
             </div>
           )}
 
           {messages.length <= 2 && (
             <div className="tfx-chat-prompts">
-              {STARTER_PROMPTS.map((prompt) => (
+              {(mode === "news" ? STARTER_PROMPTS_NEWS : STARTER_PROMPTS_RAG).map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
@@ -1186,7 +1216,7 @@ export function RagChatWidget() {
             ref={inputRef}
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder={user ? "Ask a question..." : "Login to start chatting"}
+            placeholder={!user ? "Login to start chatting" : mode === "news" ? "e.g. Latest news for ABL with 16 docs..." : "Ask a question..."}
             disabled={sending || loading || !user}
           />
           <button

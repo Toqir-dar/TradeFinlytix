@@ -9,6 +9,7 @@ import {
 import { motion, type Variants } from "framer-motion";
 import { PsxLiveChartCard } from "@/components/psx-live-chart";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/use-theme";
 import { api } from "@/lib/api";
 import { DollarSign, TrendingUp, Briefcase, Award, Zap, History, UserCircle, Users, UserCheck, UserX, UserPlus, FileText, AlertCircle, Shield, CheckCircle2, FileSearch, AlertTriangle } from "lucide-react";
 
@@ -87,6 +88,7 @@ function getGreeting() {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const mono = useTheme();
 
   const { data: portfolio } = useQuery({
     queryKey: ["dashboard-portfolio"],
@@ -109,18 +111,55 @@ export default function DashboardPage() {
 
   const firstName = user?.full_name?.split(" ")[0] ?? (isAdmin ? "Admin" : isCiso ? "CISO" : "Trader");
 
+  const th = mono ? {
+    text: "#f1f5f9",
+    subtext: "#94a3b8",
+    muted: "#64748b",
+    card: "#1e293b",
+    border: "#334155",
+    borderSubtle: "#1e293b",
+    innerCard: "#111827",
+    symbolIconBg: "#14532d",
+    symbolIconColor: "#4ade80",
+    chartGrid: "#334155",
+    tooltipBg: "#1e293b",
+    tooltipBorder: "#334155",
+    headerBtnBg: "#1e293b",
+    headerBtnBorder: "#334155",
+    headerBtnColor: "#cbd5e1",
+  } : {
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    symbolIconBg: "#F0FDF4",
+    symbolIconColor: "#16A34A",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
+    headerBtnBg: "white",
+    headerBtnBorder: "#E5E7EB",
+    headerBtnColor: "#374151",
+  };
+
+  const tooltipStyle = { borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 13, background: th.tooltipBg, color: th.text };
+
   return (
     <motion.div
+      suppressHydrationWarning
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
-      style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}
+      style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
-        .section-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; }
+        .section-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; }
         .chip { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
-        .trade-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #F3F4F6; align-items: center; font-size: 14px; }
+        .trade-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid ${th.borderSubtle}; align-items: center; font-size: 14px; }
         .trade-row:last-child { border-bottom: none; }
         .dash-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
         .dash-two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 24px; }
@@ -154,10 +193,10 @@ export default function DashboardPage() {
       >
         <div className="dash-header">
           <div>
-            <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#111827", letterSpacing: "-0.5px" }}>
+            <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: th.text, letterSpacing: "-0.5px" }}>
               {getGreeting()}, {firstName}
             </h1>
-            <p style={{ fontSize: 14, color: "#6B7280", marginTop: 4 }}>
+            <p style={{ fontSize: 14, color: th.subtext, marginTop: 4 }}>
               Here&apos;s your {user?.role ?? "investor"} overview for today — {new Date().toLocaleDateString("en-PK", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
@@ -167,7 +206,7 @@ export default function DashboardPage() {
                 <Zap size={15} color="white" strokeWidth={2} />
                 Get Signal
               </Link>
-              <Link href="/portfolio" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+              <Link href="/portfolio" style={{ background: th.headerBtnBg, color: th.headerBtnColor, border: `1.5px solid ${th.headerBtnBorder}`, padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
                 Portfolio
               </Link>
             </div>
@@ -195,13 +234,13 @@ export default function DashboardPage() {
               <motion.div
                 key={s.label}
                 variants={cardItem}
-                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
-                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
+                whileHover={{ y: -2, boxShadow: mono ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
+                style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 24 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
-                    <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                    <p style={{ fontSize: 22, fontWeight: 800, color: "#111827" }}>{s.value}</p>
+                    <p style={{ fontSize: 12, color: th.muted, fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: th.text }}>{s.value}</p>
                     <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>
                       {s.up ? "▲" : "▼"} {s.change}
                     </p>
@@ -224,8 +263,8 @@ export default function DashboardPage() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div>
-                  <h3 style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>Portfolio Performance</h3>
-                  <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>Last 7 days</p>
+                  <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Portfolio Performance</h3>
+                  <p style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>Last 7 days</p>
                 </div>
                 <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 600 }}>+4.3% ▲</span>
               </div>
@@ -237,10 +276,10 @@ export default function DashboardPage() {
                       <stop offset="95%" stopColor="#4ADE80" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6"/>
-                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`}/>
-                  <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 13 }}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
+                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`}/>
+                  <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={tooltipStyle}/>
                   <Area type="monotone" dataKey="value" stroke="#16A34A" strokeWidth={2.5} fill="url(#colorValue)"/>
                 </AreaChart>
               </ResponsiveContainer>
@@ -253,7 +292,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.45, delay: 0.45, ease: EASE }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h3 style={{ fontWeight: 700, fontSize: 16 }}>AI Signals</h3>
+                <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>AI Signals</h3>
                 <Link href="/predict" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
               </div>
               <motion.div
@@ -266,19 +305,19 @@ export default function DashboardPage() {
                   <motion.div key={s.symbol} variants={listItem}>
                     <Link href={`/predict/${s.symbol}`} style={{ textDecoration: "none" }}>
                       <motion.div
-                        whileHover={{ backgroundColor: "#F9FAFB", x: 2, transition: { duration: 0.12 } }}
+                        whileHover={{ backgroundColor: th.innerCard, x: 2, transition: { duration: 0.12 } }}
                         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 10, backgroundColor: "transparent" }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <div style={{ width: 36, height: 36, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11, color: "#16A34A" }}>{s.symbol.slice(0, 3)}</div>
+                          <div style={{ width: 36, height: 36, background: th.symbolIconBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11, color: th.symbolIconColor }}>{s.symbol.slice(0, 3)}</div>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{s.symbol}</div>
-                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>{s.price}</div>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{s.symbol}</div>
+                            <div style={{ fontSize: 11, color: th.muted }}>{s.price}</div>
                           </div>
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <span className="chip" style={{ background: SIGNAL_COLORS[s.signal]?.bg, color: SIGNAL_COLORS[s.signal]?.color }}>{s.signal}</span>
-                          <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{s.confidence}% conf.</div>
+                          <div style={{ fontSize: 11, color: th.muted, marginTop: 2 }}>{s.confidence}% conf.</div>
                         </div>
                       </motion.div>
                     </Link>
@@ -311,12 +350,12 @@ export default function DashboardPage() {
             transition={{ duration: 0.45, delay: 0.55, ease: EASE }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontWeight: 700, fontSize: 16 }}>Recent Trades</h3>
+              <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Recent Trades</h3>
               <Link href="/trades" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
             </div>
             <div className="table-scroll">
               <div className="table-min">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   <span>Symbol</span><span>Type</span><span>Quantity</span><span>Price</span><span>Time</span><span>P&L</span>
                 </div>
                 <motion.div variants={rowStagger} initial="hidden" animate="visible">
@@ -325,16 +364,16 @@ export default function DashboardPage() {
                       key={i}
                       className="trade-row"
                       variants={rowItem}
-                      whileHover={{ backgroundColor: "#F9FAFB", transition: { duration: 0.1 } }}
+                      whileHover={{ backgroundColor: th.innerCard, transition: { duration: 0.1 } }}
                       style={{ backgroundColor: "transparent", borderRadius: 8 }}
                     >
-                      <span style={{ fontWeight: 700, color: "#111827" }}>{t.symbol}</span>
+                      <span style={{ fontWeight: 700, color: th.text }}>{t.symbol}</span>
                       <span>
                         <span className="chip" style={{ background: t.type === "BUY" ? "#DCFCE7" : "#FEE2E2", color: t.type === "BUY" ? "#15803D" : "#991B1B" }}>{t.type}</span>
                       </span>
-                      <span style={{ color: "#374151" }}>{t.qty}</span>
-                      <span style={{ color: "#374151" }}>{t.price}</span>
-                      <span style={{ color: "#9CA3AF" }}>{t.time}</span>
+                      <span style={{ color: th.subtext }}>{t.qty}</span>
+                      <span style={{ color: th.subtext }}>{t.price}</span>
+                      <span style={{ color: th.muted }}>{t.time}</span>
                       <span style={{ color: "#16A34A", fontWeight: 600 }}>{t.pnl}</span>
                     </motion.div>
                   ))}
@@ -350,7 +389,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.65, ease: EASE }}
           >
-            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Quick Actions</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12, color: th.text }}>Quick Actions</h3>
             <motion.div
               className="dash-quick-actions"
               style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}
@@ -368,14 +407,14 @@ export default function DashboardPage() {
                   <motion.div
                     variants={cardItem}
                     whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
-                    style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+                    style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                   >
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: a.iconColor, flexShrink: 0 }}>
                       <a.Icon size={16} strokeWidth={2} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{a.label}</div>
+                      <div style={{ fontSize: 12, color: th.muted }}>{a.sub}</div>
                     </div>
                   </motion.div>
                 </Link>
@@ -404,14 +443,14 @@ export default function DashboardPage() {
               <motion.div
                 key={s.label}
                 variants={cardItem}
-                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
-                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
+                whileHover={{ y: -2, boxShadow: mono ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
+                style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 24 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
-                    <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>{s.label}</p>
-                    <p style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</p>
-                    <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{s.change}</p>
+                    <p style={{ fontSize: 12, color: th.muted, marginBottom: 8 }}>{s.label}</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: th.text }}>{s.value}</p>
+                    <p style={{ fontSize: 12, color: th.subtext, marginTop: 4 }}>{s.change}</p>
                   </div>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
                     <s.Icon size={18} strokeWidth={2} />
@@ -427,7 +466,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.4, ease: EASE }}
           >
-            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Quick Actions</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Quick Actions</h3>
             <motion.div
               className="dash-admin-actions"
               style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
@@ -444,14 +483,14 @@ export default function DashboardPage() {
                   <motion.div
                     variants={cardItem}
                     whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
-                    style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+                    style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                   >
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: a.iconColor, flexShrink: 0 }}>
                       <a.Icon size={16} strokeWidth={2} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{a.label}</div>
+                      <div style={{ fontSize: 12, color: th.muted }}>{a.sub}</div>
                     </div>
                   </motion.div>
                 </Link>
@@ -480,14 +519,14 @@ export default function DashboardPage() {
               <motion.div
                 key={s.label}
                 variants={cardItem}
-                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
-                style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 16, padding: 24 }}
+                whileHover={{ y: -2, boxShadow: mono ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(0,0,0,0.08)", transition: { duration: 0.2 } }}
+                style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 24 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
-                    <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>{s.label}</p>
-                    <p style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</p>
-                    <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>{s.change}</p>
+                    <p style={{ fontSize: 12, color: th.muted, marginBottom: 8 }}>{s.label}</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: th.text }}>{s.value}</p>
+                    <p style={{ fontSize: 12, color: th.subtext, marginTop: 4 }}>{s.change}</p>
                   </div>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: s.iconColor, flexShrink: 0 }}>
                     <s.Icon size={18} strokeWidth={2} />
@@ -503,13 +542,13 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.4, ease: EASE }}
             >
-              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Risk Trend (7 Days)</h3>
+              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Risk Trend (7 Days)</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={riskData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6"/>
-                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false}/>
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 13 }}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
+                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+                  <Tooltip cursor={false} contentStyle={tooltipStyle}/>
                   <Bar dataKey="count" fill="#4ADE80" radius={[6, 6, 0, 0]}/>
                 </BarChart>
               </ResponsiveContainer>
@@ -520,7 +559,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.5, ease: EASE }}
             >
-              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Quick Actions</h3>
+              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Quick Actions</h3>
               <motion.div
                 style={{ display: "flex", flexDirection: "column", gap: 10 }}
                 variants={cardStagger}
@@ -536,14 +575,14 @@ export default function DashboardPage() {
                     <motion.div
                       variants={cardItem}
                       whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(74,222,128,0.15), 0 0 0 1.5px #4ADE80", transition: { duration: 0.15 } }}
-                      style={{ background: "white", border: "1.5px solid #E5E7EB", borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+                      style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 12, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
                     >
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: a.iconColor, flexShrink: 0 }}>
                         <a.Icon size={16} strokeWidth={2} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{a.label}</div>
-                        <div style={{ fontSize: 12, color: "#9CA3AF" }}>{a.sub}</div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{a.label}</div>
+                        <div style={{ fontSize: 12, color: th.muted }}>{a.sub}</div>
                       </div>
                     </motion.div>
                   </Link>

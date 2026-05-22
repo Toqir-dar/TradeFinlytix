@@ -6,40 +6,6 @@ import { useMarketPrediction } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
 
-const MOCK_DATA = {
-  symbol: "OGDC",
-  predicted_at: new Date().toISOString(),
-  prediction: {
-    signal: "BUY",
-    confidence: 0.814,
-    tier: "HIGH",
-    engine: "ensemble_v2",
-    entry_price: 173.5,
-    target_price: 127.5,
-    stop_loss: 168.0,
-    expected_gain_pct: 8.4,
-    rationale: "Strong momentum with bullish MACD crossover. Volume surge detected above 20-day average. RSI at 58 — not overbought. Fundamental value supported by recent earnings beat.",
-    features: [
-      { name: "Price Momentum", value: 0.82 },
-      { name: "Volume Signal", value: 0.74 },
-      { name: "RSI Score", value: 0.61 },
-      { name: "MACD Signal", value: 0.58 },
-      { name: "Earnings Beat", value: 0.49 },
-      { name: "Sector Trend", value: 0.43 },
-    ]
-  },
-  risk: {
-    level: "LOW",
-    score: 0.24,
-    dynamic_score: 0.31,
-    recent_request_count_10m: 3,
-    historical_high_risk_events: 1,
-  },
-  integrity: {
-    signature: "hmac_sha256_verified_a1b2c3d4e5f6",
-    verified: true,
-  }
-};
 
 const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; darkBg: string }> = {
   BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", darkBg: "#14532d" },
@@ -58,16 +24,15 @@ const RISK_CONFIG: Record<string, { bg: string; color: string }> = {
 export default function PredictSymbolPage() {
   const params = useParams<{ symbol: string }>();
   const symbol = (params.symbol || "OGDC").toUpperCase();
-  const { data: raw, isLoading, error } = useMarketPrediction(symbol);
+  const { data, isLoading, error } = useMarketPrediction(symbol);
   const mono = useTheme();
-  const data = raw ?? { ...MOCK_DATA, symbol };
 
   const signal = data?.prediction?.signal ?? "BUY";
   const sigConfig = SIGNAL_CONFIG[signal] ?? SIGNAL_CONFIG.BUY;
   const riskLevel = data?.risk?.level ?? "LOW";
   const riskConfig = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.LOW;
-  const confidence = ((data?.prediction?.confidence ?? 0.814) * 100).toFixed(1);
-  const features = data?.prediction?.features ?? MOCK_DATA.prediction.features;
+  const confidence = ((data?.prediction?.confidence ?? 0) * 100).toFixed(1);
+  const features: any[] = data?.prediction?.features ?? [];
 
   const th = mono ? {
     text: "#f1f5f9",
@@ -140,6 +105,30 @@ export default function PredictSymbolPage() {
     tierBorder: "#BBF7D0",
     tierColor: "#16A34A",
   };
+
+  if (isLoading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: mono ? "#94a3b8" : "#9CA3AF" }}>
+      <div style={{ textAlign: "center" }}>
+        <Loader2 size={32} style={{ animation: "spin 1s linear infinite", marginBottom: 12 }} />
+        <div>Fetching prediction for {symbol}…</div>
+      </div>
+    </div>
+  );
+
+  if (error || !data) return (
+    <div style={{ textAlign: "center", padding: 48 }}>
+      <Link href="/predict" style={{ color: "#16A34A", fontSize: 14 }}>← Back to Predictions</Link>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 24, marginBottom: 8 }}>
+        <AlertTriangle size={20} color="#DC2626" />
+        <span style={{ fontWeight: 600, fontSize: 18, color: mono ? "#f1f5f9" : "#111827" }}>
+          Prediction unavailable for {symbol}
+        </span>
+      </div>
+      <p style={{ fontSize: 14, color: mono ? "#94a3b8" : "#6B7280" }}>
+        {(error as any)?.response?.data?.detail ?? "The ML model could not generate a prediction right now. Try again shortly."}
+      </p>
+    </div>
+  );
 
   const isVerified = data?.integrity?.verified !== false;
 
@@ -269,7 +258,7 @@ export default function PredictSymbolPage() {
           <div style={{ background: th.rationaleBg, borderRadius: 12, padding: 16, marginTop: 16 }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: th.rationaleLabelColor, marginBottom: 6 }}>AI Rationale</p>
             <p style={{ fontSize: 13, color: th.rationaleTextColor, lineHeight: 1.65 }}>
-              {data?.prediction?.rationale ?? MOCK_DATA.prediction.rationale}
+              {data?.prediction?.rationale ?? "No rationale available."}
             </p>
           </div>
         </div>
@@ -333,7 +322,7 @@ export default function PredictSymbolPage() {
           <div style={{ background: th.signaturedBg, borderRadius: 10, padding: 14 }}>
             <p style={{ fontSize: 11, color: th.muted, fontWeight: 600, marginBottom: 6 }}>HMAC SIGNATURE</p>
             <p style={{ fontSize: 11, color: th.signatureColor, wordBreak: "break-all", fontFamily: "monospace", lineHeight: 1.6 }}>
-              {data?.integrity?.signature ?? MOCK_DATA.integrity.signature}
+              {data?.integrity?.signature ?? "—"}
             </p>
           </div>
 

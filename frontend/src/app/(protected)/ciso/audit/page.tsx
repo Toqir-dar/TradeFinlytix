@@ -8,26 +8,6 @@ import { useAnomalies, useAudit } from "@/lib/queries";
 import { api } from "@/lib/api";
 import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX, Sparkles, Bot, ArrowRight } from "lucide-react";
 
-const MOCK_AUDIT = {
-  items: [
-    { _id: "1", event_type: "login_success", user_id: "user123", path: "/api/v1/auth/login", created_at: new Date(Date.now() - 1000*60*5).toISOString(), payload: { role: "investor" } },
-    { _id: "2", event_type: "predict_request", user_id: "user123", path: "/api/v1/predict/OGDC", created_at: new Date(Date.now() - 1000*60*15).toISOString(), payload: { symbol: "OGDC" } },
-    { _id: "3", event_type: "portfolio_update", user_id: "user456", path: "/api/v1/portfolio", created_at: new Date(Date.now() - 1000*60*30).toISOString(), payload: {} },
-    { _id: "4", event_type: "login_failed", user_id: "user789", path: "/api/v1/auth/login", created_at: new Date(Date.now() - 1000*60*45).toISOString(), payload: { reason: "invalid_password" } },
-    { _id: "5", event_type: "admin_deactivate", user_id: "admin001", path: "/api/v1/admin/users/xyz/deactivate", created_at: new Date(Date.now() - 1000*60*60).toISOString(), payload: {} },
-    { _id: "6", event_type: "login_success", user_id: "user999", path: "/api/v1/auth/login", created_at: new Date(Date.now() - 1000*60*90).toISOString(), payload: { role: "ciso" } },
-  ],
-  total: 3421, skip: 0, limit: 50
-};
-
-const MOCK_ANOMALIES = {
-  items: [
-    { _id: "a1", subject: "user123", anomaly_type: "rapid_requests", score: 0.87, created_at: new Date(Date.now() - 1000*60*10).toISOString(), details: "15 requests in 2 minutes" },
-    { _id: "a2", subject: "anon:192.168.1.5", anomaly_type: "auth_brute_force", score: 0.94, created_at: new Date(Date.now() - 1000*60*25).toISOString(), details: "8 failed login attempts" },
-    { _id: "a3", subject: "user456", anomaly_type: "off_hours_access", score: 0.65, created_at: new Date(Date.now() - 1000*60*120).toISOString(), details: "Access at 3:42 AM" },
-  ],
-  total: 7, skip: 0, limit: 50
-};
 
 const EVENT_CONFIG: Record<string, { bg: string; color: string }> = {
   login_success:    { bg: "#DCFCE7", color: "#15803D" },
@@ -89,11 +69,8 @@ export default function CisoAuditPage() {
   });
   const { data: anomalyRaw } = useAnomalies();
 
-  const audit = auditRaw ?? MOCK_AUDIT;
-  const anomalies = anomalyRaw ?? MOCK_ANOMALIES;
-
-  const auditItems = audit?.items ?? [];
-  const anomalyItems = anomalies?.items ?? [];
+  const auditItems: any[] = auditRaw?.items ?? [];
+  const anomalyItems: any[] = anomalyRaw?.items ?? [];
 
   const EVENT_TYPES: string[] = [
     "all",
@@ -103,7 +80,7 @@ export default function CisoAuditPage() {
   const filteredAudit = auditItems.filter((i: any) =>
     !search || i.event_type.includes(search) || i.user_id?.includes(search) || i.path?.includes(search)
   );
-  const totalPages = Math.max(1, Math.ceil((audit?.total ?? 0) / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil((auditRaw?.total ?? 0) / PAGE_SIZE));
 
   const th = mono ? {
     heading: "#f1f5f9",
@@ -285,8 +262,8 @@ export default function CisoAuditPage() {
       {/* Stat Cards */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Events", value: audit?.total?.toLocaleString() ?? "3,421", sub: "All time", Icon: FileSearch, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
-          { label: "Anomalies", value: anomalies?.total ?? 7, sub: "Detected", color: "#DC2626", Icon: AlertTriangle, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
+          { label: "Total Events", value: auditRaw?.total?.toLocaleString() ?? "—", sub: "All time", Icon: FileSearch, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+          { label: "Anomalies", value: anomalyRaw?.total ?? anomalyItems.length, sub: "Detected", color: "#DC2626", Icon: AlertTriangle, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
           { label: "Chain Status", value: verifyResult ? (verifyResult.ok ? "Verified" : "Failed") : "Pending", sub: "HMAC integrity", color: verifyResult?.ok === false ? "#DC2626" : "#16A34A", Icon: CheckCircle2, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
           { label: "Event Types", value: EVENT_TYPES.length - 1, sub: "Distinct types", Icon: BarChart3, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
         ].map(s => (
@@ -390,7 +367,7 @@ export default function CisoAuditPage() {
 
           <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${th.borderSubtle}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <span style={{ fontSize: 13, color: th.muted }}>
-              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, audit?.total ?? 0)} of {audit?.total?.toLocaleString() ?? 0} total events
+              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, auditRaw?.total ?? 0)} of {auditRaw?.total?.toLocaleString() ?? 0} total events
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button

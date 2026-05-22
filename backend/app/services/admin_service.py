@@ -25,6 +25,35 @@ logger = logging.getLogger(__name__)
 
 PROTECTED_ROLES = frozenset({UserRole.ADMIN.value, UserRole.CISO.value})
 
+_ACTIVITY_LABELS: dict[str, str] = {
+    "login_success": "Successful login",
+    "login_failed": "Failed login attempt",
+    "user_registered": "Account registered",
+    "password_reset_otp_requested": "Password reset OTP requested",
+    "password_reset_otp_resent": "Password reset OTP resent",
+    "password_reset_otp_verified": "OTP verified",
+    "password_reset_completed": "Password reset completed",
+    "password_changed": "Password changed",
+    "refresh_token_misuse": "Suspicious refresh token use",
+    "admin_password_reset": "Password reset by admin",
+    "admin_activate": "Account activated by admin",
+    "admin_deactivate": "Account deactivated by admin",
+}
+
+
+def _summarize_activity(event_type: str, payload: dict) -> str:
+    label = _ACTIVITY_LABELS.get(event_type, event_type.replace("_", " ").capitalize())
+    extras: list[str] = []
+    if "role" in payload:
+        extras.append(f"role: {payload['role']}")
+    if "symbol" in payload:
+        extras.append(payload["symbol"])
+    if "attempts" in payload:
+        extras.append(f"{payload['attempts']} attempt(s)")
+    if "target_user_id" in payload:
+        extras.append(f"target: {str(payload['target_user_id'])[:8]}…")
+    return f"{label}{' — ' + ', '.join(extras) if extras else ''}"
+
 
 def _generate_reset_password() -> str:
     body = "".join(
@@ -191,7 +220,7 @@ class AdminService:
             jwt_version_invalidated_at=now,
         )
 
-    async def user_activity(self, user_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+    async def user_activity(self, user_id: str, *, limit: int = 50) -> dict[str, Any]:
         user = await self.repo.get_by_id(user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -203,5 +232,13 @@ class AdminService:
         )
         rows: list[dict[str, Any]] = []
         async for doc in cursor:
-            rows.append(json_safe_document(doc))
-        return rows
+            safe = json_safe_document(doc)
+            payload = safe.get("payload") or {}
+            rows.append({
+                "_id": safe.get("_id", ""),
+                "action": safe.get("event_type", ""),
+                "timestamp": safe.get("created_at", ""),
+                "ip": safe.get("ip", ""),
+                "details": _summarize_activity(safe.get("event_type", ""), payload),
+            })
+        return {"items": rows}

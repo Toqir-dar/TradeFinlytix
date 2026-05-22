@@ -8,6 +8,7 @@ from app.api.dependencies import CurrentUser
 from app.core.database import get_db
 from app.schemas.user_schema import (
     AuthResponse,
+    ChangePasswordRequest,
     ForgotPasswordRequest,
     MessageResponse,
     RefreshRequest,
@@ -105,6 +106,24 @@ async def reset_forgotten_password(
     message = await service.reset_password_with_otp(
         payload.email,
         payload.otp,
+        payload.new_password,
+        ip,
+    )
+    return MessageResponse(message=message)
+
+
+@router.post("/change-password", response_model=MessageResponse)
+async def change_password(
+    payload: ChangePasswordRequest,
+    request: Request,
+    current: CurrentUser,
+    db=Depends(get_db),
+) -> MessageResponse:
+    service = AuthService(db)
+    ip = get_client_ip(request)
+    message = await service.change_password(
+        str(current["_id"]),
+        payload.current_password,
         payload.new_password,
         ip,
     )

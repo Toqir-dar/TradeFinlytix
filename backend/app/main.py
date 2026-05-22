@@ -205,7 +205,7 @@ async def lifespan(app: FastAPI):
     except Exception as _exc:
         logger.error("Ensemble pre-load raised: %s", _exc, exc_info=True)
 
-    # Pre-load NHITS model (weights ~18 MB + config; dataset.pkl ~125 MB).
+    # Pre-load NHITS model (weights + config).
     try:
         from app.ml_engine.models.nhits_model import preload as nhits_preload
         ok = nhits_preload()

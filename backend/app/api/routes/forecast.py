@@ -39,7 +39,6 @@ async def nhits_status() -> dict:
         "NHITS_0.ckpt":       (_MODEL_DIR / "NHITS_0.ckpt").exists(),
         "configuration.pkl":  (_MODEL_DIR / "configuration.pkl").exists(),
         "alias_to_model.pkl": (_MODEL_DIR / "alias_to_model.pkl").exists(),
-        "dataset.pkl":        (_MODEL_DIR / "dataset.pkl").exists(),
     }
     try:
         import neuralforecast  # noqa

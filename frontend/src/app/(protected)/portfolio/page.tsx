@@ -146,10 +146,10 @@ export default function PortfolioPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.text }}>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.heading }}>
             My Portfolio
           </h1>
-          <p style={{ fontSize: 14, color: th.subtext }}>Track your PSX positions, P&L, and allocation</p>
+          <p style={{ fontSize: 14, color: th.bgSubtext }}>Track your PSX positions, P&L, and allocation</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/trades" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>

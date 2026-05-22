@@ -5,9 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
-
 import { useAuth } from "@/lib/auth";
-import { useQuery } from "@tanstack/react-query";
 
 type ChatRole = "user" | "assistant" | "system";
 

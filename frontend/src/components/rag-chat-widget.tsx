@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bot, Send, Sparkles, X, Newspaper, Download } from "lucide-react";
 import { api } from "@/lib/api";
+
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 

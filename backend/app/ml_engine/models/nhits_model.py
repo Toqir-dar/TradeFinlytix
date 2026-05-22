@@ -1,8 +1,11 @@
-"""NHITS 50-day live inference module.
+"""NHITS live inference module.
 
 Loads the saved NeuralForecast model (NHITS_0.ckpt + configuration.pkl) from
-the same directory as this file, then runs 50-day close price forecasts for any
-symbol whose OHLCV history can be fetched via yfinance.
+the same directory as this file and runs close price forecasts for any symbol
+whose OHLCV history can be fetched via yfinance.
+
+H (forecast horizon) is read directly from the loaded model so the code works
+regardless of which H was used at training time (10, 50, etc.).
 
 Forecast results are in-process cached for 1 hour per symbol.
 """
@@ -23,10 +26,11 @@ logger = logging.getLogger(__name__)
 # Directory that holds NHITS_0.ckpt / configuration.pkl / alias_to_model.pkl
 _MODEL_DIR = Path(__file__).parent
 
-# Must match notebook 05_nhits_50day_forecast.ipynb training config
-H          = 50
-INPUT_SIZE = 250
-FREQ       = "B"
+# H and INPUT_SIZE are read from the loaded model after NeuralForecast.load().
+# Defaults here are only used before the model loads (e.g. for min-row filtering).
+_H_DEFAULT          = 50   # overwritten post-load from nf.models[0].h
+_INPUT_SIZE_DEFAULT = 250  # overwritten post-load from nf.models[0].input_size
+FREQ                = "B"
 
 # 59 features — exact order from notebook cell-features
 NHITS_FEATURE_COLS: list[str] = [
@@ -162,7 +166,7 @@ def _get_nf_model() -> Any:
         from neuralforecast import NeuralForecast  # noqa: PLC0415
         logger.info("Loading NeuralForecast NHITS from %s", _MODEL_DIR)
         _nf_model = NeuralForecast.load(str(_MODEL_DIR))
-        logger.info("NHITS model loaded successfully")
+        logger.info("NHITS model loaded — H=%s", getattr(_nf_model.models[0], "h", "?"))
     except Exception as exc:
         logger.error("NHITS model load failed: %s", exc, exc_info=True)
         _nf_model = None
@@ -172,6 +176,28 @@ def _get_nf_model() -> Any:
 def preload() -> bool:
     """Call at app startup to surface load errors early. Returns True if loaded."""
     return _get_nf_model() is not None
+
+
+def _get_h() -> int:
+    """Return the actual horizon from the loaded model, or the default."""
+    m = _get_nf_model()
+    if m is not None:
+        try:
+            return int(m.models[0].h)
+        except Exception:
+            pass
+    return _H_DEFAULT
+
+
+def _get_input_size() -> int:
+    """Return the actual input_size from the loaded model, or the default."""
+    m = _get_nf_model()
+    if m is not None:
+        try:
+            return int(m.models[0].input_size)
+        except Exception:
+            pass
+    return _INPUT_SIZE_DEFAULT
 
 
 # ── In-process TTL cache ──────────────────────────────────────────────────────
@@ -210,10 +236,12 @@ def _build_nf_df(symbol: str, history_rows: int = 450) -> pd.DataFrame | None:
         return None
 
     all_records = history + [symbol_data]
-    if len(all_records) < INPUT_SIZE + H:
+    _h   = _get_h()
+    _inp = _get_input_size()
+    if len(all_records) < _inp + _h:
         logger.warning(
             "NHITS: insufficient history for %s (%d rows, need %d)",
-            symbol, len(all_records), INPUT_SIZE + H,
+            symbol, len(all_records), _inp + _h,
         )
         return None
 
@@ -255,7 +283,7 @@ def _build_futr_df(nf_df: pd.DataFrame) -> pd.DataFrame:
     last_date = nf_df["ds"].max()
     future_dates = pd.bdate_range(
         start=last_date + pd.Timedelta(days=1),
-        periods=H,
+        periods=_get_h(),
         freq=FREQ,
     )
     rows = [
@@ -279,18 +307,19 @@ def _build_futr_df(nf_df: pd.DataFrame) -> pd.DataFrame:
 
 def get_nhits_forecast(symbol: str) -> dict[str, Any] | None:
     """
-    Return a 50-day close price forecast for *symbol*.
+    Return an N-day close price forecast for *symbol* (N = model's trained horizon).
 
     Result shape
     ------------
     {
       "symbol":   str,
-      "forecast": [{"date": "YYYY-MM-DD", "close": float}, ...],  # H items
+      "horizon":  int,
+      "forecast": [{"date": "YYYY-MM-DD", "close": float}, ...],  # horizon items
       "summary":  {
           "last_close":              float,
           "close_day1":              float,
-          "close_day50":             float,
-          "expected_return_50d_pct": float,
+          "close_day50":             float,   # last forecast day (regardless of H)
+          "expected_return_50d_pct": float,   # return over the full horizon
           "close_min":               float,
           "close_max":               float,
       }
@@ -326,12 +355,14 @@ def get_nhits_forecast(symbol: str) -> dict[str, Any] | None:
     pred_col = next(c for c in raw.columns if c not in ("unique_id", "ds"))
     preds = raw[pred_col].clip(lower=0).tolist()
 
+    h          = _get_h()
     last_close = float(nf_df["y"].iloc[-1])
     day1       = float(preds[0])  if preds else last_close
-    day50      = float(preds[-1]) if preds else last_close
+    day_last   = float(preds[-1]) if preds else last_close
 
     result: dict[str, Any] = {
-        "symbol": sym,
+        "symbol":  sym,
+        "horizon": h,
         "forecast": [
             {"date": row["ds"].strftime("%Y-%m-%d"), "close": round(float(row[pred_col]), 4)}
             for _, row in raw.iterrows()
@@ -339,8 +370,8 @@ def get_nhits_forecast(symbol: str) -> dict[str, Any] | None:
         "summary": {
             "last_close":              round(last_close, 4),
             "close_day1":              round(day1,       4),
-            "close_day50":             round(day50,      4),
-            "expected_return_50d_pct": round((day50 - last_close) / (last_close + 1e-8) * 100, 2),
+            "close_day50":             round(day_last,   4),
+            "expected_return_50d_pct": round((day_last - last_close) / (last_close + 1e-8) * 100, 2),
             "close_min":               round(min(preds), 4),
             "close_max":               round(max(preds), 4),
         },

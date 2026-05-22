@@ -90,6 +90,7 @@ async def nhits_forecast(
 
     return NHITSForecastResponse(
         symbol   = result["symbol"],
+        horizon  = result.get("horizon", 50),
         forecast = [ForecastPoint(**p) for p in result["forecast"]],
         summary  = ForecastSummary(**result["summary"]) if result.get("summary") else None,
     )

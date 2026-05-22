@@ -94,6 +94,7 @@ export default function NHITSForecastChart({ symbol, isDark = false }: Props) {
 
   const dividerDate = forecast.forecast[0]?.date;
   const s           = forecast.summary;
+  const h           = forecast.horizon ?? 50;
   const returnPct   = s?.expected_return_50d_pct ?? 0;
   const returnColor = returnPct >= 0 ? "#16A34A" : "#DC2626";
   const hasHistory  = historical.length > 0;
@@ -104,11 +105,11 @@ export default function NHITSForecastChart({ symbol, isDark = false }: Props) {
       {s && (
         <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
           {[
-            { label: "Last Close",      value: `PKR ${s.last_close.toFixed(2)}` },
-            { label: "Day 1 Forecast",  value: `PKR ${s.close_day1.toFixed(2)}` },
-            { label: "Day 50 Forecast", value: `PKR ${s.close_day50.toFixed(2)}` },
-            { label: "50d Expected Return", value: `${returnPct >= 0 ? "+" : ""}${returnPct.toFixed(1)}%`, color: returnColor },
-            { label: "Forecast Range",  value: `${s.close_min.toFixed(1)} – ${s.close_max.toFixed(1)} PKR` },
+            { label: "Last Close",             value: `PKR ${s.last_close.toFixed(2)}` },
+            { label: "Day 1 Forecast",         value: `PKR ${s.close_day1.toFixed(2)}` },
+            { label: `Day ${h} Forecast`,      value: `PKR ${s.close_day50.toFixed(2)}` },
+            { label: `${h}d Expected Return`,  value: `${returnPct >= 0 ? "+" : ""}${returnPct.toFixed(1)}%`, color: returnColor },
+            { label: "Forecast Range",         value: `${s.close_min.toFixed(1)} – ${s.close_max.toFixed(1)} PKR` },
           ].map((m) => (
             <div key={m.label} style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: 10, padding: "8px 14px" }}>
               <div style={{ fontSize: 10, color: tickClr, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
@@ -144,7 +145,7 @@ export default function NHITSForecastChart({ symbol, isDark = false }: Props) {
           />
           <Legend
             formatter={(v: string) =>
-              v === "historical" ? "Historical (60d)" : "NHITS 50-Day Forecast"
+              v === "historical" ? "Historical (60d)" : `NHITS ${h}-Day Forecast`
             }
             wrapperStyle={{ fontSize: 12 }}
           />

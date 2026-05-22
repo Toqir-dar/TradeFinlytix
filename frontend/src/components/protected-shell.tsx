@@ -4,16 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, type LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/predict", label: "Predictions", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/screener", label: "Screener", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/portfolio", label: "Portfolio", roles: ["investor"] as Role[] },
   { href: "/trades", label: "Trades", roles: ["investor"] as Role[] },
   { href: "/admin/users", label: "Users", roles: ["admin"] as Role[] },
@@ -31,6 +32,7 @@ const ROLE_CONFIG: Record<string, { bg: string; color: string; label: string }> 
 const NAV_ICONS: Record<string, LucideIcon> = {
   "/dashboard": LayoutDashboard,
   "/predict": TrendingUp,
+  "/screener": Filter,
   "/portfolio": Briefcase,
   "/trades": History,
   "/admin/users": Users,
@@ -43,6 +45,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [showAlerts, setShowAlerts] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -105,6 +108,17 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
   const markAllRead = async () => {
     try {
       await api.patch("/alerts/read-all");
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-list"] });
+    } catch {}
+  };
+
+  const markAlertRead = async (alertId?: string) => {
+    if (!alertId) return;
+    try {
+      await api.patch(`/alerts/${alertId}/read`);
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-list"] });
     } catch {}
   };
 
@@ -217,7 +231,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             {/* Alerts Bell */}
             <div style={{ position: "relative" }}>
               <button id="alerts-btn"
-                onClick={() => { setShowAlerts(!showAlerts); if (!showAlerts) markAllRead(); }}
+                onClick={() => setShowAlerts(!showAlerts)}
                 style={{ position: "relative", width: 40, height: 40, borderRadius: 10, border: "1.5px solid #E5E7EB", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; e.currentTarget.style.background = "#F0FDF4"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "white"; }}
@@ -247,7 +261,13 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
                       {alerts.map((alert: any, i: number) => {
                         const sev = SEVERITY_CONFIG[alert.severity] ?? SEVERITY_CONFIG.low;
                         return (
-                          <div key={alert._id ?? i} className="alert-item">
+                          <div
+                            key={alert._id ?? i}
+                            className="alert-item"
+                            onClick={() => markAlertRead(alert._id)}
+                            title={alert.is_read ? "Already read" : "Mark as read"}
+                            style={{ background: alert.is_read ? "white" : "#F9FAFB" }}
+                          >
                             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                               <span style={{ background: sev.bg, color: sev.color, padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 700, textTransform: "uppercase", flexShrink: 0, marginTop: 2 }}>
                                 {alert.severity}

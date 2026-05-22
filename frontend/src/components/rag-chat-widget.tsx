@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -454,6 +455,12 @@ export function RagChatWidget() {
 
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { data: health } = useQuery({
+    queryKey: ["rag-health"],
+    queryFn: async () => (await api.get("/rag/health")).data as { status: string; faiss_loaded: boolean; message: string },
+    enabled: open && !!user,
+    staleTime: 60000,
+  });
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -1045,7 +1052,14 @@ export function RagChatWidget() {
           </div>
           <div>
             <div className="tfx-chat-title">TradeFinlytix AI</div>
-            <div className="tfx-chat-subtitle">RAG assistant for market and platform questions</div>
+            <div className="tfx-chat-subtitle">
+              RAG assistant for market and platform questions
+              {user && health && (
+                <span style={{ marginLeft: 8, color: health.faiss_loaded ? "#16A34A" : "#92400E", fontWeight: 700 }}>
+                  {health.faiss_loaded ? "Online" : "Degraded"}
+                </span>
+              )}
+            </div>
           </div>
           <button
             type="button"

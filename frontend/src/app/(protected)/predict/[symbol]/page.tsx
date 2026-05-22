@@ -2,6 +2,8 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import { useMarketPrediction } from "@/lib/queries";
 import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
 
@@ -59,6 +61,27 @@ export default function PredictSymbolPage() {
   const symbol = (params.symbol || "OGDC").toUpperCase();
   const { data: raw, isLoading, error } = useMarketPrediction(symbol);
   const data = raw ?? { ...MOCK_DATA, symbol };
+  const signedPayload = raw
+    ? {
+        symbol: raw.symbol,
+        user_id: raw.user_id,
+        predicted_at: raw.predicted_at,
+        prediction: raw.prediction,
+        risk: raw.risk,
+      }
+    : null;
+  const { data: integrityCheck, isFetching: verifyingIntegrity } = useQuery({
+    queryKey: ["predict-integrity", symbol, raw?.integrity?.signature],
+    queryFn: async () => {
+      if (!signedPayload || !raw?.integrity?.signature) throw new Error("Missing signed prediction payload.");
+      const { data } = await api.post("/predict/verify-integrity", {
+        payload: signedPayload,
+        signature: raw.integrity.signature,
+      });
+      return data as { ok: boolean };
+    },
+    enabled: !!signedPayload && !!raw?.integrity?.signature,
+  });
 
   const signal = data?.prediction?.signal ?? "BUY";
   const sigConfig = SIGNAL_CONFIG[signal] ?? SIGNAL_CONFIG.BUY;
@@ -66,6 +89,7 @@ export default function PredictSymbolPage() {
   const riskConfig = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.LOW;
   const confidence = ((data?.prediction?.confidence ?? 0.814) * 100).toFixed(1);
   const features = data?.prediction?.features ?? MOCK_DATA.prediction.features;
+  const integrityOk = raw ? integrityCheck?.ok === true : data?.integrity?.verified !== false;
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
@@ -246,13 +270,13 @@ export default function PredictSymbolPage() {
         {/* Integrity */}
         <div className="section-card">
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Integrity Verification</h3>
-          <div style={{ background: data?.integrity?.verified !== false ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${data?.integrity?.verified !== false ? "#BBF7D0" : "#FECACA"}`, borderRadius: 12, padding: 20, marginBottom: 16, textAlign: "center" }}>
-            <p style={{ fontWeight: 700, fontSize: 16, color: data?.integrity?.verified !== false ? "#15803D" : "#991B1B", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <div style={{ background: integrityOk ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${integrityOk ? "#BBF7D0" : "#FECACA"}`, borderRadius: 12, padding: 20, marginBottom: 16, textAlign: "center" }}>
+            <p style={{ fontWeight: 700, fontSize: 16, color: integrityOk ? "#15803D" : "#991B1B", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <CheckCircle2 size={18} strokeWidth={2} />
-              {data?.integrity?.verified !== false ? "HMAC Verified" : "Verification Failed"}
+              {verifyingIntegrity ? "Verifying HMAC..." : integrityOk ? "HMAC Verified" : "Verification Failed"}
             </p>
             <p style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>
-              {data?.integrity?.verified !== false ? "Prediction data is authentic and untampered" : "Data integrity check failed"}
+              {raw ? "Verified through /predict/verify-integrity" : "Demo data shown until backend returns a signed payload"}
             </p>
           </div>
           <div style={{ background: "#F9FAFB", borderRadius: 10, padding: 14 }}>

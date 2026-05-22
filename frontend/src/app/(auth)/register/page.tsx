@@ -237,9 +237,9 @@ export default function RegisterPage() {
 
           <p style={{ textAlign: "center", fontSize: 12, color: th.muted, marginTop: 20, lineHeight: 1.6 }}>
             By registering, you agree to our{" "}
-            <a href="#" style={{ color: "#16A34A", textDecoration: "none" }}>Terms of Service</a>{" "}
+            <Link href="/legal#terms-of-service" style={{ color: "#16A34A", textDecoration: "none" }}>Terms of Service</Link>{" "}
             and{" "}
-            <a href="#" style={{ color: "#16A34A", textDecoration: "none" }}>Privacy Policy</a>.
+            <Link href="/legal#privacy-policy" style={{ color: "#16A34A", textDecoration: "none" }}>Privacy Policy</Link>.
           </p>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 28, paddingTop: 24, borderTop: `1px solid ${th.borderTopColor}` }}>

@@ -26,6 +26,7 @@ from app.api.routes import auth as auth_routes
 from app.api.routes import ciso as ciso_routes
 from app.api.routes import market as market_routes
 from app.api.routes import portfolio as portfolio_routes
+from app.api.routes import forecast as forecast_routes
 from app.api.routes import prediction as prediction_routes
 from app.api.routes import news_rag as news_rag_routes
 from app.api.routes import rag as rag_routes
@@ -60,6 +61,11 @@ OPENAPI_TAGS = [
         "name": "Prediction",
         "description": "Authenticated investors: adaptive risk envelope + ensemble "
         "model prediction output (`engine: ensemble_v1`).",
+    },
+    {
+        "name": "Forecast",
+        "description": "NHITS (Neural Hierarchical Interpolation for Time Series) "
+        "50-day close price forecasts. Results cached 1 hour per symbol.",
     },
     {
         "name": "Portfolio",
@@ -199,6 +205,17 @@ async def lifespan(app: FastAPI):
     except Exception as _exc:
         logger.error("Ensemble pre-load raised: %s", _exc, exc_info=True)
 
+    # Pre-load NHITS model (weights + config).
+    try:
+        from app.ml_engine.models.nhits_model import preload as nhits_preload
+        ok = nhits_preload()
+        if ok:
+            logger.info("NHITS model pre-loaded successfully")
+        else:
+            logger.warning("NHITS model FAILED to load; /forecast/nhits will return 404")
+    except Exception as _exc:
+        logger.error("NHITS pre-load raised: %s", _exc, exc_info=True)
+
     logger.info("TradeFinlytix backend ready.")
     yield
     stop_analytics_worker()
@@ -233,6 +250,7 @@ app.add_middleware(
 app.include_router(analytics_routes.router, prefix="/api/v1")
 app.include_router(auth_routes.router, prefix="/api/v1")
 app.include_router(prediction_routes.router, prefix="/api/v1")
+app.include_router(forecast_routes.router,    prefix="/api/v1")
 app.include_router(rag_routes.router, prefix="/api/v1")
 app.include_router(news_rag_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")

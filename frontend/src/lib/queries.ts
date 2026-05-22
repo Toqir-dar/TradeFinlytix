@@ -227,6 +227,35 @@ export const useCompanyProfile = (symbol: string) =>
     staleTime: 55000,
   });
 
+// ── NHITS Forecast ───────────────────────────────────────────
+export type NHITSForecastPoint = { date: string; close: number };
+
+export type NHITSForecastSummary = {
+  last_close:              number;
+  close_day1:              number;
+  close_day50:             number;
+  expected_return_50d_pct: number;
+  close_min:               number;
+  close_max:               number;
+};
+
+export type NHITSForecastData = {
+  symbol:   string;
+  model:    string;
+  horizon:  number;
+  forecast: NHITSForecastPoint[];
+  summary:  NHITSForecastSummary | null;
+};
+
+export const useNhitsForecast = (symbol: string) =>
+  useQuery<NHITSForecastData>({
+    queryKey: ["nhits-forecast", symbol],
+    queryFn:  async () => (await api.get(`/forecast/nhits/${symbol}`)).data,
+    enabled:  !!symbol,
+    staleTime: 1000 * 60 * 60, // 1 hour — matches server-side cache TTL
+    retry: 1,
+  });
+
 // ── Market ───────────────────────────────────────────────────
 export type IntradayPoint = { ts: string; price: number };
 export type IntradayResponse = {

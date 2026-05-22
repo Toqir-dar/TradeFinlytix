@@ -26,7 +26,7 @@ apscheduler==3.10.4
 scikit-learn==1.5.0
 xgboost==2.0.3
 lightgbm==4.3.0
-torch==2.3.0
+torch>=2.4.0
 transformers==4.41.2
 shap==0.45.1
 numpy==1.26.4
@@ -53,9 +53,7 @@ faiss-cpu==1.8.0
 
 playwright
 
-# NeuralForecast / NHITS — install without ray (no Py3.13 wheels; ray is stubbed at runtime)
-# Run:  pip install neuralforecast==3.1.7 --no-deps
-#        pip install utilsforecast>=0.2.0 coreforecast>=0.0.17 lightning>=2.0.0
+# NeuralForecast / NHITS (ray is stubbed at runtime — no ray dependency needed)
 neuralforecast==3.1.7
 utilsforecast>=0.2.0
 coreforecast>=0.0.17

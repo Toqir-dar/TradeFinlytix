@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Bot, Send, Sparkles, X } from "lucide-react";
+import { Bot, Send, Sparkles, X, Newspaper, Download } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 type ChatRole = "user" | "assistant" | "system";
+type ChatMode = "rag" | "news";
 
 type ChatMessage = {
   id: string;
   role: ChatRole;
   content: string;
+  newsReport?: { text: string; filename: string };
 };
 
 type ReportMetric = {
@@ -46,13 +47,22 @@ type PrettyBlock =
   | { type: "kv"; items: KeyValuePair[] }
   | { type: "code"; code: string; language?: string };
 
-const INTRO_MESSAGE =
+const INTRO_RAG =
   "Hi, I am TradeFinlytix AI. Ask me about PSX, predictions, or platform features.";
 
-const STARTER_PROMPTS = [
+const INTRO_NEWS =
+  "PSX News mode. Describe what company news you want — include a ticker and optionally the number of docs. A report will be generated and downloaded.";
+
+const STARTER_PROMPTS_RAG = [
   "What is the prediction for OGDC today?",
   "Summarize TradeFinlytix in two sentences.",
   "What are the latest PSX market signals?",
+];
+
+const STARTER_PROMPTS_NEWS = [
+  "Latest news of ABL stock with 16 docs",
+  "Fetch 20 recent announcements for HBL",
+  "Dividend news for ENGRO with 10 results",
 ];
 
 const REPORT_SECTION_TITLES = [
@@ -447,10 +457,11 @@ const renderPrettyMessage = (content: string) => {
 export function RagChatWidget() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<ChatMode>("rag");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { id: buildId(), role: "assistant", content: INTRO_MESSAGE },
+    { id: buildId(), role: "assistant", content: INTRO_RAG },
   ]);
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -470,22 +481,57 @@ export function RagChatWidget() {
     setMessages((prev) => [...prev, message]);
   };
 
+  const switchMode = (next: ChatMode) => {
+    if (next === mode) return;
+    setMode(next);
+    setInput("");
+    setMessages([{ id: buildId(), role: "assistant", content: next === "news" ? INTRO_NEWS : INTRO_RAG }]);
+  };
+
+  const downloadReport = (text: string, filename: string) => {
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const sendMessage = async (override?: string) => {
     const question = (override ?? input).trim();
     if (!question || sending) return;
 
     if (!user) {
-      appendMessage({
-        id: buildId(),
-        role: "system",
-        content: "Please sign in to use the assistant.",
-      });
+      appendMessage({ id: buildId(), role: "system", content: "Please sign in to use the assistant." });
       return;
     }
 
     setInput("");
     setSending(true);
     appendMessage({ id: buildId(), role: "user", content: question });
+
+    if (mode === "news") {
+      try {
+        const response = await api.post("/news-rag/query", { question }, { responseType: "blob", timeout: 240000 });
+        const blob = response.data as Blob;
+        const text = await blob.text();
+        const disposition = (response.headers["content-disposition"] as string) ?? "";
+        const match = disposition.match(/filename="([^"]+)"/);
+        const filename = match?.[1] ?? `psx_news_${Date.now()}.txt`;
+        downloadReport(text, filename);
+        appendMessage({ id: buildId(), role: "assistant", content: text, newsReport: { text, filename } });
+      } catch (err: any) {
+        let msg = "News RAG pipeline failed. Check that your question includes a valid PSX ticker.";
+        try {
+          const blobData = err?.response?.data as Blob | undefined;
+          if (blobData) { const t = await blobData.text(); const p = JSON.parse(t); msg = p.detail || msg; }
+        } catch { /* ignore parse error */ }
+        appendMessage({ id: buildId(), role: "assistant", content: msg });
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
 
     try {
       const { data } = await api.post("/rag/query", { question });
@@ -499,11 +545,7 @@ export function RagChatWidget() {
       const fallback = status === 401
         ? "Your session expired. Please sign in again."
         : "RAG request failed. Please try again.";
-      appendMessage({
-        id: buildId(),
-        role: "assistant",
-        content: detail || fallback,
-      });
+      appendMessage({ id: buildId(), role: "assistant", content: detail || fallback });
     } finally {
       setSending(false);
     }
@@ -1015,6 +1057,14 @@ export function RagChatWidget() {
         .tfx-chat-send:disabled { opacity: 0.6; cursor: not-allowed; }
         @keyframes tfxBlink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
         @keyframes tfxPulse { 0%, 100% { transform: scale(0.96); opacity: 0.2; } 50% { transform: scale(1); opacity: 0.45; } }
+        .tfx-mode-tabs { display: flex; gap: 4px; background: var(--tfx-surface-subtle); border-radius: 10px; padding: 3px; }
+        .tfx-mode-tab { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; background: transparent; color: var(--tfx-muted); }
+        .tfx-mode-tab.active { background: var(--tfx-surface); color: var(--tfx-accent); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .tfx-news-report { background: var(--tfx-code-bg); color: var(--tfx-code-text); border-radius: 10px; padding: 12px; font-family: "SFMono-Regular", monospace; font-size: 11px; line-height: 1.6; white-space: pre-wrap; overflow-y: auto; max-height: 300px; margin-top: 8px; }
+        .tfx-news-report::-webkit-scrollbar { width: 6px; }
+        .tfx-news-report::-webkit-scrollbar-thumb { background: var(--tfx-scroll-thumb); border-radius: 3px; }
+        .tfx-news-dl-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; background: var(--tfx-accent); color: var(--tfx-accent-contrast); border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+        .tfx-news-dl-btn:hover { opacity: 0.88; }
         @media (max-width: 640px) {
           .tfx-report-metrics { grid-template-columns: 1fr; }
           .tfx-chat-panel {
@@ -1042,9 +1092,9 @@ export function RagChatWidget() {
       <div className={`tfx-chat-panel ${open ? "open" : ""}`} role="dialog" aria-hidden={!open}>
         <div className="tfx-chat-header">
           <div className="tfx-chat-badge">
-            <Sparkles size={18} strokeWidth={2} />
+            {mode === "news" ? <Newspaper size={18} strokeWidth={2} /> : <Sparkles size={18} strokeWidth={2} />}
           </div>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="tfx-chat-title">TradeFinlytix AI</div>
             <div className="tfx-mode-tabs" style={{ marginTop: 6 }}>
               <button type="button" className={`tfx-mode-tab ${mode === "rag" ? "active" : ""}`} onClick={() => switchMode("rag")}>

@@ -874,41 +874,51 @@ docker compose up --build
 
 Services:
 
-- `POST /api/v1/admin/*`
-- `POST /api/v1/ciso/*`
-- `GET /api/v1/predict/*`
+- API: http://localhost:8000
+- Docs: http://localhost:8000/docs
+- MongoDB: localhost:27017
+- Redis: localhost:6379
+- Mongo Express: http://localhost:8081
 
----
+### RAG and NewsRAG prerequisites
 
-## Roles & Permissions
+StockX RAG:
 
-| Permission | investor | admin | ciso |
-|-----------|----------|-------|------|
-| `predict:read` | ✓ | ✓ | ✓ |
-| `portfolio:read/write` | ✓ | ✓ | — |
-| `alerts:read/write` | ✓ | ✓ | — |
-| `screener:read` | ✓ | ✓ | — |
-| `admin:read/write` | — | ✓ | ✓ (read) |
-| `users:read/write` | — | ✓ | ✓ (read) |
-| `audit:read/write` | — | ✓ (read) | ✓ |
-| `anomaly:read` | — | — | ✓ |
+- GROQ_API_KEY (for routing and query transforms)
+- OPENAI_API_KEY (for gpt-4o-mini and embeddings)
+- FAISS index present at backend/app/StockX/faiss_vectorstore
 
-Privileged accounts (admin / CISO) cannot be deactivated or password-reset via the admin API (returns 403).
+NewsRAG:
 
----
+- OPENAI_API_KEY
+- playwright installed: playwright install chromium
 
-## Roadmap
+## Known gaps and placeholders
 
-- [ ] FinBERT sentiment pipeline (`sentiment.py` — currently placeholder)
-- [x] SHAP explainability per prediction — live, returned in every `GET /predict/{symbol}` response
-- [ ] Event detection at inference time (`event_detection.py` — currently placeholder)
-- [ ] APScheduler background jobs — scheduled retraining, data collection, alert worker
-- [ ] Real-time streaming signals via WebSockets
-- [ ] Frontend React dashboard with TradingView chart overlay
-- [ ] PSX-fine-tuned FinBERT (Urdu + English financial corpus)
-- [ ] Reinforcement learning for dynamic position sizing
+These files exist but are placeholders or not wired to live routes:
 
----
+- backend/app/api/routes/audit.py
+- backend/app/security/input_validator.py
+- backend/app/ml_engine/utils/atr_levels.py
+- backend/app/utils/constants.py
+- backend/app/utils/decorators.py
+- backend/app/repositories/stock_repo.py
+- backend/app/schemas/stock_schema.py
+- backend/scripts/migrate.py
+- backend/scripts/seed_db.py
+- backend/scripts/train_model.py
+- backend/app/workers/alert_worker.py
+- backend/app/workers/data_collector.py
+- backend/app/workers/scheduler.py
+
+Frontend gaps:
+
+- The profile page calls /auth/change-password, which is not implemented in the backend
+
+Operational notes:
+
+- Screener defaults to a US symbol universe, not PSX
+- NewsRAG is not connected to any frontend page
 
 ## Team
 

@@ -8,14 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
-<<<<<<< HEAD
 import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, BarChart2, type LucideIcon } from "lucide-react";
-=======
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, type LucideIcon } from "lucide-react";
-=======
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, type LucideIcon } from "lucide-react";
->>>>>>> 9e117a2 (feat: add theme toggle component for dark and light mode)
->>>>>>> 2294587 (feat: add theme toggle component for dark and light mode)
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [

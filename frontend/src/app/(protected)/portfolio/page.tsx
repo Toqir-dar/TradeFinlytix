@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { api } from "@/lib/api";
 import { usePortfolio } from "@/lib/queries";
+import { useTheme } from "@/lib/use-theme";
 import Link from "next/link";
 
 const COLORS = ["#4ADE80", "#16A34A", "#86EFAC", "#15803D", "#BBF7D0", "#166534", "#22C55E", "#14532D"];
@@ -26,12 +27,12 @@ const MOCK_CHART = [
 
 export default function PortfolioPage() {
   const { data, isLoading } = usePortfolio();
+  const mono = useTheme();
   const qc = useQueryClient();
   const [symbol, setSymbol] = useState("");
   const [quantity, setQuantity] = useState("");
   const [avgPrice, setAvgPrice] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<"positions" | "chart">("positions");
 
   const rows = data?.positions?.length ? data.positions : MOCK_POSITIONS;
 
@@ -117,26 +118,24 @@ export default function PortfolioPage() {
   const tooltipStyle = { borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 13, background: th.tooltipBg, color: th.text };
 
   if (isLoading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: "#9CA3AF", fontSize: 15 }}>
-      <div style={{ textAlign: "center" }}>
-        Loading portfolio...
-      </div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: th.muted, fontSize: 15 }}>
+      <div style={{ textAlign: "center" }}>Loading portfolio...</div>
     </div>
   );
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
+    <div suppressHydrationWarning style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
-        .stat-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; transition: all 0.2s; }
-        .stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
-        .section-card { background: white; border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 24px; }
-        .input-field { padding: 11px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: all 0.2s; background: white; color: #111827; width: 100%; }
+        .stat-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; transition: all 0.2s; }
+        .stat-card:hover { box-shadow: ${mono ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(0,0,0,0.08)"}; transform: translateY(-2px); }
+        .section-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; }
+        .input-field { padding: 11px 14px; border: 1.5px solid ${th.border}; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; transition: all 0.2s; background: ${th.card}; color: ${th.text}; width: 100%; }
         .input-field:focus { border-color: #4ADE80; box-shadow: 0 0 0 3px rgba(74,222,128,0.1); }
-        .input-field::placeholder { color: #9CA3AF; }
+        .input-field::placeholder { color: ${th.muted}; }
         .tab-btn { padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s; }
-        .position-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 14px 16px; border-bottom: 1px solid #F3F4F6; align-items: center; transition: background 0.15s; }
-        .position-row:hover { background: #F9FAFB; border-radius: 8px; }
+        .position-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 14px 16px; border-bottom: 1px solid ${th.borderSubtle}; align-items: center; transition: background 0.15s; }
+        .position-row:hover { background: ${th.innerCard}; border-radius: 8px; }
         .position-row:last-child { border-bottom: none; }
         .add-btn { background: #16A34A; color: white; border: none; padding: 11px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .add-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
@@ -152,7 +151,7 @@ export default function PortfolioPage() {
           <p style={{ fontSize: 14, color: th.bgSubtext }}>Track your PSX positions, P&L, and allocation</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/trades" style={{ background: "white", color: "#374151", border: "1.5px solid #E5E7EB", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Link href="/trades" style={{ background: th.headerBtnBg, color: th.headerBtnColor, border: `1.5px solid ${th.headerBtnBorder}`, padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
             <History size={15} strokeWidth={2} />
             Trade History
           </Link>
@@ -165,26 +164,26 @@ export default function PortfolioPage() {
 
       {/* Add Position Form */}
       {showForm && (
-        <div style={{ background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: 16, padding: 24, marginBottom: 24 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#15803D" }}>Add New Position</h3>
+        <div style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.formTitle }}>Add New Position</h3>
           <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Symbol</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
               <input className="input-field" placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Quantity</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Quantity</label>
               <input className="input-field" placeholder="e.g. 500" type="number" value={quantity} onChange={e => setQuantity(e.target.value)}/>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>Avg Buy Price (PKR)</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Avg Buy Price (PKR)</label>
               <input className="input-field" placeholder="e.g. 173.50" type="number" value={avgPrice} onChange={e => setAvgPrice(e.target.value)}/>
             </div>
             <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
               <button className="add-btn" onClick={() => savePortfolio.mutate()} disabled={!symbol || !quantity || !avgPrice || savePortfolio.isPending}>
                 {savePortfolio.isPending ? "Saving..." : "Save"}
               </button>
-              <button onClick={() => setShowForm(false)} style={{ background: "white", border: "1.5px solid #E5E7EB", color: "#6B7280", padding: "11px 16px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
+              <button onClick={() => setShowForm(false)} style={{ background: th.cancelBtnBg, border: `1.5px solid ${th.cancelBtnBorder}`, color: th.cancelBtnColor, padding: "11px 16px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
                 Cancel
               </button>
             </div>
@@ -203,8 +202,8 @@ export default function PortfolioPage() {
           <div key={s.label} className="stat-card" style={{ position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
-                <p style={{ fontSize: 20, fontWeight: 800, color: "#111827" }}>{s.value}</p>
+                <p style={{ fontSize: 12, color: th.muted, fontWeight: 500, marginBottom: 8 }}>{s.label}</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: th.text }}>{s.value}</p>
                 <p style={{ fontSize: 12, color: s.up ? "#16A34A" : "#DC2626", marginTop: 4, fontWeight: 500 }}>{s.change}</p>
               </div>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: s.iconColor }}>
@@ -217,12 +216,11 @@ export default function PortfolioPage() {
 
       {/* Chart + Pie */}
       <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20, marginBottom: 24 }}>
-        {/* Performance Chart */}
         <div className="section-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
-              <h3 style={{ fontWeight: 700, fontSize: 16 }}>Portfolio Performance</h3>
-              <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>Last 7 days</p>
+              <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Portfolio Performance</h3>
+              <p style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>Last 7 days</p>
             </div>
             <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 600 }}>
               +{totalPnLPct}% ▲
@@ -236,32 +234,31 @@ export default function PortfolioPage() {
                   <stop offset="95%" stopColor="#4ADE80" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6"/>
-              <XAxis dataKey="day" tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false}/>
-              <YAxis tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`}/>
-              <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 13 }}/>
+              <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
+              <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+              <YAxis tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`}/>
+              <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={tooltipStyle}/>
               <Area type="monotone" dataKey="value" stroke="#16A34A" strokeWidth={2.5} fill="url(#grad)"/>
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Pie Chart */}
         <div className="section-card">
-          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Allocation</h3>
-          <p style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 16 }}>By position value</p>
+          <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: th.text }}>Allocation</h3>
+          <p style={{ fontSize: 12, color: th.muted, marginBottom: 16 }}>By position value</p>
           <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} innerRadius={40}>
                 {pieData.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]}/>)}
               </Pie>
-              <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 12 }}/>
+              <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={tooltipStyle}/>
             </PieChart>
           </ResponsiveContainer>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
             {pieData.map((p: any, i: number) => (
               <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 2, background: COLORS[i % COLORS.length] }}/>
-                <span style={{ color: "#374151", fontWeight: 500 }}>{p.name}</span>
+                <span style={{ color: th.subtext, fontWeight: 500 }}>{p.name}</span>
               </div>
             ))}
           </div>
@@ -271,20 +268,19 @@ export default function PortfolioPage() {
       {/* Positions Table */}
       <div className="section-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 16 }}>Positions</h3>
-          <span style={{ fontSize: 13, color: "#9CA3AF" }}>{rows.length} holdings</span>
+          <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Positions</h3>
+          <span style={{ fontSize: 13, color: th.muted }}>{rows.length} holdings</span>
         </div>
 
         <div className="table-scroll">
           <div className="table-min">
-            {/* Table Header */}
-            <div className="position-row" style={{ borderBottom: "2px solid #F3F4F6", padding: "8px 16px" }}>
+            <div className="position-row" style={{ borderBottom: `2px solid ${th.borderSubtle}`, padding: "8px 16px" }}>
               {["Symbol", "Quantity", "Avg Price", "Current", "Value", "P&L"].map(h => (
-                <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
+                <span key={h} style={{ fontSize: 11, fontWeight: 700, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
               ))}
             </div>
 
-            {rows.map((p: any, i: number) => {
+            {rows.map((p: any) => {
               const current = p.current_price ?? p.avg_price;
               const value = p.quantity * current;
               const pnl = (current - p.avg_price) * p.quantity;
@@ -292,18 +288,18 @@ export default function PortfolioPage() {
               return (
                 <div key={p.symbol} className="position-row">
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 36, height: 36, background: "#F0FDF4", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 11, color: "#16A34A" }}>
+                    <div style={{ width: 36, height: 36, background: th.symbolIconBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 11, color: th.symbolIconColor }}>
                       {p.symbol.slice(0, 3)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{p.symbol}</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF" }}>{p.sector ?? "PSX"}</div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: th.text }}>{p.symbol}</div>
+                      <div style={{ fontSize: 11, color: th.muted }}>{p.sector ?? "PSX"}</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: 14, color: "#374151", fontWeight: 500 }}>{p.quantity.toLocaleString()}</span>
-                  <span style={{ fontSize: 14, color: "#374151" }}>PKR {p.avg_price.toFixed(2)}</span>
-                  <span style={{ fontSize: 14, color: "#374151" }}>PKR {current.toFixed(2)}</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>PKR {value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                  <span style={{ fontSize: 14, color: th.subtext, fontWeight: 500 }}>{p.quantity.toLocaleString()}</span>
+                  <span style={{ fontSize: 14, color: th.subtext }}>PKR {p.avg_price.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, color: th.subtext }}>PKR {current.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: th.text }}>PKR {value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: pnl >= 0 ? "#16A34A" : "#DC2626" }}>
                       {pnl >= 0 ? "+" : ""}PKR {Math.abs(pnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -317,9 +313,9 @@ export default function PortfolioPage() {
             })}
 
             {rows.length === 0 && (
-              <div style={{ textAlign: "center", padding: "48px 24px", color: "#9CA3AF" }}>
-                <div style={{ fontWeight: 600, fontSize: 16, color: "#374151" }}>No positions yet</div>
-                <div style={{ fontSize: 14, marginTop: 4 }}>Click "Add Position" to get started</div>
+              <div style={{ textAlign: "center", padding: "48px 24px", color: th.muted }}>
+                <div style={{ fontWeight: 600, fontSize: 16, color: th.subtext }}>No positions yet</div>
+                <div style={{ fontSize: 14, marginTop: 4 }}>Click &quot;Add Position&quot; to get started</div>
               </div>
             )}
           </div>

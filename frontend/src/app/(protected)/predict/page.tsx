@@ -51,6 +51,54 @@ export default function PredictPage() {
     if (symbol.trim()) router.push(`/predict/${symbol.toUpperCase()}`);
   };
 
+  const th = mono ? {
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    symbolIconBg: "#F0FDF4",
+    symbolIconColor: "#16A34A",
+    sectorTagBg: "#F0FDF4",
+    sectorTagColor: "#16A34A",
+    searchBoxBg: "linear-gradient(135deg, #F0FDF4, #DCFCE7)",
+    searchBoxBorder: "#BBF7D0",
+    quickBtnBg: "white",
+    quickBtnBorder: "#BBF7D0",
+    quickBtnColor: "#16A34A",
+    quickBtnHoverBg: "#16A34A",
+    disclaimerBg: "#FFFBEB",
+    disclaimerBorder: "#FDE68A",
+    disclaimerColor: "#92400E",
+  } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    symbolIconBg: "#F0FDF4",
+    symbolIconColor: "#16A34A",
+    sectorTagBg: "#F0FDF4",
+    sectorTagColor: "#16A34A",
+    searchBoxBg: "linear-gradient(135deg, #F0FDF4, #DCFCE7)",
+    searchBoxBorder: "#BBF7D0",
+    quickBtnBg: "white",
+    quickBtnBorder: "#BBF7D0",
+    quickBtnColor: "#16A34A",
+    quickBtnHoverBg: "#16A34A",
+    disclaimerBg: "#FFFBEB",
+    disclaimerBorder: "#FDE68A",
+    disclaimerColor: "#92400E",
+  };
+
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827" }}>
       <style>{`
@@ -73,10 +121,10 @@ export default function PredictPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 8 }}>
+        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 8, color: th.text }}>
           AI Signal Predictions
         </h1>
-        <p style={{ fontSize: 15, color: "#6B7280" }}>
+        <p style={{ fontSize: 15, color: th.subtext }}>
           Enter any PSX symbol to get AI-powered buy/hold/trim/sell signals with confidence scores.
         </p>
       </div>

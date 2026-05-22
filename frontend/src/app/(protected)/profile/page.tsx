@@ -40,6 +40,60 @@ export default function ProfilePage() {
   const initials = user?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) ?? "TF";
   const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString("en-PK", { month: "long", year: "numeric" }) : "May 2026";
 
+  const th = mono ? {
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    labelColor: "#374151",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    infoRowBorder: "#F3F4F6",
+    securityCardBg: "#F9FAFB",
+    dangerCardBorder: "#FECACA",
+    dangerTitle: "#DC2626",
+    modalBg: "white",
+    modalBorder: "#E5E7EB",
+    outlineBtnBg: "white",
+    outlineBtnBorder: "#E5E7EB",
+    outlineBtnColor: "#374151",
+    dangerBtnBg: "white",
+    dangerBtnBorder: "#FECACA",
+    dangerBtnColor: "#DC2626",
+    successBg: "#F0FDF4",
+    successBorder: "#BBF7D0",
+    successColor: "#15803D",
+  } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    labelColor: "#374151",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    infoRowBorder: "#F3F4F6",
+    securityCardBg: "#F9FAFB",
+    dangerCardBorder: "#FECACA",
+    dangerTitle: "#DC2626",
+    modalBg: "white",
+    modalBorder: "#E5E7EB",
+    outlineBtnBg: "white",
+    outlineBtnBorder: "#E5E7EB",
+    outlineBtnColor: "#374151",
+    dangerBtnBg: "white",
+    dangerBtnBorder: "#FECACA",
+    dangerBtnColor: "#DC2626",
+    successBg: "#F0FDF4",
+    successBorder: "#BBF7D0",
+    successColor: "#15803D",
+  };
+
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#111827", maxWidth: 800 }}>
       <style>{`
@@ -66,7 +120,7 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>
+        <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.text }}>
           My Profile
         </h1>
         <p style={{ fontSize: 14, color: "#6B7280" }}>Manage your account and security settings</p>

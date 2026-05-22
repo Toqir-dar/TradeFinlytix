@@ -1061,6 +1061,7 @@ export function RagChatWidget() {
                   {health.faiss_loaded ? "Online" : "Degraded"}
                 </span>
               )}
+            </div>
             <div className="tfx-mode-tabs" style={{ marginTop: 6 }}>
               <button type="button" className={`tfx-mode-tab ${mode === "rag" ? "active" : ""}`} onClick={() => switchMode("rag")}>
                 <Sparkles size={11} strokeWidth={2} />Market AI
@@ -1080,27 +1081,27 @@ export function RagChatWidget() {
           </button>
         </div>
 
-          <div className="tfx-chat-body">
-            {!loading && !user && (
-              <div className="tfx-chat-auth">
-                <span>Sign in to use the assistant.</span>
-                <Link href="/login">Login</Link>
-              </div>
-            )}
+        <div className="tfx-chat-body">
+          {!loading && !user && (
+            <div className="tfx-chat-auth">
+              <span>Sign in to use the assistant.</span>
+              <Link href="/login">Login</Link>
+            </div>
+          )}
 
-            <div className="tfx-chat-messages" ref={listRef}>
-              {messages.map((message) => {
-                const isAssistant = message.role === "assistant";
-                const isNewsReport = isAssistant && !!message.newsReport;
-                const report = isAssistant && !isNewsReport ? parsePredictionReport(message.content) : null;
-                const pretty = isAssistant && !report && !isNewsReport ? renderPrettyMessage(message.content) : null;
-                const bubbleClass = isNewsReport
-                  ? "tfx-chat-bubble-pretty"
-                  : report
-                    ? "tfx-chat-bubble-report"
-                    : pretty
-                      ? "tfx-chat-bubble-pretty"
-                      : "";
+          <div className="tfx-chat-messages" ref={listRef}>
+            {messages.map((message) => {
+              const isAssistant = message.role === "assistant";
+              const isNewsReport = isAssistant && !!message.newsReport;
+              const report = isAssistant && !isNewsReport ? parsePredictionReport(message.content) : null;
+              const pretty = isAssistant && !report && !isNewsReport ? renderPrettyMessage(message.content) : null;
+              const bubbleClass = isNewsReport
+                ? "tfx-chat-bubble-pretty"
+                : report
+                  ? "tfx-chat-bubble-report"
+                  : pretty
+                    ? "tfx-chat-bubble-pretty"
+                    : "";
 
               return (
                 <div key={message.id} className={`tfx-chat-row ${message.role}`}>
@@ -1131,52 +1132,52 @@ export function RagChatWidget() {
                           )}
                         </div>
 
-                          {report.metrics.length > 0 && (
-                            <div className="tfx-report-metrics">
-                              {report.metrics.map((metric) => (
-                                <div key={metric.label} className="tfx-report-metric">
-                                  <div className="tfx-report-label">{metric.label}</div>
-                                  <div className="tfx-report-value">{metric.value}</div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                        {report.metrics.length > 0 && (
+                          <div className="tfx-report-metrics">
+                            {report.metrics.map((metric) => (
+                              <div key={metric.label} className="tfx-report-metric">
+                                <div className="tfx-report-label">{metric.label}</div>
+                                <div className="tfx-report-value">{metric.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
-                          {report.sections.map((section) => (
-                            <div key={section.title} className="tfx-report-section">
-                              <div className="tfx-report-section-title">{section.title}</div>
-                              {section.items.map((item, index) => {
-                                const split = splitKeyValue(item);
-                                return (
-                                  <div key={`${section.title}-${index}`} className="tfx-report-item">
-                                    {split.hasLabel ? (
-                                      <>
-                                        <span className="tfx-report-item-label">{split.label}</span>
-                                        <span className="tfx-report-item-value">{split.value}</span>
-                                      </>
-                                    ) : (
+                        {report.sections.map((section) => (
+                          <div key={section.title} className="tfx-report-section">
+                            <div className="tfx-report-section-title">{section.title}</div>
+                            {section.items.map((item, index) => {
+                              const split = splitKeyValue(item);
+                              return (
+                                <div key={`${section.title}-${index}`} className="tfx-report-item">
+                                  {split.hasLabel ? (
+                                    <>
+                                      <span className="tfx-report-item-label">{split.label}</span>
                                       <span className="tfx-report-item-value">{split.value}</span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ))}
+                                    </>
+                                  ) : (
+                                    <span className="tfx-report-item-value">{split.value}</span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
 
-                          {report.footer && (
-                            <div className="tfx-report-footer">{report.footer}</div>
-                          )}
-                        </div>
-                      ) : pretty ? (
-                        pretty
-                      ) : (
-                        message.content
-                      )}
-                    </div>
+                        {report.footer && (
+                          <div className="tfx-report-footer">{report.footer}</div>
+                        )}
+                      </div>
+                    ) : pretty ? (
+                      pretty
+                    ) : (
+                      message.content
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
+          </div>
 
           {sending && (
             <div className="tfx-chat-typing">

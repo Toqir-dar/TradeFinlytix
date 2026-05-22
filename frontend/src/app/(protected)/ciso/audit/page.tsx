@@ -252,8 +252,8 @@ export default function CisoAuditPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.heading }}>Audit Explorer</h1>
-          <p style={{ fontSize: 14, color: th.bgSubtext }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6 }}>Audit Explorer</h1>
+          <p style={{ fontSize: 14, color: "#6B7280" }}>Monitor audit trail, verify chain integrity, and investigate anomalies</p>
         </div>
         <button onClick={handleVerify} disabled={verifying}
           style={{ background: verifyResult?.ok ? "#16A34A" : th.actionBg, color: verifyResult?.ok ? "white" : th.actionText, border: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, opacity: verifying ? 0.7 : 1, transition: "all 0.2s" }}>

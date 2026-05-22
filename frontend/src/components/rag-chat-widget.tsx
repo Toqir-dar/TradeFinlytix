@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
 
 type ChatRole = "user" | "assistant" | "system";
 
@@ -1065,13 +1066,13 @@ export function RagChatWidget() {
           </button>
         </div>
 
-        <div className="tfx-chat-body">
-          {!loading && !user && (
-            <div className="tfx-chat-auth">
-              <span>Sign in to use the assistant.</span>
-              <Link href="/login">Login</Link>
-            </div>
-          )}
+          <div className="tfx-chat-body">
+            {!loading && !user && (
+              <div className="tfx-chat-auth">
+                <span>Sign in to use the assistant.</span>
+                <Link href="/login">Login</Link>
+              </div>
+            )}
 
           <div className="tfx-chat-messages" ref={listRef}>
             {messages.map((message) => {
@@ -1116,52 +1117,52 @@ export function RagChatWidget() {
                           )}
                         </div>
 
-                        {report.metrics.length > 0 && (
-                          <div className="tfx-report-metrics">
-                            {report.metrics.map((metric) => (
-                              <div key={metric.label} className="tfx-report-metric">
-                                <div className="tfx-report-label">{metric.label}</div>
-                                <div className="tfx-report-value">{metric.value}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {report.sections.map((section) => (
-                          <div key={section.title} className="tfx-report-section">
-                            <div className="tfx-report-section-title">{section.title}</div>
-                            {section.items.map((item, index) => {
-                              const split = splitKeyValue(item);
-                              return (
-                                <div key={`${section.title}-${index}`} className="tfx-report-item">
-                                  {split.hasLabel ? (
-                                    <>
-                                      <span className="tfx-report-item-label">{split.label}</span>
-                                      <span className="tfx-report-item-value">{split.value}</span>
-                                    </>
-                                  ) : (
-                                    <span className="tfx-report-item-value">{split.value}</span>
-                                  )}
+                          {report.metrics.length > 0 && (
+                            <div className="tfx-report-metrics">
+                              {report.metrics.map((metric) => (
+                                <div key={metric.label} className="tfx-report-metric">
+                                  <div className="tfx-report-label">{metric.label}</div>
+                                  <div className="tfx-report-value">{metric.value}</div>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        ))}
+                              ))}
+                            </div>
+                          )}
 
-                        {report.footer && (
-                          <div className="tfx-report-footer">{report.footer}</div>
-                        )}
-                      </div>
-                    ) : pretty ? (
-                      pretty
-                    ) : (
-                      message.content
-                    )}
+                          {report.sections.map((section) => (
+                            <div key={section.title} className="tfx-report-section">
+                              <div className="tfx-report-section-title">{section.title}</div>
+                              {section.items.map((item, index) => {
+                                const split = splitKeyValue(item);
+                                return (
+                                  <div key={`${section.title}-${index}`} className="tfx-report-item">
+                                    {split.hasLabel ? (
+                                      <>
+                                        <span className="tfx-report-item-label">{split.label}</span>
+                                        <span className="tfx-report-item-value">{split.value}</span>
+                                      </>
+                                    ) : (
+                                      <span className="tfx-report-item-value">{split.value}</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
+
+                          {report.footer && (
+                            <div className="tfx-report-footer">{report.footer}</div>
+                          )}
+                        </div>
+                      ) : pretty ? (
+                        pretty
+                      ) : (
+                        message.content
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
           {sending && (
             <div className="tfx-chat-typing">

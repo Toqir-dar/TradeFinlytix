@@ -112,22 +112,26 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(" ")[0] ?? (isAdmin ? "Admin" : isCiso ? "CISO" : "Trader");
 
   const th = mono ? {
-    text: "#f1f5f9",
-    subtext: "#94a3b8",
-    muted: "#64748b",
-    card: "#1e293b",
-    border: "#334155",
-    borderSubtle: "#1e293b",
-    innerCard: "#111827",
-    symbolIconBg: "#14532d",
-    symbolIconColor: "#4ade80",
-    chartGrid: "#334155",
-    tooltipBg: "#1e293b",
-    tooltipBorder: "#334155",
+    heading: "#f1f5f9",
+    bgSubtext: "#94a3b8",
+    text: "#111827",
+    subtext: "#6B7280",
+    muted: "#9CA3AF",
+    card: "white",
+    border: "#E5E7EB",
+    borderSubtle: "#F3F4F6",
+    innerCard: "#F9FAFB",
+    symbolIconBg: "#F0FDF4",
+    symbolIconColor: "#16A34A",
+    chartGrid: "#F3F4F6",
+    tooltipBg: "white",
+    tooltipBorder: "#E5E7EB",
     headerBtnBg: "#1e293b",
     headerBtnBorder: "#334155",
     headerBtnColor: "#cbd5e1",
   } : {
+    heading: "#111827",
+    bgSubtext: "#6B7280",
     text: "#111827",
     subtext: "#6B7280",
     muted: "#9CA3AF",
@@ -193,10 +197,10 @@ export default function DashboardPage() {
       >
         <div className="dash-header">
           <div>
-            <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: th.text, letterSpacing: "-0.5px" }}>
+            <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: th.heading, letterSpacing: "-0.5px" }}>
               {getGreeting()}, {firstName}
             </h1>
-            <p style={{ fontSize: 14, color: th.subtext, marginTop: 4 }}>
+            <p style={{ fontSize: 14, color: th.bgSubtext, marginTop: 4 }}>
               Here&apos;s your {user?.role ?? "investor"} overview for today — {new Date().toLocaleDateString("en-PK", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
@@ -389,7 +393,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.65, ease: EASE }}
           >
-            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12, color: th.text }}>Quick Actions</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 12, color: th.heading }}>Quick Actions</h3>
             <motion.div
               className="dash-quick-actions"
               style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}

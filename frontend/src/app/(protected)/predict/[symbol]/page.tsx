@@ -362,14 +362,14 @@ export default function PredictSymbolPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
           <TrendingUp size={16} color="#F97316" strokeWidth={2} />
           <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>
-            NHITS — 50-Day Price Forecast
+            NHITS — 10-Day Price Forecast
           </h3>
           <span style={{ marginLeft: "auto", display: "inline-block", padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 700, background: "#FEF3C7", color: "#92400E" }}>
             Neural Hierarchical Interpolation
           </span>
         </div>
         <p style={{ fontSize: 12, color: th.muted, marginBottom: 16 }}>
-          Deep learning price forecast · 50 trading days · 59-feature input · Updated per request
+          Deep learning price forecast · 10 trading days · 59-feature input · Updated per request
         </p>
         <NHITSForecastChart symbol={symbol} isDark={mono} />
       </div>

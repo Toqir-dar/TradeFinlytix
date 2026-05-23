@@ -60,7 +60,7 @@ jobs:
       - name: Pull latest code
         run: |
           cd ~/TradeFinlytix
-          git pull origin main
+          git pull origin ayan-rag
 
       - name: Write backend .env
         run: |

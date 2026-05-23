@@ -2,10 +2,12 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useMarketPrediction } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
 import NHITSForecastChart from "@/components/NHITSForecastChart";
+import { API_SEC } from "@/lib/api";
 
 const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; darkBg: string }> = {
   BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", darkBg: "#14532d" },
@@ -42,6 +44,20 @@ export default function PredictSymbolPage() {
     barPct:    Math.abs(f.shap_value ?? 0) / maxShap,
     direction: f.direction ?? (f.shap_value >= 0 ? "bullish" : "bearish"),
   }));
+
+  useEffect(() => {
+    if (!data) return;
+    const alg = (data.integrity as any)?.algorithm ?? "HMAC-SHA256";
+    const ok  = data.integrity?.verified !== false;
+
+    if (ok) {
+      API_SEC.log(`🛡️  HMAC Integrity Check PASSED — alg: ${alg} | symbol: ${symbol} | signal: ${data.prediction?.signal?.toUpperCase()} | confidence: ${((data.prediction?.confidence ?? 0) * 100).toFixed(1)}%`);
+    } else {
+      API_SEC.err(`⚠️  HMAC Integrity Check FAILED — alg: ${alg} | symbol: ${symbol} — response payload may have been tampered`);
+    }
+    API_SEC.log(`🔏 Prediction signed — engine: ${data.prediction?.engine} | tier: ${data.prediction?.tier} | risk: ${data.risk?.level} (score: ${data.risk?.score}) | issued: ${data.predicted_at}`);
+    API_SEC.log(`📊 SHAP attribution — method: ${data.prediction?.explanation?.method ?? "n/a"} | features_explained: ${rawFeatures.length} | base_value: ${data.prediction?.explanation?.base_value?.toFixed(4) ?? "n/a"}`);
+  }, [data, symbol]);
 
   const th = mono ? {
     text: "#f1f5f9",

@@ -155,7 +155,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.env.example
+# .env.example is intentionally tracked — it documents required variables
 
 
 # Spyder project settings
@@ -217,3 +217,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Virtual environments (project-specific)
+backend/trade/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+
+# ML saved models (large binary files)
+backend/app/ml_engine/saved_models/
+
+# SSH keys & certificates
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db

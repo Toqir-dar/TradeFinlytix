@@ -43,6 +43,9 @@ async def get_current_user(
         logger.warning("JWT decode failed: %s", e)
         raise auth_error
 
+    if payload.get("type") != "access":
+        raise auth_error
+
     user_id: str = payload.get("sub")
     token_version: int = payload.get("ver", 0)
     if not user_id:

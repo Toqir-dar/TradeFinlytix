@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { usePortfolio } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 import Link from "next/link";
+import { ErrorState, EmptyState, StatCardSkeleton, TableSkeleton } from "@/components/ux-states";
 
 const COLORS = ["#4ADE80", "#16A34A", "#86EFAC", "#15803D", "#BBF7D0", "#166534", "#22C55E", "#14532D"];
 
@@ -19,7 +20,7 @@ const MOCK_CHART = [
 ];
 
 export default function PortfolioPage() {
-  const { data, isLoading } = usePortfolio();
+  const { data, isLoading, isError, refetch } = usePortfolio();
   const mono = useTheme();
   const qc = useQueryClient();
   const [symbol, setSymbol] = useState("");
@@ -109,10 +110,19 @@ export default function PortfolioPage() {
   };
 
   const tooltipStyle = { borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 13, background: th.tooltipBg, color: th.text };
+  const tone = mono ? "dark" : "light";
 
   if (isLoading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: th.muted, fontSize: 15 }}>
-      <div style={{ textAlign: "center" }}>Loading portfolio...</div>
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }} role="status" aria-label="Loading portfolio">
+      <div style={{ marginBottom: 28 }}>
+        <StatCardSkeleton tone={tone} />
+      </div>
+      <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+        {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} tone={tone} />)}
+      </div>
+      <div className="section-card" style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 24 }}>
+        <TableSkeleton rows={6} columns={6} tone={tone} />
+      </div>
     </div>
   );
 
@@ -133,6 +143,12 @@ export default function PortfolioPage() {
         .add-btn { background: #16A34A; color: white; border: none; padding: 11px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .add-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
         .add-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        @media (max-width: 640px) {
+          .portfolio-actions { width: 100%; }
+          .portfolio-actions > * { flex: 1; justify-content: center; }
+          .portfolio-form-actions { width: 100%; }
+          .portfolio-form-actions > button { flex: 1; justify-content: center; }
+        }
       `}</style>
 
       {/* Header */}
@@ -143,12 +159,12 @@ export default function PortfolioPage() {
           </h1>
           <p style={{ fontSize: 14, color: th.bgSubtext }}>Track your PSX positions, P&L, and allocation</p>
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="portfolio-actions" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/trades" style={{ background: th.headerBtnBg, color: th.headerBtnColor, border: `1.5px solid ${th.headerBtnBorder}`, padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
             <History size={15} strokeWidth={2} />
             Trade History
           </Link>
-          <button className="add-btn" onClick={() => setShowForm(!showForm)}>
+          <button className="add-btn" type="button" aria-expanded={showForm} aria-controls="add-position-form" onClick={() => setShowForm(!showForm)}>
             <Plus size={16} color="white" strokeWidth={2.5} />
             Add Position
           </button>
@@ -157,32 +173,43 @@ export default function PortfolioPage() {
 
       {/* Add Position Form */}
       {showForm && (
-        <div style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
+        <div id="add-position-form" style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.formTitle }}>Add New Position</h3>
           <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
-              <input className="input-field" placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
+              <label htmlFor="portfolio-symbol" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
+              <input id="portfolio-symbol" className="input-field" autoComplete="off" required placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Quantity</label>
-              <input className="input-field" placeholder="e.g. 500" type="number" value={quantity} onChange={e => setQuantity(e.target.value)}/>
+              <label htmlFor="portfolio-quantity" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Quantity</label>
+              <input id="portfolio-quantity" className="input-field" inputMode="numeric" min={1} required placeholder="e.g. 500" type="number" value={quantity} onChange={e => setQuantity(e.target.value)}/>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Avg Buy Price (PKR)</label>
-              <input className="input-field" placeholder="e.g. 173.50" type="number" value={avgPrice} onChange={e => setAvgPrice(e.target.value)}/>
+              <label htmlFor="portfolio-avg-price" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Avg Buy Price (PKR)</label>
+              <input id="portfolio-avg-price" className="input-field" inputMode="decimal" min={0} step="0.01" required placeholder="e.g. 173.50" type="number" value={avgPrice} onChange={e => setAvgPrice(e.target.value)}/>
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
-              <button className="add-btn" onClick={() => savePortfolio.mutate()} disabled={!symbol || !quantity || !avgPrice || savePortfolio.isPending}>
+            <div className="portfolio-form-actions" style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
+              <button className="add-btn" type="button" onClick={() => savePortfolio.mutate()} disabled={!symbol || !quantity || !avgPrice || savePortfolio.isPending} aria-busy={savePortfolio.isPending}>
                 {savePortfolio.isPending ? "Saving..." : "Save"}
               </button>
-              <button onClick={() => setShowForm(false)} style={{ background: th.cancelBtnBg, border: `1.5px solid ${th.cancelBtnBorder}`, color: th.cancelBtnColor, padding: "11px 16px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
+              <button type="button" onClick={() => setShowForm(false)} style={{ background: th.cancelBtnBg, border: `1.5px solid ${th.cancelBtnBorder}`, color: th.cancelBtnColor, padding: "11px 16px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>
                 Cancel
               </button>
             </div>
           </div>
+          {savePortfolio.isError ? (
+            <div style={{ marginTop: 16 }}>
+              <ErrorState tone={tone} title="Could not save position" message="Please check the values and try again." onRetry={() => savePortfolio.mutate()} />
+            </div>
+          ) : null}
         </div>
       )}
+
+      {isError ? (
+        <div style={{ marginBottom: 24 }}>
+          <ErrorState tone={tone} title="Portfolio unavailable" message="Your portfolio data could not be loaded right now." onRetry={() => refetch()} />
+        </div>
+      ) : null}
 
       {/* Stat Cards */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
@@ -306,10 +333,7 @@ export default function PortfolioPage() {
             })}
 
             {rows.length === 0 && (
-              <div style={{ textAlign: "center", padding: "48px 24px", color: th.muted }}>
-                <div style={{ fontWeight: 600, fontSize: 16, color: th.subtext }}>No positions yet</div>
-                <div style={{ fontSize: 14, marginTop: 4 }}>Click &quot;Add Position&quot; to get started</div>
-              </div>
+              <EmptyState tone={tone} title="No positions yet" message="Add your first position to start tracking allocation and P&L." />
             )}
           </div>
         </div>

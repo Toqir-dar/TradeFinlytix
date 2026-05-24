@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+backend/lightning_logs/version_1/
+backend/lightning_logs/version_2/
+backend/lightning_logs/version_3/

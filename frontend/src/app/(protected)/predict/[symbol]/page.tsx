@@ -8,6 +8,8 @@ import { useTheme } from "@/lib/use-theme";
 import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
 import NHITSForecastChart from "@/components/NHITSForecastChart";
 import { API_SEC } from "@/lib/api";
+import { ErrorState, SkeletonBlock, StatCardSkeleton } from "@/components/ux-states";
+
 
 const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; darkBg: string }> = {
   BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", darkBg: "#14532d" },
@@ -130,28 +132,45 @@ export default function PredictSymbolPage() {
     tierBorder: "#BBF7D0",
     tierColor: "#16A34A",
   };
+  const tone = mono ? "dark" : "light";
 
   if (isLoading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: mono ? "#94a3b8" : "#9CA3AF" }}>
-      <div style={{ textAlign: "center" }}>
-        <Loader2 size={32} style={{ animation: "spin 1s linear infinite", marginBottom: 12 }} />
-        <div>Fetching prediction for {symbol}…</div>
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: mono ? "#f1f5f9" : "#111827" }} role="status" aria-label={`Loading prediction for ${symbol}`}>
+      <div style={{ marginBottom: 24 }}>
+        <SkeletonBlock tone={tone} width={170} height={38} radius={10} />
+      </div>
+      <div style={{ background: mono ? "#1e293b" : "white", border: `1.5px solid ${mono ? "#334155" : "#E5E7EB"}`, borderRadius: 20, padding: 32, marginBottom: 24 }}>
+        <SkeletonBlock tone={tone} width="35%" height={34} radius={12} />
+        <div style={{ height: 18 }} />
+        <SkeletonBlock tone={tone} width="60%" height={18} />
+      </div>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 }}>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} tone={tone} />)}
+        </div>
+        <div style={{ background: mono ? "#1e293b" : "white", border: `1.5px solid ${mono ? "#334155" : "#E5E7EB"}`, borderRadius: 16, padding: 24 }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} style={{ marginBottom: 14 }}>
+              <SkeletonBlock tone={tone} height={14} width="70%" />
+              <div style={{ height: 8 }} />
+              <SkeletonBlock tone={tone} height={8} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 
   if (error || !data) return (
-    <div style={{ textAlign: "center", padding: 48 }}>
+    <div style={{ padding: 24 }}>
       <Link href="/predict" style={{ color: "#16A34A", fontSize: 14 }}>← Back to Predictions</Link>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 24, marginBottom: 8 }}>
-        <AlertTriangle size={20} color="#DC2626" />
-        <span style={{ fontWeight: 600, fontSize: 18, color: mono ? "#f1f5f9" : "#111827" }}>
-          Prediction unavailable for {symbol}
-        </span>
+      <div style={{ marginTop: 24 }}>
+        <ErrorState
+          tone={tone}
+          title={`Prediction unavailable for ${symbol}`}
+          message={(error as any)?.response?.data?.detail ?? "The ML model could not generate a prediction right now. Try again shortly."}
+        />
       </div>
-      <p style={{ fontSize: 14, color: mono ? "#94a3b8" : "#6B7280" }}>
-        {(error as any)?.response?.data?.detail ?? "The ML model could not generate a prediction right now. Try again shortly."}
-      </p>
     </div>
   );
 

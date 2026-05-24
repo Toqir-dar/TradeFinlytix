@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { api } from "@/lib/api";
 import { useTrades } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
+import { ErrorState, EmptyState, StatCardSkeleton, TableSkeleton } from "@/components/ux-states";
 
 const MOCK_CHART = [
   { day: "Mon", buy: 4, sell: 2 },
@@ -20,7 +21,7 @@ const MOCK_CHART = [
 
 export default function TradesPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useTrades();
+  const { data, isLoading, isError, refetch } = useTrades();
   const mono = useTheme();
   const [symbol, setSymbol] = useState("");
   const [side, setSide] = useState<"buy" | "sell">("buy");
@@ -104,10 +105,16 @@ export default function TradesPage() {
   };
 
   const tooltipStyle = { borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 12, background: th.tooltipBg, color: th.text };
+  const tone = mono ? "dark" : "light";
 
   if (isLoading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: th.muted }}>
-      <div style={{ textAlign: "center" }}>Loading trades...</div>
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }} role="status" aria-label="Loading trades">
+      <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+        {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} tone={tone} />)}
+      </div>
+      <div className="section-card" style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 24 }}>
+        <TableSkeleton rows={7} columns={6} tone={tone} />
+      </div>
     </div>
   );
 
@@ -132,6 +139,14 @@ export default function TradesPage() {
         .add-btn:hover:not(:disabled) { background: #15803D; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
         .add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .chip { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        @media (max-width: 640px) {
+          .trade-header-action { width: 100%; justify-content: center; }
+          .trade-form-actions { width: 100%; }
+          .trade-form-actions > button { flex: 1; justify-content: center; }
+          .trade-table-toolbar { align-items: stretch !important; }
+          .trade-table-toolbar > div { width: 100%; }
+          .trade-table-toolbar input { width: 100% !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -140,7 +155,7 @@ export default function TradesPage() {
           <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, letterSpacing: "-0.5px", marginBottom: 6, color: th.heading }}>Trade History</h1>
           <p style={{ fontSize: 14, color: th.bgSubtext }}>All your PSX buy and sell transactions</p>
         </div>
-        <button className="add-btn" onClick={() => setShowForm(!showForm)}>
+        <button className="add-btn trade-header-action" type="button" aria-expanded={showForm} aria-controls="add-trade-form" onClick={() => setShowForm(!showForm)}>
           <Plus size={16} color="white" strokeWidth={2.5} />
           Log Trade
         </button>
@@ -148,18 +163,18 @@ export default function TradesPage() {
 
       {/* Add Trade Form */}
       {showForm && (
-        <div style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
+        <div id="add-trade-form" style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.formTitle }}>Log New Trade</h3>
           <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
-              <input className="input-field" placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
+              <label htmlFor="trade-symbol" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
+              <input id="trade-symbol" className="input-field" autoComplete="off" required placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Side</label>
-              <div style={{ display: "flex", gap: 6 }}>
+              <label id="trade-side-label" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Side</label>
+              <div role="radiogroup" aria-labelledby="trade-side-label" style={{ display: "flex", gap: 6 }}>
                 {(["buy", "sell"] as const).map(s => (
-                  <button key={s} onClick={() => setSide(s)} style={{
+                  <button key={s} type="button" role="radio" aria-checked={side === s} onClick={() => setSide(s)} style={{
                     flex: 1, padding: "11px",
                     border: `1.5px solid ${side === s ? (s === "buy" ? "#16A34A" : "#DC2626") : th.sideBtnUnselBorder}`,
                     borderRadius: 10,
@@ -173,22 +188,33 @@ export default function TradesPage() {
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Quantity</label>
-              <input className="input-field" placeholder="e.g. 500" type="number" value={quantity} onChange={e => setQuantity(e.target.value)}/>
+              <label htmlFor="trade-quantity" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Quantity</label>
+              <input id="trade-quantity" className="input-field" inputMode="numeric" min={1} required placeholder="e.g. 500" type="number" value={quantity} onChange={e => setQuantity(e.target.value)}/>
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Price (PKR)</label>
-              <input className="input-field" placeholder="e.g. 173.50" type="number" value={price} onChange={e => setPrice(e.target.value)}/>
+              <label htmlFor="trade-price" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Price (PKR)</label>
+              <input id="trade-price" className="input-field" inputMode="decimal" min={0} step="0.01" required placeholder="e.g. 173.50" type="number" value={price} onChange={e => setPrice(e.target.value)}/>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="add-btn" onClick={() => addTrade.mutate()} disabled={!symbol || !quantity || !price || addTrade.isPending}>
+            <div className="trade-form-actions" style={{ display: "flex", gap: 8 }}>
+              <button className="add-btn" type="button" onClick={() => addTrade.mutate()} disabled={!symbol || !quantity || !price || addTrade.isPending} aria-busy={addTrade.isPending}>
                 {addTrade.isPending ? "Saving..." : "Save"}
               </button>
-              <button onClick={() => setShowForm(false)} style={{ background: th.cancelBtnBg, border: `1.5px solid ${th.cancelBtnBorder}`, color: th.cancelBtnColor, padding: "11px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} style={{ background: th.cancelBtnBg, border: `1.5px solid ${th.cancelBtnBorder}`, color: th.cancelBtnColor, padding: "11px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14 }}>Cancel</button>
             </div>
           </div>
+          {addTrade.isError ? (
+            <div style={{ marginTop: 16 }}>
+              <ErrorState tone={tone} title="Could not log trade" message="Please check the trade details and try again." onRetry={() => addTrade.mutate()} />
+            </div>
+          ) : null}
         </div>
       )}
+
+      {isError ? (
+        <div style={{ marginBottom: 24 }}>
+          <ErrorState tone={tone} title="Trades unavailable" message="Your trade history could not be loaded right now." onRetry={() => refetch()} />
+        </div>
+      ) : null}
 
       {/* Stats */}
       <div className="responsive-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
@@ -231,7 +257,7 @@ export default function TradesPage() {
         </div>
 
         <div className="section-card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
             <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Recent Activity</h3>
             <div style={{ display: "flex", gap: 6 }}>
               {(["all", "buy", "sell"] as const).map(f => (
@@ -268,13 +294,13 @@ export default function TradesPage() {
 
       {/* Full Table */}
       <div className="section-card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div className="trade-table-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>All Trades</h3>
           <div style={{ position: "relative" }}>
             <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
               <Search size={14} strokeWidth={2} />
             </div>
-            <input className="input-field" style={{ paddingLeft: 32, width: 200 }} placeholder="Search symbol..." value={search} onChange={e => setSearch(e.target.value)}/>
+            <input id="trade-search" aria-label="Search trades by symbol" className="input-field" style={{ paddingLeft: 32, width: 200 }} placeholder="Search symbol..." value={search} onChange={e => setSearch(e.target.value)}/>
           </div>
         </div>
 
@@ -313,10 +339,7 @@ export default function TradesPage() {
             })}
 
             {filtered.length === 0 && (
-              <div style={{ textAlign: "center", padding: "48px 24px", color: th.muted }}>
-                <div style={{ fontWeight: 600, fontSize: 16, color: th.subtext }}>No trades found</div>
-                <div style={{ fontSize: 14, marginTop: 4 }}>Try a different filter or log a new trade</div>
-              </div>
+              <EmptyState tone={tone} title="No trades found" message="Try a different filter or log a new trade." />
             )}
           </div>
         </div>

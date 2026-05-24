@@ -87,6 +87,12 @@ class AuditRepository:
         event_type: str | None = None,
         user_id: str | None = None,
         since: datetime | None = None,
+        ip: str | None = None,
+        path: str | None = None,
+        payload_key: str | None = None,
+        payload_value: str | None = None,
+        min_payload_score: float | None = None,
+        max_payload_score: float | None = None,
         skip: int = 0,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
@@ -97,6 +103,23 @@ class AuditRepository:
             query["user_id"] = user_id
         if since:
             query["created_at"] = {"$gte": since}
+        if ip:
+            query["ip"] = ip
+        if path:
+            query["path"] = path
+        # payload key/value exact-match
+        if payload_key and payload_value is not None:
+            query[f"payload.{payload_key}"] = payload_value
+        # numeric payload score range (common field: payload.score or payload.risk_score)
+        score_field_candidates = ["payload.score", "payload.risk_score"]
+        score_query: dict[str, Any] = {}
+        if min_payload_score is not None:
+            score_query.setdefault("$gte", min_payload_score)
+        if max_payload_score is not None:
+            score_query.setdefault("$lte", max_payload_score)
+        if score_query:
+            # apply to both possible fields using $or
+            query["$or"] = [{f: score_query} for f in score_field_candidates]
         cursor = (
             self.collection.find(query)
             .sort("created_at", -1)
@@ -111,6 +134,12 @@ class AuditRepository:
         event_type: str | None = None,
         user_id: str | None = None,
         since: datetime | None = None,
+        ip: str | None = None,
+        path: str | None = None,
+        payload_key: str | None = None,
+        payload_value: str | None = None,
+        min_payload_score: float | None = None,
+        max_payload_score: float | None = None,
     ) -> int:
         query: dict[str, Any] = {}
         if event_type:
@@ -119,6 +148,20 @@ class AuditRepository:
             query["user_id"] = user_id
         if since:
             query["created_at"] = {"$gte": since}
+        if ip:
+            query["ip"] = ip
+        if path:
+            query["path"] = path
+        if payload_key and payload_value is not None:
+            query[f"payload.{payload_key}"] = payload_value
+        score_field_candidates = ["payload.score", "payload.risk_score"]
+        score_query: dict[str, Any] = {}
+        if min_payload_score is not None:
+            score_query.setdefault("$gte", min_payload_score)
+        if max_payload_score is not None:
+            score_query.setdefault("$lte", max_payload_score)
+        if score_query:
+            query["$or"] = [{f: score_query} for f in score_field_candidates]
         return await self.collection.count_documents(query)
 
     async def verify_chain(self, limit: int = 1000) -> dict[str, Any]:

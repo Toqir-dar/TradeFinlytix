@@ -6,9 +6,9 @@ export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhos
 
 // ── Security logger ───────────────────────────────────────────────────────────
 const sec = {
-  log:  (...args: unknown[]) => console.log("%c[TFX Security]", "color:#16a34a;font-weight:700;font-family:monospace", ...args),
+  log: (...args: unknown[]) => console.log("%c[TFX Security]", "color:#16a34a;font-weight:700;font-family:monospace", ...args),
   warn: (...args: unknown[]) => console.warn("%c[TFX Security]", "color:#f59e0b;font-weight:700;font-family:monospace", ...args),
-  err:  (...args: unknown[]) => console.error("%c[TFX Security]", "color:#dc2626;font-weight:700;font-family:monospace", ...args),
+  err: (...args: unknown[]) => console.error("%c[TFX Security]", "color:#dc2626;font-weight:700;font-family:monospace", ...args),
 };
 
 export const API_SEC = sec;
@@ -27,6 +27,9 @@ let refreshToken: string | null = null;
 export function setTokens(access: string, refresh: string) {
   accessToken = access;
   refreshToken = refresh;
+
+  api.defaults.headers.common.Authorization = `Bearer ${access}`;
+
   if (typeof window !== "undefined") {
     localStorage.setItem("tfx_access_token", access);
     localStorage.setItem("tfx_refresh_token", refresh);
@@ -48,6 +51,9 @@ export function hydrateTokens() {
   if (typeof window === "undefined") return;
   accessToken = localStorage.getItem("tfx_access_token");
   refreshToken = localStorage.getItem("tfx_refresh_token");
+  if (accessToken) {
+    api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+  }
 }
 
 if (typeof window !== "undefined") {
@@ -75,33 +81,49 @@ api.interceptors.response.use(
   },
   async (error) => {
     const original = error.config;
-    const status   = error.response?.status;
-    const url      = original?.url ?? "";
+    const status = error.response?.status;
+    const url = original?.url ?? "";
 
-    if (status === 401 && !original._retry && refreshToken) {
-      sec.warn(`🔄 Access token expired (401) on ${url} — initiating silent refresh (JWT rotation)`);
+    // Dev debugging
+    if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+      const method = original?.method?.toUpperCase?.() ?? "GET";
+      console.warn(`[TradeFinlytix API] ${method} ${url} failed`, {
+        status: status ?? "network",
+        detail: error.response?.data?.detail ?? error.message,
+      });
+    }
+
+    // Refresh logic
+    if ([401, 403].includes(status) && !original._retry && refreshToken) {
+      sec.warn(`🔄 Token expired (${status}) on ${url} — attempting refresh`);
+
       original._retry = true;
+
       try {
         const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, {
           refresh_token: refreshToken,
         });
+
         setTokens(data.access_token, data.refresh_token);
         original.headers.Authorization = `Bearer ${data.access_token}`;
-        sec.log(`🆕 Token rotation complete — new JWT issued | retrying: ${url}`);
+
+        sec.log(`🆕 Token refreshed — retrying request: ${url}`);
         return api(original);
+
       } catch (refreshErr) {
-        sec.err("❌ Token refresh failed — session invalidated, user must re-authenticate");
+        sec.err("❌ Token refresh failed — user must re-authenticate");
         clearTokens();
         return Promise.reject(refreshErr);
       }
     }
 
+    // Error handling
     if (status === 403) {
-      sec.err(`🚫 Access denied (403) — insufficient permissions for ${url}`);
+      sec.err(`🚫 Access denied (403) — ${url}`);
     } else if (status === 401) {
-      sec.warn(`🔒 Unauthenticated (401) — no valid session for ${url}`);
+      sec.warn(`🔒 Unauthorized (401) — ${url}`);
     } else if (status >= 500) {
-      sec.err(`💥 Server error (${status}) on ${url}`);
+      sec.err(`💥 Server error (${status}) — ${url}`);
     }
 
     return Promise.reject(error);

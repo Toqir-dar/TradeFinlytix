@@ -21,10 +21,17 @@ def issue_csrf_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def request_needs_csrf(request: Request, protected_prefixes: Iterable[str]) -> bool:
+def request_needs_csrf(
+    request: Request,
+    protected_prefixes: Iterable[str],
+    skip_prefixes: Iterable[str] = (),
+) -> bool:
     if request.method.upper() not in _MUTATING_METHODS:
         return False
-    if not request.url.path.startswith(tuple(protected_prefixes)):
+    path = request.url.path
+    if skip_prefixes and path.startswith(tuple(skip_prefixes)):
+        return False
+    if not path.startswith(tuple(protected_prefixes)):
         return False
     return True
 

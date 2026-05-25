@@ -86,7 +86,7 @@ class AuditRepository:
             inserted_id = doc.get("_id")
             if inserted_id:
                     import asyncio
-                    asyncio.ensure_future(store_embedding(self.db, inserted_id, doc))
+                    asyncio.create_task(store_embedding(self.db, inserted_id, doc))
 
         except Exception as e:
             logger.warning(

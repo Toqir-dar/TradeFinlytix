@@ -11,14 +11,14 @@ logger = logging.getLogger(__name__)
 
 async def store_embedding(db: AsyncIOMotorDatabase, doc_id, doc: dict[str, Any]) -> None:
     try:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         embedding = await loop.run_in_executor(None, embed_log_document, doc)
         await db["audit_logs"].update_one(
-                {"_id": doc_id},
-                {"$set": {"embedding": embedding}}
-            )
+            {"_id": doc_id},
+            {"$set": {"embedding": embedding}},
+        )
     except Exception as e:
-            logger.warning("store_embedding failed: %s", e)
+        logger.warning("store_embedding failed for %s: %s", doc_id, e, exc_info=True)
 
 def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
 
@@ -31,10 +31,10 @@ def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
 
 async def search_logs(db: AsyncIOMotorDatabase, query: str, top_k: int = 10, candidate_limit: int = 500,) -> list[dict[str,Any]]:
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     query_vec = np.array(
-        await loop.run_in_executor(None,embed_log_document, {"event_type":query, "payload":query})
-        )
+        await loop.run_in_executor(None, embed_log_document, {"event_type": query, "payload": query})
+    )
 
     cursor = db["audit_logs"].find(
         {"embedding": {"$exists":True}}

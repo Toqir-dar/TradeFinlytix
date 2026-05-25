@@ -25,6 +25,7 @@ from app.schemas.user_schema import (
     UserRegisterRequest,
     VerifyPasswordResetOtpRequest,
 )
+from app.security.csrf import issue_csrf_token
 from app.services.auth_service import AuthService
 from app.utils.helpers import get_client_ip
 
@@ -96,11 +97,22 @@ async def register(payload: UserRegisterRequest, db=Depends(get_db)) -> AuthResp
 
 @router.post("/login", response_model=AuthResponse)
 async def login(
-    payload: UserLoginRequest, request: Request, db=Depends(get_db)
+    payload: UserLoginRequest, request: Request, response: Response, db=Depends(get_db)
 ) -> AuthResponse:
     service = AuthService(db)
     ip = get_client_ip(request)
     user, tokens = await service.authenticate(payload.email, payload.password, ip)
+    csrf = issue_csrf_token()
+    response.set_cookie(
+        key=settings.csrf_cookie_name,
+        value=csrf,
+        httponly=False,
+        samesite="strict",
+        secure=settings.is_production,
+        max_age=settings.access_token_expire_minutes * 60,
+        path="/",
+    )
+    tokens.csrf_token = csrf
     return AuthResponse(user=_to_public(user), tokens=tokens)
 
 

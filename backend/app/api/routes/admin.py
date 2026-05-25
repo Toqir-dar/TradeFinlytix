@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.dependencies import require_permission
 from app.core.database import get_db
+from app.rag.retriever import store_embedding
 from app.schemas.admin_schema import PaginatedUsers, PasswordResetResponse, UserSummary
 from app.services.admin_service import AdminService
 from app.utils.helpers import get_client_ip
@@ -105,3 +106,24 @@ async def user_activity(
     limit: int = Query(50, ge=1, le=500),
 ):
     return await _svc(db).user_activity(user_id, limit=limit)
+
+
+@router.post("/audit/backfill-embeddings")
+async def backfill_audit_embeddings(
+    _: dict = Depends(require_permission("admin:write")),
+    db=Depends(get_db),
+    limit: int = Query(1000, ge=1, le=10000, description="Max documents to backfill"),
+):
+    """Backfill embedding vectors for audit_log documents that are missing them."""
+    cursor = db["audit_logs"].find(
+        {"embedding": {"$exists": False}},
+        projection={"embedding": 0},
+    ).limit(limit)
+
+    queued = 0
+    async for doc in cursor:
+        doc_id = doc["_id"]
+        await store_embedding(db, doc_id, doc)
+        queued += 1
+
+    return {"backfilled": queued}

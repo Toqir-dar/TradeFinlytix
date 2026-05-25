@@ -23,10 +23,12 @@ export const api = axios.create({
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
+let csrfToken: string | null = null;
 
-export function setTokens(access: string, refresh: string) {
+export function setTokens(access: string, refresh: string, csrf?: string) {
   accessToken = access;
   refreshToken = refresh;
+  if (csrf) csrfToken = csrf;
 
   api.defaults.headers.common.Authorization = `Bearer ${access}`;
 
@@ -40,6 +42,7 @@ export function setTokens(access: string, refresh: string) {
 export function clearTokens() {
   accessToken = null;
   refreshToken = null;
+  csrfToken = null;
   if (typeof window !== "undefined") {
     localStorage.removeItem("tfx_access_token");
     localStorage.removeItem("tfx_refresh_token");
@@ -64,6 +67,8 @@ if (typeof window !== "undefined") {
   }
 }
 
+const CSRF_METHODS = new Set(["post", "put", "patch", "delete"]);
+
 api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -71,6 +76,11 @@ api.interceptors.request.use((config) => {
   } else {
     sec.warn(`⚠️  Unauthenticated request — method: ${(config.method ?? "GET").toUpperCase()} | endpoint: ${config.url}`);
   }
+
+  if (config.method && CSRF_METHODS.has(config.method.toLowerCase()) && csrfToken) {
+    config.headers["X-CSRF-Token"] = csrfToken;
+  }
+
   return config;
 });
 

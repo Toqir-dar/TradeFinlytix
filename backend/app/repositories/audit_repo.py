@@ -24,6 +24,18 @@ logger = logging.getLogger(__name__)
 GENESIS_HASH = "genesis"
 
 
+def _normalize_dt(dt: datetime) -> datetime:
+    """Return a naive UTC datetime truncated to milliseconds.
+
+    Motor (default tz_aware=False) returns naive UTC datetimes from MongoDB,
+    and BSON Date only stores milliseconds. Normalising here before hashing
+    ensures record() and verify_chain() always hash the same value.
+    """
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.replace(microsecond=(dt.microsecond // 1000) * 1000)
+
+
 class AuditRepository:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
         self.db = db
@@ -58,13 +70,14 @@ class AuditRepository:
             )
             return
         try:
+            ts = _normalize_dt(created_at or datetime.now(timezone.utc))
             doc = {
                 "event_type": event_type,
                 "user_id": user_id,
                 "ip": ip,
                 "path": path,
                 "payload": payload or {},
-                "created_at": created_at or datetime.now(timezone.utc),
+                "created_at": ts,
             }
             prev_hash = await self._get_chain_head()
             doc["prev_hash"] = prev_hash
@@ -178,8 +191,12 @@ class AuditRepository:
             checked += 1
             stored_chain = doc.get("chain_hash")
             stored_prev = doc.get("prev_hash")
-            # Must mirror record(): hash is over event fields plus prev_hash, with same outer concat.
-            if stored_prev != prev_hash:
+            # Legacy docs inserted before chain hashing stored None instead of GENESIS_HASH.
+            # Treat None as GENESIS_HASH only when we're at the chain start.
+            effective_prev = (
+                GENESIS_HASH if stored_prev is None and prev_hash == GENESIS_HASH else stored_prev
+            )
+            if effective_prev != prev_hash:
                 return {
                     "ok": False,
                     "checked": checked,
@@ -187,6 +204,7 @@ class AuditRepository:
                     "expected_prev": prev_hash,
                     "stored_prev": stored_prev,
                 }
+            raw_dt = doc.get("created_at")
             recomputed = compute_audit_hash(
                 {
                     "event_type": doc.get("event_type"),
@@ -194,10 +212,10 @@ class AuditRepository:
                     "ip": doc.get("ip"),
                     "path": doc.get("path"),
                     "payload": doc.get("payload"),
-                    "created_at": doc.get("created_at"),
-                    "prev_hash": stored_prev,
+                    "created_at": _normalize_dt(raw_dt) if isinstance(raw_dt, datetime) else raw_dt,
+                    "prev_hash": effective_prev,
                 },
-                prev_hash,
+                effective_prev,
             )
             if stored_chain != recomputed:
                 return {

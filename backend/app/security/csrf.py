@@ -37,9 +37,11 @@ def request_needs_csrf(
 
 
 def validate_csrf(request: Request) -> bool:
-    cookie_name = settings.csrf_cookie_name
-    header_name = settings.csrf_header_name
-    cookie_token = request.cookies.get(cookie_name)
-    header_token = request.headers.get(header_name)
-    return bool(cookie_token and header_token and cookie_token == header_token)
+    cookie_token = request.cookies.get(settings.csrf_cookie_name)
+    if not cookie_token:
+        # No cookie means the client is not a browser session (Swagger, Postman,
+        # curl, mobile) — CSRF does not apply to Bearer-only clients.
+        return True
+    header_token = request.headers.get(settings.csrf_header_name)
+    return bool(header_token and cookie_token == header_token)
 

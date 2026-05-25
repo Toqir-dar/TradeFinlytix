@@ -127,3 +127,22 @@ async def backfill_audit_embeddings(
         queued += 1
 
     return {"backfilled": queued}
+
+
+@router.get("/audit/rag-status")
+async def rag_status(
+    _: dict = Depends(require_permission("admin:read")),
+    db=Depends(get_db),
+):
+    """Diagnose RAG search — shows document and embedding counts."""
+    total = await db["audit_logs"].count_documents({})
+    with_embedding = await db["audit_logs"].count_documents({"embedding": {"$exists": True}})
+    without_embedding = total - with_embedding
+    sample = await db["audit_logs"].find_one({"embedding": {"$exists": True}}, {"embedding": 0})
+    return {
+        "total_audit_docs": total,
+        "docs_with_embedding": with_embedding,
+        "docs_without_embedding": without_embedding,
+        "rag_will_find_results": with_embedding > 0,
+        "sample_doc_fields": list(sample.keys()) if sample else [],
+    }

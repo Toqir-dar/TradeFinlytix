@@ -118,6 +118,11 @@ export default function PredictPage() {
         .predict-btn { background: #16A34A; color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 8px; }
         .predict-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
         .predict-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        @media (max-width: 640px) {
+          .predict-search-box { padding: 20px !important; border-radius: 16px !important; }
+          .search-input { font-size: 15px; padding-right: 14px; }
+          .predict-btn { padding: 14px 18px; }
+        }
       `}</style>
 
       {/* Header */}
@@ -131,13 +136,17 @@ export default function PredictPage() {
       </div>
 
       {/* Search Box */}
-      <div style={{ background: th.searchBoxBg, border: `1.5px solid ${th.searchBoxBorder}`, borderRadius: 20, padding: 32, marginBottom: 32 }}>
+      <div className="predict-search-box" style={{ background: th.searchBoxBg, border: `1.5px solid ${th.searchBoxBorder}`, borderRadius: 20, padding: 32, marginBottom: 32 }}>
         <div style={{ position: "relative", marginBottom: 16 }}>
           <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
             <Search size={20} strokeWidth={2} />
           </div>
+          <label htmlFor="predict-symbol" className="sr-only">Search PSX symbol</label>
           <input
+            id="predict-symbol"
             className="search-input"
+            autoComplete="off"
+            inputMode="search"
             placeholder="Search symbol e.g. OGDC, HBL, ENGRO..."
             value={symbol}
             onChange={e => setSymbol(e.target.value.toUpperCase())}
@@ -145,6 +154,7 @@ export default function PredictPage() {
           />
         </div>
         <button
+          type="button"
           className="predict-btn"
           onClick={handleSearch}
           disabled={!symbol.trim()}
@@ -157,7 +167,7 @@ export default function PredictPage() {
         <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
           <span style={{ fontSize: 12, color: th.subtext, fontWeight: 500, alignSelf: "center" }}>Quick:</span>
           {["OGDC", "HBL", "ENGRO", "PSO", "MARI"].map(s => (
-            <button key={s} onClick={() => router.push(`/predict/${s}`)}
+            <button key={s} type="button" aria-label={`Get AI prediction for ${s}`} onClick={() => router.push(`/predict/${s}`)}
               style={{ background: th.quickBtnBg, border: `1px solid ${th.quickBtnBorder}`, color: th.quickBtnColor, padding: "5px 14px", borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.background = th.quickBtnHoverBg; e.currentTarget.style.color = "white"; }}
               onMouseLeave={e => { e.currentTarget.style.background = th.quickBtnBg; e.currentTarget.style.color = th.quickBtnColor; }}
@@ -171,7 +181,7 @@ export default function PredictPage() {
         <div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
             {SECTORS.map(s => (
-              <button key={s} className={`sector-btn ${selectedSector === s ? "active" : ""}`}
+              <button key={s} type="button" aria-pressed={selectedSector === s} className={`sector-btn ${selectedSector === s ? "active" : ""}`}
                 onClick={() => setSelectedSector(s)}>{s}</button>
             ))}
           </div>

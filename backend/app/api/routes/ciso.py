@@ -53,6 +53,20 @@ async def list_audit(
         None, description="Audit ``user_id`` field (string ObjectId hex)."
     ),
     since: datetime | None = None,
+    ip: str | None = Query(None, description="IP address to filter audit events."),
+    path: str | None = Query(None, description="Request path to filter audit events."),
+    payload_key: str | None = Query(
+        None, description="Filter audit events where payload.<key> equals payload_value. Provide key here."
+    ),
+    payload_value: str | None = Query(
+        None, description="Value to match for payload.<payload_key>."
+    ),
+    min_payload_score: float | None = Query(
+        None, description="Minimum numeric payload score (payload.score or payload.risk_score)."
+    ),
+    max_payload_score: float | None = Query(
+        None, description="Maximum numeric payload score (payload.score or payload.risk_score)."
+    ),
     skip: int = Query(0, ge=0, le=5000),
     limit: int = Query(100, ge=1, le=500),
 ):
@@ -60,6 +74,12 @@ async def list_audit(
         event_type=event_type,
         user_id=user_id,
         since=since,
+        ip=ip,
+        path=path,
+        payload_key=payload_key,
+        payload_value=payload_value,
+        min_payload_score=min_payload_score,
+        max_payload_score=max_payload_score,
         skip=skip,
         limit=limit,
     )
@@ -72,6 +92,20 @@ async def list_audit_logs(
     event_type: str | None = None,
     user_id: str | None = None,
     since: datetime | None = None,
+    ip: str | None = Query(None, description="IP address to filter audit events."),
+    path: str | None = Query(None, description="Request path to filter audit events."),
+    payload_key: str | None = Query(
+        None, description="Filter audit events where payload.<key> equals payload_value. Provide key here."
+    ),
+    payload_value: str | None = Query(
+        None, description="Value to match for payload.<payload_key>."
+    ),
+    min_payload_score: float | None = Query(
+        None, description="Minimum numeric payload score (payload.score or payload.risk_score)."
+    ),
+    max_payload_score: float | None = Query(
+        None, description="Maximum numeric payload score (payload.score or payload.risk_score)."
+    ),
     skip: int = Query(0, ge=0, le=5000),
     limit: int = Query(100, ge=1, le=500),
 ):
@@ -80,6 +114,12 @@ async def list_audit_logs(
         event_type=event_type,
         user_id=user_id,
         since=since,
+        ip=ip,
+        path=path,
+        payload_key=payload_key,
+        payload_value=payload_value,
+        min_payload_score=min_payload_score,
+        max_payload_score=max_payload_score,
         skip=skip,
         limit=limit,
     )

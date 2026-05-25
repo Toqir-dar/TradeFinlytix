@@ -73,7 +73,7 @@ export function GainersLosersTable({ data, loading, error }: Props) {
     ? { bg: "#1e293b", border: "#334155", text: "#f1f5f9", muted: "#64748b" }
     : { bg: "white", border: "#E5E7EB", text: "#111827", muted: "#6B7280" };
 
-  if (loading) {
+   if (loading) {
     return (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         {[0, 1].map((i) => (

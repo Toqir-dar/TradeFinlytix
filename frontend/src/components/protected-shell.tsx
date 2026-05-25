@@ -235,7 +235,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         .shell-user-name { font-size: 13px; font-weight: 600; color: ${sh.userNameColor}; line-height: 1.2; }
         @media (max-width: 860px) { .shell-desktop-nav { display: none !important; } .shell-mobile-btn { display: flex !important; } }
         @media (max-width: 520px) { .shell-user-name { display: none; } }
-        .shell-content { padding: 28px 24px; }
+       .shell-content { padding: 28px 24px; }
         @media (max-width: 640px) { .shell-content { padding: 20px 16px !important; } }
         @media (max-width: 480px) { .shell-content { padding: 16px 12px !important; } }
       `}</style>
@@ -250,7 +250,6 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         transition: "background 0.2s ease, border-color 0.2s ease",
       }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-
           <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", flexShrink: 0 }}>
             <Image src="/logo.png" alt="TradeFinlytix" width={36} height={36} style={{ objectFit: "contain" }}/>
             <span style={{ fontWeight: 700, fontSize: 17, color: sh.logoText, letterSpacing: "-0.3px" }}>TradeFinlytix</span>
@@ -270,7 +269,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="shell-right-controls">
-            <button className="shell-mobile-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+            <button className="shell-mobile-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu" aria-expanded={mobileOpen} aria-controls="shell-mobile-nav">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                 {mobileOpen
                   ? <path d="M4 4l12 12M4 16L16 4" stroke={sh.mobileSvgStroke} strokeWidth="1.8" strokeLinecap="round"/>
@@ -282,6 +281,9 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             <div style={{ position: "relative" }}>
               <button id="alerts-btn"
                 onClick={() => setShowAlerts(!showAlerts)}
+                aria-label="Open notifications"
+                aria-expanded={showAlerts}
+                aria-controls="alerts-panel"
                 style={{ position: "relative", width: 40, height: 40, borderRadius: 10, border: `1.5px solid ${sh.btnBorder}`, background: sh.btnBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; e.currentTarget.style.background = sh.btnHoverBg; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = sh.btnBorder; e.currentTarget.style.background = sh.btnBg; }}
@@ -342,7 +344,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
             <ThemeToggle variant="nav" />
 
-            <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: `1.5px solid ${sh.userBadgeBorder}`, borderRadius: 12, background: sh.userBadgeBg, textDecoration: "none", transition: "all 0.2s" }}
+             <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: `1.5px solid ${sh.userBadgeBorder}`, borderRadius: 12, background: sh.userBadgeBg, textDecoration: "none", transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ADE80"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = sh.userBadgeBorder; }}>
               <div style={{ width: 30, height: 30, background: "linear-gradient(135deg, #4ADE80, #16A34A)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "white", flexShrink: 0 }}>
@@ -360,6 +362,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={async () => { await logout(); router.push("/login"); }}
+              aria-label="Logout"
               style={{ width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${sh.btnBorder}`, background: sh.btnBg, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#FECACA"; e.currentTarget.style.background = "#FEF2F2"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = sh.btnBorder; e.currentTarget.style.background = sh.btnBg; }}
@@ -372,7 +375,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {mobileOpen && (
-        <div className="shell-mobile-nav">
+        <div id="shell-mobile-nav" className="shell-mobile-nav">
           {visibleLinks.map((l) => {
             const isActive = pathname === l.href || pathname.startsWith(`${l.href}/`);
             return (

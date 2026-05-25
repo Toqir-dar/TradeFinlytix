@@ -12,6 +12,43 @@ body {
   transition: filter 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(74, 222, 128, 0.45);
+  outline-offset: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.tfx-skeleton {
+  background-size: 220% 100% !important;
+  animation: tfxSkeleton 1.35s ease-in-out infinite;
+}
+
+@keyframes tfxSkeleton {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 html.tfx-mono {
   color-scheme: dark;
 }
@@ -199,7 +236,7 @@ html.tfx-mono body .shell-mobile-nav-link.active {
     grid-template-columns: 1fr !important;
   }
 
-  .responsive-form-grid {
+    .responsive-form-grid {
     grid-template-columns: 1fr !important;
   }
 

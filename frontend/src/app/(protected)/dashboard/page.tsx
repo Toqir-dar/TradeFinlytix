@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart, Area, BarChart, Bar,
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid
@@ -10,30 +9,11 @@ import { motion, type Variants } from "framer-motion";
 import { PsxLiveChartCard } from "@/components/psx-live-chart";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/use-theme";
-import { api } from "@/lib/api";
+import { usePortfolio, useTrades, useScreener, useRiskTrend, useCisoAudit } from "@/lib/queries";
+import { useState } from "react";
+import { Button, Card } from "@/design-system";
 import { DollarSign, TrendingUp, Briefcase, Award, Zap, History, UserCircle, Users, UserCheck, UserX, UserPlus, FileText, AlertCircle, Shield, CheckCircle2, FileSearch, AlertTriangle } from "lucide-react";
-
-const MOCK_PORTFOLIO_CHART = [
-  { day: "Mon", value: 245000 }, { day: "Tue", value: 251000 },
-  { day: "Wed", value: 248000 }, { day: "Thu", value: 263000 },
-  { day: "Fri", value: 271000 }, { day: "Sat", value: 268000 },
-  { day: "Today", value: 279000 },
-];
-
-const MOCK_SIGNALS = [
-  { symbol: "OGDC", signal: "BUY", confidence: 81, change: "+2.3%", price: "PKR 175.5", risk: "LOW" },
-  { symbol: "HBL", signal: "HOLD", confidence: 62, change: "+1.1%", price: "PKR 142.0", risk: "MEDIUM" },
-  { symbol: "ENGRO", signal: "BUY", confidence: 74, change: "+0.8%", price: "PKR 318.5", risk: "LOW" },
-  { symbol: "LUCK", signal: "TRIM", confidence: 48, change: "-0.5%", price: "PKR 892.0", risk: "HIGH" },
-  { symbol: "PSO", signal: "BUY", confidence: 79, change: "+3.2%", price: "PKR 221.0", risk: "LOW" },
-];
-
-const MOCK_TRADES = [
-  { symbol: "OGDC", type: "BUY", qty: 500, price: "PKR 173.2", time: "10:32 AM", pnl: "+PKR 1,150" },
-  { symbol: "HBL", type: "SELL", qty: 200, price: "PKR 141.5", time: "11:15 AM", pnl: "+PKR 320" },
-  { symbol: "ENGRO", type: "BUY", qty: 100, price: "PKR 316.0", time: "1:05 PM", pnl: "+PKR 250" },
-  { symbol: "PSO", type: "BUY", qty: 300, price: "PKR 218.5", time: "2:45 PM", pnl: "+PKR 750" },
-];
+import { ErrorState, SkeletonBlock, StatCardSkeleton, TableSkeleton } from "@/components/ux-states";
 
 const MOCK_RISK = [
   { day: "Mon", count: 2 }, { day: "Tue", count: 5 }, { day: "Wed", count: 3 },
@@ -90,24 +70,33 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const mono = useTheme();
 
-  const { data: portfolio } = useQuery({
-    queryKey: ["dashboard-portfolio"],
-    queryFn: async () => (await api.get("/portfolio")).data,
-    enabled: user?.role === "investor",
-  });
-
-  const { data: riskTrend } = useQuery({
-    queryKey: ["dashboard-risk"],
-    queryFn: async () => (await api.get("/ciso/risk/trend")).data,
-    enabled: user?.role === "ciso",
-  });
-
-  const chartData = portfolio?.positions?.length ? portfolio.positions : MOCK_PORTFOLIO_CHART;
-  const riskData = riskTrend?.items?.length ? riskTrend.items : MOCK_RISK;
-
   const isInvestor = !user?.role || user?.role === "investor";
   const isAdmin = user?.role === "admin";
   const isCiso = user?.role === "ciso";
+
+  const { data: portfolio, isLoading: isPortfolioLoading, isError: isPortfolioError, refetch: refetchPortfolio } = usePortfolio({ enabled: isInvestor });
+  const { data: trades, isLoading: isTradesLoading, isError: isTradesError, refetch: refetchTrades } = useTrades({ enabled: isInvestor });
+  const { data: screener, isLoading: isScreenerLoading, isError: isScreenerError, refetch: refetchScreener } = useScreener({ enabled: isInvestor });
+  const { data: riskTrend, isError: isRiskTrendError, refetch: refetchRiskTrend } = useRiskTrend(7, { enabled: isCiso });
+
+  const portfolioPositions: any[] = portfolio?.positions ?? [];
+  const portfolioValue = portfolioPositions.reduce(
+    (sum: number, position: any) => sum + position.quantity * (position.current_price ?? position.avg_price),
+    0,
+  );
+  const portfolioCost = portfolioPositions.reduce(
+    (sum: number, position: any) => sum + position.quantity * position.avg_price,
+    0,
+  );
+  const totalPositions = portfolioPositions.length;
+  const totalTrades = trades?.total ?? 0;
+  const recentTrades = trades?.items ?? [];
+  const signalItems = screener?.items?.slice(0, 5) ?? [];
+  const chartData = portfolioPositions.length ? portfolioPositions.map((position: any) => ({ day: position.symbol, value: position.quantity * (position.current_price ?? position.avg_price) })) : [];
+  const riskData = riskTrend?.items?.length ? riskTrend.items : MOCK_RISK;
+  // CISO audit panel state + query
+  const [auditFilters, setAuditFilters] = useState({ skip: 0, limit: 5 } as any);
+  const { data: cisoAudit, isLoading: isCisoAuditLoading, isError: isCisoAuditError, refetch: refetchCisoAudit } = useCisoAudit(auditFilters, { enabled: isCiso });
 
   const firstName = user?.full_name?.split(" ")[0] ?? (isAdmin ? "Admin" : isCiso ? "CISO" : "Trader");
 
@@ -150,6 +139,8 @@ export default function DashboardPage() {
   };
 
   const tooltipStyle = { borderRadius: 10, border: `1px solid ${th.tooltipBorder}`, fontSize: 13, background: th.tooltipBg, color: th.text };
+  const tone = mono ? "dark" : "light";
+  const investorLoading = isPortfolioLoading || isTradesLoading || isScreenerLoading;
 
   return (
     <motion.div
@@ -222,6 +213,11 @@ export default function DashboardPage() {
       {isInvestor && (
         <>
           {/* Stat Cards */}
+          {investorLoading ? (
+            <div className="dash-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+              {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} tone={tone} />)}
+            </div>
+          ) : (
           <motion.div
             className="dash-stat-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
@@ -230,10 +226,15 @@ export default function DashboardPage() {
             animate="visible"
           >
             {[
-              { label: "Portfolio Value", value: "PKR 2,79,500", change: "+4.3%", up: true, Icon: DollarSign, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
-              { label: "Today's P&L", value: "+PKR 11,500", change: "+4.3%", up: true, Icon: TrendingUp, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
-              { label: "Active Positions", value: "8", change: "2 new today", up: true, Icon: Briefcase, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
-              { label: "Win Rate", value: "71.4%", change: "+2.1% this week", up: true, Icon: Award, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
+              { label: "Portfolio Value", value: `PKR ${portfolioValue.toLocaleString("en-PK", { maximumFractionDigits: 0 })}`,
+                change: portfolioPositions.length ? `Based on ${portfolioPositions.length} positions` : "No positions yet",
+                up: true, Icon: DollarSign, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Portfolio Cost", value: `PKR ${portfolioCost.toLocaleString("en-PK", { maximumFractionDigits: 0 })}`,
+                change: "Calculated from avg buy prices", up: true, Icon: TrendingUp, iconBg: "linear-gradient(135deg,#DCFCE7,#BBF7D0)", iconColor: "#15803D" },
+              { label: "Open Positions", value: `${totalPositions}`,
+                change: "Current holdings", up: true, Icon: Briefcase, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
+              { label: "Recent Trades", value: `${totalTrades}`,
+                change: "Most recent entries", up: true, Icon: Award, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
             ].map((s) => (
               <motion.div
                 key={s.label}
@@ -256,56 +257,74 @@ export default function DashboardPage() {
               </motion.div>
             ))}
           </motion.div>
+          )}
 
           {/* Chart + Signals */}
           <div className="dash-two-col">
             <motion.div
-              className="section-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.35, ease: EASE }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <div>
-                  <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Portfolio Performance</h3>
-                  <p style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>Last 7 days</p>
+              <Card style={{ padding: 20, marginBottom: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                  <div>
+                    <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Portfolio Performance</h3>
+                    <p style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>Last 7 days</p>
+                  </div>
+                  <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 600 }}>+4.3% ▲</span>
                 </div>
-                <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 600 }}>+4.3% ▲</span>
-              </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4ADE80" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#4ADE80" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
-                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`}/>
-                  <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={tooltipStyle}/>
-                  <Area type="monotone" dataKey="value" stroke="#16A34A" strokeWidth={2.5} fill="url(#colorValue)"/>
-                </AreaChart>
-              </ResponsiveContainer>
+                {isPortfolioError ? (
+                  <ErrorState tone={tone} title="Portfolio chart unavailable" message="Your portfolio endpoint could not be refreshed." onRetry={() => refetchPortfolio()} />
+                ) : isPortfolioLoading ? (
+                  <div style={{ height: 200, display: "grid", alignContent: "end", gap: 10 }}>
+                    <SkeletonBlock tone={tone} height={150} radius={12} />
+                  </div>
+                ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#4ADE80" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#4ADE80" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
+                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+                    <YAxis tick={{ fontSize: 11, fill: th.muted }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`}/>
+                    <Tooltip formatter={(v: number) => [`PKR ${v.toLocaleString()}`, "Value"]} contentStyle={tooltipStyle}/>
+                    <Area type="monotone" dataKey="value" stroke="#16A34A" strokeWidth={2.5} fill="url(#colorValue)"/>
+                  </AreaChart>
+                </ResponsiveContainer>
+                )}
+              </Card>
             </motion.div>
 
             <motion.div
-              className="section-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.45, ease: EASE }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>AI Signals</h3>
-                <Link href="/predict" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
-              </div>
-              <motion.div
-                style={{ display: "flex", flexDirection: "column", gap: 6 }}
-                variants={listStagger}
-                initial="hidden"
-                animate="visible"
-              >
-                {MOCK_SIGNALS.map((s) => (
+              <Card style={{ padding: 18 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>AI Signals</h3>
+                  <Link href="/predict" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
+                </div>
+                <motion.div
+                  style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                  variants={listStagger}
+                  initial="hidden"
+                  animate="visible"
+                >
+                {isScreenerError ? (
+                  <ErrorState tone={tone} title="AI signals unavailable" message="The screener endpoint could not be refreshed." onRetry={() => refetchScreener()} />
+                ) : isScreenerLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} style={{ padding: "10px 12px" }}>
+                      <SkeletonBlock tone={tone} height={36} radius={10} />
+                    </div>
+                  ))
+                ) : signalItems.length > 0 ? signalItems.map((s: any) => (
                   <motion.div key={s.symbol} variants={listItem}>
                     <Link href={`/predict/${s.symbol}`} style={{ textDecoration: "none" }}>
                       <motion.div
@@ -316,18 +335,21 @@ export default function DashboardPage() {
                           <div style={{ width: 36, height: 36, background: th.symbolIconBg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11, color: th.symbolIconColor }}>{s.symbol.slice(0, 3)}</div>
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{s.symbol}</div>
-                            <div style={{ fontSize: 11, color: th.muted }}>{s.price}</div>
+                            <div style={{ fontSize: 11, color: th.muted }}>{s.price ? `PKR ${s.price}` : `${s.score ?? 0}% score`}</div>
                           </div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <span className="chip" style={{ background: SIGNAL_COLORS[s.signal]?.bg, color: SIGNAL_COLORS[s.signal]?.color }}>{s.signal}</span>
-                          <div style={{ fontSize: 11, color: th.muted, marginTop: 2 }}>{s.confidence}% conf.</div>
+                          <span className="chip" style={{ background: SIGNAL_COLORS[s.signal ?? "BUY"]?.bg ?? "#DCFCE7", color: SIGNAL_COLORS[s.signal ?? "BUY"]?.color ?? "#15803D" }}>{s.signal ?? "TREND"}</span>
+                          <div style={{ fontSize: 11, color: th.muted, marginTop: 2 }}>{typeof s.score === "number" ? `${s.score}% score` : s.reasons?.[0] ?? "Live trend"}</div>
                         </div>
                       </motion.div>
                     </Link>
                   </motion.div>
-                ))}
+                )) : (
+                  <div style={{ padding: 20, color: th.muted }}>{isScreenerLoading ? "Loading trending signals..." : "No trending signals available."}</div>
+                )}
               </motion.div>
+              </Card>
             </motion.div>
           </div>
 
@@ -347,43 +369,50 @@ export default function DashboardPage() {
 
           {/* Recent Trades */}
           <motion.div
-            className="section-card"
-            style={{ marginBottom: 24 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.55, ease: EASE }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Recent Trades</h3>
-              <Link href="/trades" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
-            </div>
-            <div className="table-scroll">
-              <div className="table-min">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                  <span>Symbol</span><span>Type</span><span>Quantity</span><span>Price</span><span>Time</span><span>P&L</span>
-                </div>
-                <motion.div variants={rowStagger} initial="hidden" animate="visible">
-                  {MOCK_TRADES.map((t, i) => (
-                    <motion.div
-                      key={i}
-                      className="trade-row"
-                      variants={rowItem}
-                      whileHover={{ backgroundColor: th.innerCard, transition: { duration: 0.1 } }}
-                      style={{ backgroundColor: "transparent", borderRadius: 8 }}
-                    >
-                      <span style={{ fontWeight: 700, color: th.text }}>{t.symbol}</span>
-                      <span>
-                        <span className="chip" style={{ background: t.type === "BUY" ? "#DCFCE7" : "#FEE2E2", color: t.type === "BUY" ? "#15803D" : "#991B1B" }}>{t.type}</span>
-                      </span>
-                      <span style={{ color: th.subtext }}>{t.qty}</span>
-                      <span style={{ color: th.subtext }}>{t.price}</span>
-                      <span style={{ color: th.muted }}>{t.time}</span>
-                      <span style={{ color: "#16A34A", fontWeight: 600 }}>{t.pnl}</span>
-                    </motion.div>
-                  ))}
-                </motion.div>
+            <Card style={{ padding: 18, marginBottom: 24 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>Recent Trades</h3>
+                <Link href="/trades" style={{ fontSize: 12, color: "#16A34A", fontWeight: 600, textDecoration: "none" }}>View all →</Link>
               </div>
-            </div>
+              <div className="table-scroll">
+                <div className="table-min">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 8, padding: "8px 16px", fontSize: 11, fontWeight: 600, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    <span>Symbol</span><span>Type</span><span>Quantity</span><span>Price</span><span>Time</span>
+                  </div>
+                  <motion.div variants={rowStagger} initial="hidden" animate="visible">
+                    {isTradesError ? (
+                      <div style={{ padding: 16 }}>
+                        <ErrorState tone={tone} title="Recent trades unavailable" message="The trade history endpoint could not be refreshed." onRetry={() => refetchTrades()} />
+                      </div>
+                    ) : isTradesLoading ? (
+                      <TableSkeleton rows={5} columns={5} tone={tone} />
+                    ) : recentTrades.length > 0 ? recentTrades.slice(0, 5).map((item: any, i: number) => (
+                      <motion.div
+                        key={item.id ?? i}
+                        className="trade-row"
+                        variants={rowItem}
+                        whileHover={{ backgroundColor: th.innerCard, transition: { duration: 0.1 } }}
+                        style={{ backgroundColor: "transparent", borderRadius: 8, gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr" }}
+                      >
+                        <span style={{ fontWeight: 700, color: th.text }}>{item.trade?.symbol ?? "-"}</span>
+                        <span>
+                          <span className="chip" style={{ background: item.trade?.side === "sell" ? "#FEE2E2" : "#DCFCE7", color: item.trade?.side === "sell" ? "#991B1B" : "#15803D" }}>{(item.trade?.side ?? "-").toUpperCase()}</span>
+                        </span>
+                        <span style={{ color: th.subtext }}>{item.trade?.quantity ?? "-"}</span>
+                        <span style={{ color: th.subtext }}>{item.trade?.price ? `PKR ${item.trade.price}` : "-"}</span>
+                        <span style={{ color: th.muted }}>{item.timestamp ? new Date(item.timestamp).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" }) : "-"}</span>
+                      </motion.div>
+                    )) : (
+                      <div style={{ padding: 24, textAlign: "center", color: th.muted }}>No recent trades available.</div>
+                    )}
+                  </motion.div>
+                </div>
+              </div>
+            </Card>
           </motion.div>
 
           {/* Quick Actions */}
@@ -464,20 +493,19 @@ export default function DashboardPage() {
             ))}
           </motion.div>
           <motion.div
-            className="section-card"
-            style={{ marginBottom: 24 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.4, ease: EASE }}
           >
-            <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Quick Actions</h3>
-            <motion.div
-              className="dash-admin-actions"
-              style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
-              variants={cardStagger}
-              initial="hidden"
-              animate="visible"
-            >
+            <Card style={{ padding: 18, marginBottom: 24 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Quick Actions</h3>
+              <motion.div
+                className="dash-admin-actions"
+                style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
+                variants={cardStagger}
+                initial="hidden"
+                animate="visible"
+              >
               {[
                 { href: "/admin/users", label: "Manage Users", sub: "View & edit all users", Icon: Users, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
                 { href: "/profile", label: "My Profile", sub: "Account settings", Icon: UserCircle, iconBg: "linear-gradient(135deg,#FEF3C7,#FDE68A)", iconColor: "#92400E" },
@@ -499,7 +527,8 @@ export default function DashboardPage() {
                   </motion.div>
                 </Link>
               ))}
-            </motion.div>
+              </motion.div>
+            </Card>
           </motion.div>
         </>
       )}
@@ -507,6 +536,11 @@ export default function DashboardPage() {
       {/* ── CISO VIEW ── */}
       {isCiso && (
         <>
+          {isRiskTrendError && (
+            <div style={{ marginBottom: 24 }}>
+              <ErrorState tone={tone} title="Risk trend unavailable" message="The risk chart could not be refreshed." onRetry={() => refetchRiskTrend()} />
+            </div>
+          )}
           <motion.div
             className="dash-stat-grid"
             style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}
@@ -541,35 +575,40 @@ export default function DashboardPage() {
           </motion.div>
           <div className="dash-two-col-equal">
             <motion.div
-              className="section-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.4, ease: EASE }}
             >
-              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Risk Trend (7 Days)</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={riskData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
-                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
-                  <Tooltip cursor={false} contentStyle={tooltipStyle}/>
-                  <Bar dataKey="count" fill="#4ADE80" radius={[6, 6, 0, 0]}/>
-                </BarChart>
-              </ResponsiveContainer>
+              <Card style={{ padding: 18 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Risk Trend (7 Days)</h3>
+                {isRiskTrendError ? (
+                  <ErrorState tone={tone} title="Could not load risk trend" message="Try refreshing this widget." onRetry={() => refetchRiskTrend()} />
+                ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={riskData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={th.chartGrid}/>
+                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+                    <YAxis tick={{ fontSize: 12, fill: th.muted }} axisLine={false} tickLine={false}/>
+                    <Tooltip cursor={false} contentStyle={tooltipStyle}/>
+                    <Bar dataKey="count" fill="#4ADE80" radius={[6, 6, 0, 0]}/>
+                  </BarChart>
+                </ResponsiveContainer>
+                )}
+              </Card>
             </motion.div>
             <motion.div
-              className="section-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.5, ease: EASE }}
             >
-              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Quick Actions</h3>
-              <motion.div
-                style={{ display: "flex", flexDirection: "column", gap: 10 }}
-                variants={cardStagger}
-                initial="hidden"
-                animate="visible"
-              >
+              <Card style={{ padding: 18 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.text }}>Quick Actions</h3>
+                <motion.div
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                  variants={cardStagger}
+                  initial="hidden"
+                  animate="visible"
+                >
                 {[
                   { href: "/ciso/audit", label: "Audit Explorer", sub: "View event stream", Icon: FileSearch, iconBg: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", iconColor: "#1D4ED8" },
                   { href: "/ciso/risk", label: "Risk Dashboard", sub: "Anomalies & trends", Icon: AlertTriangle, iconBg: "linear-gradient(135deg,#FEE2E2,#FECACA)", iconColor: "#991B1B" },
@@ -592,10 +631,68 @@ export default function DashboardPage() {
                   </Link>
                 ))}
               </motion.div>
+              </Card>
             </motion.div>
           </div>
         </>
       )}
+
+        {/* ── CISO VIEW ── */}
+        {isCiso && (
+          <div style={{ marginTop: 18 }}>
+            <Card style={{ padding: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: th.text }}>Audit Events</h3>
+                  <p style={{ margin: 0, fontSize: 12, color: th.muted }}>Quick verification and filters</p>
+                </div>
+                <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(120px, 1fr))", gap: 8, alignItems: "center" }}>
+                  <label>
+                    <span className="sr-only">IP address</span>
+                    <input aria-label="Filter audit by IP address" placeholder="ip" value={auditFilters.ip ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, ip: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
+                  </label>
+                  <label>
+                    <span className="sr-only">Path</span>
+                    <input aria-label="Filter audit by path" placeholder="path" value={auditFilters.path ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, path: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
+                  </label>
+                  <label>
+                    <span className="sr-only">Payload key</span>
+                    <input aria-label="Filter audit by payload key" placeholder="payload key" value={auditFilters.payload_key ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, payload_key: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
+                  </label>
+                  <label>
+                    <span className="sr-only">Payload value</span>
+                    <input aria-label="Filter audit by payload value" placeholder="payload value" value={auditFilters.payload_value ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, payload_value: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <strong style={{ color: th.text }}>Total:</strong> {isCisoAuditLoading ? "loading..." : cisoAudit?.total ?? 0}
+              </div>
+
+              {isCisoAuditError ? (
+                <ErrorState tone={tone} title="Audit events unavailable" message="The audit stream could not be loaded." onRetry={() => refetchCisoAudit()} />
+              ) : (
+              <div>
+                {isCisoAuditLoading ? <TableSkeleton rows={5} columns={5} tone={tone} /> : (cisoAudit?.items ?? []).slice(0, 5).map((it: any) => (
+                  <div key={it._id ?? Math.random()} style={{ padding: 10, borderBottom: `1px solid ${th.borderSubtle}`, display: "flex", gap: 12, alignItems: "center" }}>
+                    <div style={{ fontSize: 13, color: th.muted, minWidth: 110 }}>{new Date(it.created_at).toLocaleString()}</div>
+                    <div style={{ fontWeight: 700, color: th.text }}>{it.event_type}</div>
+                    <div style={{ color: th.muted }}>{it.user_id ?? "-"}</div>
+                    <div style={{ color: th.muted }}>{it.ip ?? "-"}</div>
+                    <div style={{ color: th.muted }}>{it.path ?? "-"}</div>
+                  </div>
+                ))}
+              </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+                <Button variant="secondary" size="sm" className="" onClick={() => setAuditFilters({ ...auditFilters, skip: Math.max(0, (auditFilters.skip || 0) - (auditFilters.limit || 5)) })} style={{ marginRight: 8 }}>Prev</Button>
+                <Button variant="secondary" size="sm" onClick={() => setAuditFilters({ ...auditFilters, skip: (auditFilters.skip || 0) + (auditFilters.limit || 5) })}>Next</Button>
+              </div>
+            </Card>
+          </div>
+        )}
     </motion.div>
   );
 }

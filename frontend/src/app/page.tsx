@@ -324,11 +324,7 @@ export default function HomePage() {
       <main style={{ paddingTop: 104 }}>
         {/* Hero */}
         <section className="hero-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-          <motion.div
-            initial={{ opacity: 0, y: 36 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: EASE }}
-          >
+          <div>
             <span className="chip">Built for Pakistan Stock Exchange</span>
             <h1 className="hero-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 58, lineHeight: 1.1, letterSpacing: "-1px", color: th.text, marginTop: 20 }}>
               Trade Smarter<br />
@@ -357,15 +353,10 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Hero Card */}
-          <motion.div
-            className="hero-card-col"
-            initial={{ opacity: 0, x: 48 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.18, ease: EASE }}
-          >
+          <div className="hero-card-col">
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.9 }}
@@ -412,7 +403,7 @@ export default function HomePage() {
                 ))}
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         </section>
 
         {/* Live Market */}

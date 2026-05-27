@@ -23,7 +23,10 @@ def _build_context(logs: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 async def _call_groq(question: str, context: str) -> str:
-    try: 
+    if not settings.groq_api_key:
+        logger.warning("_call_groq skipped: GROQ_API_KEY not set")
+        return "Groq API key not configured."
+    try:
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
         body = {
@@ -42,11 +45,13 @@ async def _call_groq(question: str, context: str) -> str:
 
         client = get_http_client()
         response = await client.post(url, headers=headers, json=body, timeout=30.0)
-        return response.json()["choices"][0]["message"]["content"].strip()
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
 
     except Exception as e:
-        logger.warning("_call_groq failed: %s", e)
-        return ""
+        logger.warning("_call_groq failed: %s", e, exc_info=True)
+        return f"LLM unavailable: {e}"
 
 async def answer_query(db: AsyncIOMotorDatabase, question: str, top_k: int = 10,) -> dict[str, Any]:
 

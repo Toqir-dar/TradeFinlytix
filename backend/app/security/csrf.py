@@ -21,18 +21,27 @@ def issue_csrf_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def request_needs_csrf(request: Request, protected_prefixes: Iterable[str]) -> bool:
+def request_needs_csrf(
+    request: Request,
+    protected_prefixes: Iterable[str],
+    skip_prefixes: Iterable[str] = (),
+) -> bool:
     if request.method.upper() not in _MUTATING_METHODS:
         return False
-    if not request.url.path.startswith(tuple(protected_prefixes)):
+    path = request.url.path
+    if skip_prefixes and path.startswith(tuple(skip_prefixes)):
+        return False
+    if not path.startswith(tuple(protected_prefixes)):
         return False
     return True
 
 
 def validate_csrf(request: Request) -> bool:
-    cookie_name = settings.csrf_cookie_name
-    header_name = settings.csrf_header_name
-    cookie_token = request.cookies.get(cookie_name)
-    header_token = request.headers.get(header_name)
-    return bool(cookie_token and header_token and cookie_token == header_token)
+    cookie_token = request.cookies.get(settings.csrf_cookie_name)
+    if not cookie_token:
+        # No cookie means the client is not a browser session (Swagger, Postman,
+        # curl, mobile) — CSRF does not apply to Bearer-only clients.
+        return True
+    header_token = request.headers.get(settings.csrf_header_name)
+    return bool(header_token and cookie_token == header_token)
 

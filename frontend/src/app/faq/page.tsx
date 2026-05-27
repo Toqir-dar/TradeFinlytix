@@ -1,12 +1,31 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { motion, type Variants } from "framer-motion";
 import { LandingNavbar } from "@/components/landing-navbar";
+import { ChevronDown, HelpCircle, Shield, CreditCard, Cpu } from "lucide-react";
+
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
+};
+
+const stagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
 
 const faqSections = [
   {
-    title: "Section 1: General Information",
+    title: "General Information",
+    shortTitle: "General",
+    Icon: HelpCircle,
+    accent: "#16A34A",
+    darkAccent: "#4ade80",
+    lightBg: "#f0fdf4",
+    darkBg: "#0a1f0a",
     items: [
       {
         q: "What is TradeFinlytix?",
@@ -27,7 +46,13 @@ const faqSections = [
     ],
   },
   {
-    title: "Section 2: Platform Features & AI Capabilities",
+    title: "Platform Features & AI",
+    shortTitle: "Features & AI",
+    Icon: Cpu,
+    accent: "#1D4ED8",
+    darkAccent: "#60a5fa",
+    lightBg: "#eff6ff",
+    darkBg: "#0d1a2e",
     items: [
       {
         q: "What does the 10-day stock price prediction feature do?",
@@ -60,7 +85,13 @@ const faqSections = [
     ],
   },
   {
-    title: "Section 3: Data, Privacy & Security",
+    title: "Data, Privacy & Security",
+    shortTitle: "Privacy & Security",
+    Icon: Shield,
+    accent: "#15803D",
+    darkAccent: "#4ade80",
+    lightBg: "#f0fdf4",
+    darkBg: "#0a1f0a",
     items: [
       {
         q: "What data sources does TradeFinlytix use?",
@@ -81,7 +112,13 @@ const faqSections = [
     ],
   },
   {
-    title: "Section 4: Subscription, Access & Support",
+    title: "Subscription & Support",
+    shortTitle: "Subscription",
+    Icon: CreditCard,
+    accent: "#92400E",
+    darkAccent: "#fb923c",
+    lightBg: "#fffbeb",
+    darkBg: "#1c0f00",
     items: [
       {
         q: "What subscription tiers does TradeFinlytix offer?",
@@ -107,116 +144,650 @@ const faqSections = [
   },
 ];
 
+function AccordionItem({
+  q,
+  a,
+  index,
+  accent,
+  darkAccent,
+  mono,
+}: {
+  q: string;
+  a: string;
+  index: number;
+  accent: string;
+  darkAccent: string;
+  mono: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const color = mono ? darkAccent : accent;
+
+  return (
+    <div
+      style={{
+        border: `1.5px solid ${open ? color : mono ? "#334155" : "#e5e7eb"}`,
+        borderRadius: 14,
+        marginBottom: 10,
+        background: mono ? "#1e293b" : "#ffffff",
+        overflow: "hidden",
+        transition: "border-color 0.2s ease, background 0.2s ease",
+        boxShadow: open
+          ? mono
+            ? `0 4px 20px rgba(0,0,0,0.3)`
+            : `0 4px 20px rgba(22,163,74,0.08)`
+          : "none",
+      }}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "18px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          textAlign: "left",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span
+            style={{
+              minWidth: 28,
+              height: 28,
+              borderRadius: 8,
+              background: open ? color : mono ? "#334155" : "#f1f5f9",
+              color: open ? "#fff" : mono ? "#94a3b8" : "#6b7280",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 11,
+              fontWeight: 800,
+              transition: "background 0.2s ease, color 0.2s ease",
+            }}
+          >
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span
+            style={{
+              fontSize: 15,
+              fontWeight: 700,
+              color: mono ? "#f1f5f9" : "#111827",
+              lineHeight: 1.4,
+            }}
+          >
+            {q}
+          </span>
+        </div>
+        <span
+          style={{
+            color: open ? color : mono ? "#64748b" : "#9ca3af",
+            transition: "transform 0.25s ease, color 0.2s ease",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            flexShrink: 0,
+          }}
+        >
+          <ChevronDown size={18} strokeWidth={2.5} />
+        </span>
+      </button>
+
+      <div
+        ref={bodyRef}
+        style={{
+          maxHeight: open ? 400 : 0,
+          overflow: "hidden",
+          transition: "max-height 0.35s cubic-bezier(0.22,1,0.36,1)",
+        }}
+      >
+        <p
+          style={{
+            padding: "0 20px 20px 60px",
+            fontSize: 14.5,
+            color: mono ? "#94a3b8" : "#4b5563",
+            lineHeight: 1.75,
+            margin: 0,
+          }}
+        >
+          {a}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function FaqPage() {
   const [mono, setMono] = useState(false);
+  const [activeSection, setActiveSection] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const updateMono = () => {
       setMono(
         document.documentElement.classList.contains("tfx-mono") ||
-        localStorage.getItem("tfx_theme") === "mono"
+          localStorage.getItem("tfx_theme") === "mono"
       );
     };
-
     updateMono();
-
     const observer = new MutationObserver(updateMono);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
+  // Count total questions before a section
+  const questionOffset = (sectionIdx: number) =>
+    faqSections.slice(0, sectionIdx).reduce((sum, s) => sum + s.items.length, 0);
+
   return (
-    <main className="faq-page">
+    <main
+      style={{
+        minHeight: "100vh",
+        background: mono ? "#0f172a" : "#ffffff",
+        color: mono ? "#f1f5f9" : "#111827",
+        fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+        transition: "background 0.2s ease, color 0.2s ease",
+      }}
+    >
       <LandingNavbar mono={mono} />
       <div style={{ height: 84 }} />
-      <style>{`
-        .faq-page { min-height: 100vh; background: #ffffff; color: #111827; font-family: 'DM Sans', 'Segoe UI', sans-serif; }
-        .faq-page, .faq-header, .faq-card, .faq-note, .faq-toc { transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
-        .faq-header { background: #f0fdf4; border-bottom: 1px solid #bbf7d0; padding: 28px 24px 64px; }
-        .faq-nav { max-width: 1120px; margin: 0 auto 56px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
-        .faq-brand { display: flex; align-items: center; gap: 10px; color: #111827; text-decoration: none; font-weight: 800; }
-        .faq-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .faq-links a { color: #374151; font-size: 14px; font-weight: 700; text-decoration: none; padding: 8px 12px; border-radius: 8px; }
-        .faq-links a:hover { background: #dcfce7; color: #15803d; }
-        .faq-hero { max-width: 1120px; margin: 0 auto; }
-        .faq-kicker { display: inline-flex; padding: 6px 12px; border-radius: 999px; background: #dcfce7; border: 1px solid #bbf7d0; color: #15803d; font-size: 12px; font-weight: 800; }
-        .faq-hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(38px, 6vw, 62px); line-height: 1.05; margin: 18px 0 14px; letter-spacing: -0.8px; }
-        .faq-meta { color: #4b5563; line-height: 1.7; font-size: 15px; max-width: 760px; }
-        .faq-wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 84px; }
-        .faq-grid { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
-        .faq-toc { position: sticky; top: 24px; background: #ffffff; border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 18px; }
-        .faq-toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin-bottom: 12px; }
-        .faq-toc a { display: block; color: #111827; text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
-        .faq-toc a:hover { color: #16a34a; }
-        .faq-doc { display: flex; flex-direction: column; gap: 28px; }
-        .faq-section h2 { font-size: 24px; color: #0f172a; margin-bottom: 14px; }
-        .faq-card { border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 20px; margin-bottom: 12px; background: #ffffff; }
-        .faq-card h3 { font-size: 16px; color: #166534; margin-bottom: 8px; }
-        .faq-card p { color: #4b5563; line-height: 1.75; font-size: 14.5px; }
-        .faq-note { margin-top: 28px; background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 20px; color: #4b5563; line-height: 1.7; }
-        html.tfx-mono .faq-page { background: #0f172a; color: #f1f5f9; }
-        html.tfx-mono .faq-header { background: #0a1f0a; border-bottom-color: #166534; }
-        html.tfx-mono .faq-brand { color: #f1f5f9 !important; }
-        html.tfx-mono .faq-links a { color: #cbd5e1 !important; }
-        html.tfx-mono .faq-links a:hover { background: #1a2e1a; color: #4ade80 !important; }
-        html.tfx-mono .faq-kicker { background: #14532d; border-color: #166534; color: #4ade80; }
-        html.tfx-mono .faq-meta { color: #cbd5e1; }
-        html.tfx-mono .faq-toc,
-        html.tfx-mono .faq-card,
-        html.tfx-mono .faq-note { background: #1e293b; border-color: #334155; }
-        html.tfx-mono .faq-toc { background: #111827; }
-        html.tfx-mono .faq-toc a { color: #cbd5e1 !important; border-bottom-color: #334155; }
-        html.tfx-mono .faq-toc a:hover { color: #4ade80 !important; }
-        html.tfx-mono .faq-section h2 { color: #f1f5f9; }
-        html.tfx-mono .faq-card h3 { color: #4ade80; }
-        html.tfx-mono .faq-card p,
-        html.tfx-mono .faq-note { color: #cbd5e1; }
-        @media (max-width: 860px) { .faq-grid { grid-template-columns: 1fr; } .faq-toc { position: static; } }
-        @media (max-width: 560px) { .faq-nav { align-items: flex-start; flex-direction: column; } }
-      `}</style>
 
-      <header className="faq-header">
-        <section className="faq-hero">
-          <span className="faq-kicker">Pakistan Stock Exchange AI Platform</span>
-          <h1>Frequently Asked Questions</h1>
-          <p className="faq-meta">
-            Version 1.0 | 2025<br />
-            Founders: Aleena Ahmed, Toqir Dar, Seerat Fatima, Ayan Ahmed
-          </p>
-        </section>
+      {/* ── Hero ── */}
+      <header
+        style={{
+          background: mono
+            ? "linear-gradient(135deg, #0a1f0a 0%, #0f172a 100%)"
+            : "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 55%, #bbf7d0 100%)",
+          borderBottom: `1px solid ${mono ? "#166534" : "#bbf7d0"}`,
+          padding: "72px 24px 80px",
+          position: "relative",
+          overflow: "hidden",
+          transition: "background 0.2s ease",
+        }}
+      >
+        {/* decorative blobs */}
+        <div style={{ position: "absolute", top: -100, right: -100, width: 420, height: 420, borderRadius: "50%", background: mono ? "radial-gradient(circle, rgba(74,222,128,0.07) 0%, transparent 70%)" : "radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -80, left: "20%", width: 300, height: 300, borderRadius: "50%", background: mono ? "radial-gradient(circle, rgba(74,222,128,0.04) 0%, transparent 70%)" : "radial-gradient(circle, rgba(22,163,74,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+
+        <div className="hero-two-col" style={{ maxWidth: 1120, margin: "0 auto", position: "relative", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+
+          {/* LEFT — text */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }}
+          >
+            <motion.span
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, background: mono ? "#14532d" : "#dcfce7", border: `1px solid ${mono ? "#166534" : "#bbf7d0"}`, color: mono ? "#4ade80" : "#15803d", fontSize: 12, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase" as const, marginBottom: 22 }}
+            >
+              Pakistan Stock Exchange AI Platform
+            </motion.span>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: EASE, delay: 0.15 }}
+              style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(42px, 5vw, 72px)", lineHeight: 1.04, letterSpacing: "-1.5px", margin: "0 0 20px", color: mono ? "#f1f5f9" : "#0f172a", fontWeight: 700 }}
+            >
+              Frequently Asked
+              <br />
+              <span style={{ color: "#16A34A", fontWeight: 700 }}>Questions</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.25 }}
+              style={{ fontSize: 16, color: mono ? "#94a3b8" : "#4b5563", lineHeight: 1.75, maxWidth: 480, margin: "0 0 36px" }}
+            >
+              Everything you need to know about TradeFinlytix — our AI platform, data practices, and how to get started investing on PSX.
+            </motion.p>
+
+            {/* stats */}
+            <motion.div
+              style={{ display: "flex", gap: 36, flexWrap: "wrap" as const }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.35 }}
+            >
+              {[
+                { label: "Sections", value: "4" },
+                { label: "Questions", value: `${faqSections.reduce((s, sec) => s + sec.items.length, 0)}` },
+                { label: "Version", value: "1.0" },
+              ].map((stat, i) => (
+                <div key={stat.label} style={{ display: "flex", flexDirection: "column" as const, gap: 3 }}>
+                  <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "#16A34A", lineHeight: 1, fontWeight: 700 }}>{stat.value}</span>
+                  <span style={{ fontSize: 12, color: mono ? "#64748b" : "#6b7280", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.04em" }}>{stat.label}</span>
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* RIGHT — decorative FAQ preview cards */}
+          <motion.div
+            className="hero-right-cards"
+            style={{ display: "flex", flexDirection: "column" as const, gap: 12, position: "relative" as const }}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: EASE, delay: 0.2 }}
+          >
+            {/* floating label */}
+            <div style={{ position: "absolute" as const, top: -18, right: 0, background: mono ? "#14532d" : "#16A34A", color: "#fff", fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 999, letterSpacing: "0.06em" }}>
+              QUICK PREVIEW
+            </div>
+
+            {[
+              { q: "What is TradeFinlytix?", section: "General", color: "#16A34A" },
+              { q: "How do AI buy/sell signals work?", section: "Features & AI", color: "#1D4ED8" },
+              { q: "Does TradeFinlytix share my data?", section: "Privacy", color: "#15803D" },
+              { q: "What subscription tiers are available?", section: "Subscription", color: "#92400E" },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: i % 2 === 1 ? 16 : 0 }}
+                transition={{ duration: 0.55, ease: EASE, delay: 0.3 + i * 0.1 }}
+                whileHover={{ scale: 1.02, boxShadow: mono ? "0 8px 28px rgba(0,0,0,0.4)" : "0 8px 28px rgba(22,163,74,0.15)", transition: { duration: 0.2 } }}
+                style={{
+                  background: mono ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.85)",
+                  backdropFilter: "blur(8px)",
+                  border: `1.5px solid ${mono ? "#334155" : "#e5e7eb"}`,
+                  borderRadius: 12,
+                  padding: "14px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  boxShadow: mono ? "0 4px 16px rgba(0,0,0,0.25)" : "0 4px 16px rgba(0,0,0,0.06)",
+                  cursor: "default",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: item.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13.5, fontWeight: 600, color: mono ? "#e2e8f0" : "#111827", lineHeight: 1.3 }}>{item.q}</span>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: item.color, background: mono ? "rgba(255,255,255,0.05)" : `${item.color}15`, padding: "3px 8px", borderRadius: 6, whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+                  {item.section}
+                </span>
+              </motion.div>
+            ))}
+
+            {/* bottom decoration */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              style={{ textAlign: "center" as const, marginTop: 4 }}
+            >
+              <span style={{ fontSize: 12, color: mono ? "#475569" : "#9ca3af", fontWeight: 600 }}>
+                + {faqSections.reduce((s, sec) => s + sec.items.length, 0) - 4} more questions below ↓
+              </span>
+            </motion.div>
+          </motion.div>
+        </div>
       </header>
 
-      <div className="faq-wrap">
-        <div className="faq-grid">
-          <aside className="faq-toc">
-            <h2>FAQ Sections</h2>
-            {faqSections.map((section, index) => (
-              <a key={section.title} href={`#section-${index + 1}`}>{section.title.replace("Section ", "")}</a>
-            ))}
-          </aside>
-
-          <div className="faq-doc">
-            {faqSections.map((section, index) => (
-              <section className="faq-section" id={`section-${index + 1}`} key={section.title}>
-                <h2>{section.title}</h2>
-                {section.items.map((item, itemIndex) => (
-                  <article className="faq-card" key={item.q}>
-                    <h3>Q{faqSections.slice(0, index).reduce((sum, s) => sum + s.items.length, 0) + itemIndex + 1}. {item.q}</h3>
-                    <p>{item.a}</p>
-                  </article>
-                ))}
-              </section>
-            ))}
-
-            <div className="faq-note">
-              This document is maintained by the TradeFinlytix founding team and is subject to revision.
-              Last updated: 2025 | (c) TradeFinlytix. All rights reserved.
-            </div>
-          </div>
+      {/* ── Tab nav ── */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 40,
+          background: mono ? "#0f172a" : "#ffffff",
+          borderBottom: `1px solid ${mono ? "#1e293b" : "#f1f5f9"}`,
+          boxShadow: mono
+            ? "0 2px 12px rgba(0,0,0,0.4)"
+            : "0 2px 12px rgba(0,0,0,0.06)",
+          transition: "background 0.2s ease",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1120,
+            margin: "0 auto",
+            padding: "0 24px",
+            display: "flex",
+            gap: 4,
+            overflowX: "auto",
+          }}
+        >
+          {faqSections.map((section, i) => {
+            const active = activeSection === i;
+            const color = mono ? section.darkAccent : section.accent;
+            return (
+              <button
+                key={section.title}
+                onClick={() => {
+                  setActiveSection(i);
+                  document
+                    .getElementById(`section-${i}`)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "14px 16px",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  fontSize: 13.5,
+                  fontWeight: active ? 800 : 600,
+                  color: active ? color : mono ? "#64748b" : "#6b7280",
+                  borderBottom: `2.5px solid ${active ? color : "transparent"}`,
+                  whiteSpace: "nowrap",
+                  transition: "color 0.2s ease, border-color 0.2s ease",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                <section.Icon size={15} strokeWidth={2.2} />
+                {section.shortTitle}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* ── Main content ── */}
+      <div
+        className="faq-grid-outer"
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+          padding: "64px 24px 100px",
+          display: "grid",
+          gridTemplateColumns: "240px 1fr",
+          gap: 40,
+          alignItems: "start",
+        }}
+      >
+        {/* Sidebar TOC */}
+        <aside
+          style={{
+            position: "sticky",
+            top: 60,
+            background: mono ? "#111827" : "#ffffff",
+            border: `1.5px solid ${mono ? "#334155" : "#e5e7eb"}`,
+            borderRadius: 16,
+            padding: "20px",
+            transition: "background 0.2s ease",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: mono ? "#64748b" : "#9ca3af",
+              marginBottom: 16,
+            }}
+          >
+            Contents
+          </p>
+          {faqSections.map((section, i) => {
+            const active = activeSection === i;
+            const color = mono ? section.darkAccent : section.accent;
+            return (
+              <a
+                key={section.title}
+                href={`#section-${i}`}
+                onClick={() => setActiveSection(i)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  textDecoration: "none",
+                  fontSize: 13,
+                  fontWeight: active ? 700 : 500,
+                  color: active ? color : mono ? "#94a3b8" : "#374151",
+                  background: active
+                    ? mono
+                      ? `${section.darkBg}`
+                      : `${section.lightBg}`
+                    : "transparent",
+                  marginBottom: 4,
+                  transition: "background 0.15s ease, color 0.15s ease",
+                }}
+              >
+                <section.Icon
+                  size={14}
+                  strokeWidth={2.2}
+                  color={active ? color : undefined}
+                />
+                <span style={{ lineHeight: 1.3 }}>
+                  {section.shortTitle}
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: 11,
+                      color: mono ? "#475569" : "#9ca3af",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {section.items.length} questions
+                  </span>
+                </span>
+              </a>
+            );
+          })}
+
+          <div
+            style={{
+              marginTop: 20,
+              paddingTop: 16,
+              borderTop: `1px solid ${mono ? "#1e293b" : "#f1f5f9"}`,
+            }}
+          >
+            <p
+              style={{
+                fontSize: 12,
+                color: mono ? "#475569" : "#9ca3af",
+                lineHeight: 1.6,
+              }}
+            >
+              Can't find what you need?{" "}
+              <a
+                href="mailto:support@tradefinlytix.com"
+                style={{
+                  color: "#16A34A",
+                  fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                Email support →
+              </a>
+            </p>
+          </div>
+        </aside>
+
+        {/* FAQ sections */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
+          {faqSections.map((section, sIdx) => {
+            const color = mono ? section.darkAccent : section.accent;
+            return (
+              <motion.section
+                key={section.title}
+                id={`section-${sIdx}`}
+                style={{ scrollMarginTop: 80 }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, ease: EASE }}
+              >
+                {/* Section header */}
+                <motion.div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    marginBottom: 24,
+                    paddingBottom: 18,
+                    borderBottom: `1.5px solid ${mono ? "#1e293b" : "#f1f5f9"}`,
+                  }}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
+                >
+                  <motion.div
+                    whileHover={{ rotate: [0, -8, 8, 0], scale: 1.1 }}
+                    transition={{ duration: 0.4 }}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: mono ? section.darkBg : section.lightBg,
+                      border: `1.5px solid ${
+                        mono ? section.darkAccent + "33" : section.accent + "33"
+                      }`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <section.Icon size={20} strokeWidth={2} />
+                  </motion.div>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        letterSpacing: "0.07em",
+                        textTransform: "uppercase",
+                        color,
+                        marginBottom: 3,
+                      }}
+                    >
+                      Section {sIdx + 1}
+                    </div>
+                    <h2
+                      style={{
+                        fontFamily: "'DM Serif Display', serif",
+                        fontSize: 26,
+                        fontWeight: 700,
+                        color: mono ? "#f1f5f9" : "#0f172a",
+                        margin: 0,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {section.title}
+                    </h2>
+                  </div>
+                </motion.div>
+
+                {/* Accordion items — staggered */}
+                <motion.div
+                  variants={stagger}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-40px" }}
+                >
+                  {section.items.map((item, iIdx) => (
+                    <motion.div key={item.q} variants={fadeUp}>
+                      <AccordionItem
+                        key={item.q}
+                        q={item.q}
+                        a={item.a}
+                        index={questionOffset(sIdx) + iIdx}
+                        accent={section.accent}
+                        darkAccent={section.darkAccent}
+                        mono={mono}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </motion.section>
+            );
+          })}
+
+          {/* Footer note */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.55, ease: EASE }}
+            style={{
+              background: mono ? "#111827" : "#f8fafc",
+              border: `1.5px solid ${mono ? "#334155" : "#e5e7eb"}`,
+              borderRadius: 16,
+              padding: "24px 28px",
+              display: "flex",
+              gap: 16,
+              alignItems: "flex-start",
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: "#dcfce7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                marginTop: 2,
+              }}
+            >
+              <Shield size={17} color="#16A34A" strokeWidth={2.2} />
+            </div>
+            <div>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: mono ? "#f1f5f9" : "#111827",
+                  margin: "0 0 4px",
+                }}
+              >
+                Document Notice
+              </p>
+              <p
+                style={{
+                  fontSize: 13.5,
+                  color: mono ? "#94a3b8" : "#4b5563",
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                This document is maintained by the TradeFinlytix founding team
+                and is subject to revision. Last updated: 2025 &nbsp;·&nbsp; ©
+                TradeFinlytix. All rights reserved.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 860px) {
+          .faq-grid-outer { grid-template-columns: 1fr !important; }
+          aside { position: static !important; top: auto !important; }
+        }
+        @media (max-width: 768px) {
+          .hero-two-col { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .hero-right-cards { display: none !important; }
+        }
+        * { box-sizing: border-box; }
+        button:focus-visible { outline: 2px solid #16A34A; outline-offset: 2px; }
+        a:focus-visible { outline: 2px solid #16A34A; outline-offset: 2px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+      `}</style>
     </main>
   );
 }

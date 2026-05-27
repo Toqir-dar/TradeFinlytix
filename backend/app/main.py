@@ -264,7 +264,9 @@ app.include_router(ciso_routes.router, prefix="/api/v1")
 @app.middleware("http")
 async def csrf_guard_middleware(request: Request, call_next) -> Response:
     if settings.csrf_protection_enabled and request_needs_csrf(
-        request, protected_prefixes=("/api/v1",)
+        request,
+        protected_prefixes=("/api/v1",),
+        skip_prefixes=("/api/v1/auth/",),
     ):
         if not validate_csrf(request):
             return JSONResponse(status_code=403, content={"detail": "CSRF token invalid."})

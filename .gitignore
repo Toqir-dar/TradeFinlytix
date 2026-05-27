@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+lightning_logs/
 downloads/
 eggs/
 .eggs/
@@ -235,3 +236,7 @@ backend/app/ml_engine/saved_models/
 # OS
 .DS_Store
 Thumbs.db
+
+backend/lightning_logs/version_1/
+backend/lightning_logs/version_2/
+backend/lightning_logs/version_3/

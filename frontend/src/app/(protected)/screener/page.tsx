@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { BarChart3, Filter, Loader2, Search, SlidersHorizontal, TrendingDown, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
 import { useTheme } from "@/lib/use-theme";
+import { TableSkeleton } from "@/components/ux-states";
 
 type ScreenerPreset = "custom" | "growing" | "low_risk" | "trending";
 type TrendFilter = "any" | "bullish" | "bearish" | "neutral";
@@ -141,6 +142,7 @@ export default function ScreenerPage() {
   });
 
   const items = result?.items ?? [];
+  const tone = mono ? "dark" : "light";
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}>
@@ -158,10 +160,16 @@ export default function ScreenerPage() {
         .result-row:hover { background: ${th.innerCard}; border-radius: 8px; }
         .result-row:last-child { border-bottom: none; }
         .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .checkbox-control { width: 18px; height: 18px; accent-color: #16A34A; flex-shrink: 0; }
         @media (max-width: 900px) {
           .screener-grid { grid-template-columns: 1fr !important; }
           .result-row { grid-template-columns: 1fr 1fr; }
           .result-head { display: none !important; }
+        }
+        @media (max-width: 640px) {
+          .screener-presets { grid-template-columns: 1fr !important; }
+          .screener-field-grid { grid-template-columns: 1fr !important; }
+          .screener-run-btn { width: 100%; justify-content: center; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
@@ -171,7 +179,7 @@ export default function ScreenerPage() {
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6, color: th.heading }}>Stock Screener</h1>
           <p style={{ fontSize: 14, color: th.bgSubtext }}>Filter PSX symbols by score, trend, price, and volume.</p>
         </div>
-        <button className="run-btn" onClick={() => screenStocks.mutate()} disabled={screenStocks.isPending}>
+        <button className="run-btn screener-run-btn" type="button" onClick={() => screenStocks.mutate()} disabled={screenStocks.isPending} aria-busy={screenStocks.isPending}>
           {screenStocks.isPending ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Search size={16} />}
           Run Screener
         </button>
@@ -184,9 +192,9 @@ export default function ScreenerPage() {
             <h2 style={{ fontSize: 16, fontWeight: 800, color: th.text }}>Filters</h2>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+          <div className="screener-presets" role="radiogroup" aria-label="Screener preset" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
             {PRESETS.map((item) => (
-              <button key={item.value} className={`preset-btn ${preset === item.value ? "active" : ""}`} onClick={() => setPreset(item.value)}>
+              <button key={item.value} type="button" role="radio" aria-checked={preset === item.value} className={`preset-btn ${preset === item.value ? "active" : ""}`} onClick={() => setPreset(item.value)}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: th.presetText }}>{item.label}</div>
                 <div style={{ fontSize: 11, color: th.presetSub, marginTop: 2 }}>{item.sub}</div>
               </button>
@@ -194,14 +202,14 @@ export default function ScreenerPage() {
           </div>
 
           <div style={{ display: "grid", gap: 14 }}>
-            <label>
+            <label htmlFor="screener-symbols">
               <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: th.label, marginBottom: 6 }}>Symbols</span>
-              <input className="input-field" value={symbols} onChange={(e) => setSymbols(e.target.value.toUpperCase())} placeholder="OGDC,HBL,ENGRO" />
+              <input id="screener-symbols" className="input-field" autoComplete="off" value={symbols} onChange={(e) => setSymbols(e.target.value.toUpperCase())} placeholder="OGDC,HBL,ENGRO" />
             </label>
 
-            <label>
+            <label htmlFor="screener-trend">
               <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: th.label, marginBottom: 6 }}>Trend</span>
-              <select className="input-field" value={trend} onChange={(e) => setTrend(e.target.value as TrendFilter)}>
+              <select id="screener-trend" className="input-field" value={trend} onChange={(e) => setTrend(e.target.value as TrendFilter)}>
                 <option value="any">Any</option>
                 <option value="bullish">Bullish</option>
                 <option value="bearish">Bearish</option>
@@ -209,30 +217,30 @@ export default function ScreenerPage() {
               </select>
             </label>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <label>
+            <div className="screener-field-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <label htmlFor="screener-min-price">
                 <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: th.label, marginBottom: 6 }}>Min Price</span>
-                <input className="input-field" type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+                <input id="screener-min-price" className="input-field" inputMode="decimal" min={0} type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
               </label>
-              <label>
+              <label htmlFor="screener-max-price">
                 <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: th.label, marginBottom: 6 }}>Max Price</span>
-                <input className="input-field" type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+                <input id="screener-max-price" className="input-field" inputMode="decimal" min={0} type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
               </label>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <label>
+            <div className="screener-field-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <label htmlFor="screener-min-score">
                 <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: th.label, marginBottom: 6 }}>Min Score</span>
-                <input className="input-field" type="number" min={0} max={100} value={minScore} onChange={(e) => setMinScore(e.target.value)} />
+                <input id="screener-min-score" className="input-field" inputMode="numeric" type="number" min={0} max={100} value={minScore} onChange={(e) => setMinScore(e.target.value)} />
               </label>
-              <label>
+              <label htmlFor="screener-limit">
                 <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: th.label, marginBottom: 6 }}>Limit</span>
-                <input className="input-field" type="number" min={1} max={50} value={limit} onChange={(e) => setLimit(e.target.value)} />
+                <input id="screener-limit" className="input-field" inputMode="numeric" type="number" min={1} max={50} value={limit} onChange={(e) => setLimit(e.target.value)} />
               </label>
             </div>
 
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 700, color: th.label }}>
-              <input type="checkbox" checked={highVolume} onChange={(e) => setHighVolume(e.target.checked)} />
+            <label htmlFor="screener-high-volume" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 700, color: th.label }}>
+              <input id="screener-high-volume" className="checkbox-control" type="checkbox" checked={highVolume} onChange={(e) => setHighVolume(e.target.checked)} />
               Require high volume
             </label>
           </div>
@@ -263,7 +271,11 @@ export default function ScreenerPage() {
                 ))}
               </div>
 
-              {items.length === 0 ? (
+              {screenStocks.isPending ? (
+                <div style={{ padding: "12px 16px" }}>
+                  <TableSkeleton rows={6} columns={6} tone={tone} />
+                </div>
+              ) : items.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "52px 20px", color: th.muted }}>
                   <BarChart3 size={34} strokeWidth={1.8} color={th.emptyIconColor} />
                   <div style={{ fontSize: 15, fontWeight: 700, color: th.emptyTitleColor, marginTop: 12 }}>No screener results yet</div>

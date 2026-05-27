@@ -11,8 +11,10 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { useEffect } from "react";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { useNhitsForecast, useOhlc } from "@/lib/queries";
+import { API_SEC } from "@/lib/api";
 
 interface Props {
   symbol: string;
@@ -24,6 +26,32 @@ export default function NHITSForecastChart({ symbol, isDark = false }: Props) {
   const { data: forecast, isLoading: fl, error: fe } = useNhitsForecast(symbol);
   // OHLC is optional enrichment — we do NOT block rendering on it
   const { data: ohlc } = useOhlc(symbol, "1d");
+
+  useEffect(() => {
+    if (fl) {
+      API_SEC.log(`🧠 NHITS inference requested — symbol: ${symbol} | auth: JWT Bearer | model: NHITS (Neural Hierarchical Interpolation for Time Series)`);
+    }
+  }, [fl, symbol]);
+
+  useEffect(() => {
+    if (!forecast) return;
+    API_SEC.log(`📈 NHITS forecast received — symbol: ${symbol} | horizon: ${forecast.horizon}d | points: ${forecast.forecast?.length ?? 0} | request: authenticated via JWT Bearer`);
+    if (forecast.summary) {
+      const s = forecast.summary;
+      API_SEC.log(`📊 Forecast summary — last_close: ${s.last_close} | day1: ${s.close_day1} | day${forecast.horizon}: ${s.close_day50} | expected_return: ${s.expected_return_50d_pct >= 0 ? "+" : ""}${s.expected_return_50d_pct}%`);
+    }
+  }, [forecast, symbol]);
+
+  useEffect(() => {
+    if (!fe) return;
+    const status = (fe as any)?.response?.status;
+    const detail = (fe as any)?.response?.data?.detail ?? "unknown";
+    if (status === 404) {
+      API_SEC.warn(`⚠️  NHITS endpoint returned 404 — symbol: ${symbol} | reason: model not loaded or market data insufficient`);
+    } else {
+      API_SEC.err(`❌ NHITS forecast error — symbol: ${symbol} | status: ${status ?? "network"} | detail: ${detail}`);
+    }
+  }, [fe, symbol]);
 
   const border   = isDark ? "#334155" : "#E5E7EB";
   const gridLine = isDark ? "#1e293b" : "#F3F4F6";

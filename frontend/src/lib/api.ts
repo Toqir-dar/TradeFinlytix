@@ -4,6 +4,15 @@ import axios from "axios";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
+// ── Security logger ───────────────────────────────────────────────────────────
+const sec = {
+  log: (...args: unknown[]) => console.log("%c[TFX Security]", "color:#16a34a;font-weight:700;font-family:monospace", ...args),
+  warn: (...args: unknown[]) => console.warn("%c[TFX Security]", "color:#f59e0b;font-weight:700;font-family:monospace", ...args),
+  err: (...args: unknown[]) => console.error("%c[TFX Security]", "color:#dc2626;font-weight:700;font-family:monospace", ...args),
+};
+
+export const API_SEC = sec;
+
 export const api = axios.create({
   baseURL: `${API_BASE}/api/v1`,
   headers: {
@@ -14,56 +23,119 @@ export const api = axios.create({
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
+let csrfToken: string | null = null;
 
-export function setTokens(access: string, refresh: string) {
+export function setTokens(access: string, refresh: string, csrf?: string) {
   accessToken = access;
   refreshToken = refresh;
+  if (csrf) csrfToken = csrf;
+
+  api.defaults.headers.common.Authorization = `Bearer ${access}`;
+
   if (typeof window !== "undefined") {
     localStorage.setItem("tfx_access_token", access);
     localStorage.setItem("tfx_refresh_token", refresh);
   }
+  sec.log("🔑 Session established — JWT access + refresh tokens stored securely in localStorage");
 }
 
 export function clearTokens() {
   accessToken = null;
   refreshToken = null;
+  csrfToken = null;
   if (typeof window !== "undefined") {
     localStorage.removeItem("tfx_access_token");
     localStorage.removeItem("tfx_refresh_token");
   }
+  sec.warn("🚪 Session terminated — all tokens purged from memory and localStorage");
 }
 
 export function hydrateTokens() {
   if (typeof window === "undefined") return;
   accessToken = localStorage.getItem("tfx_access_token");
   refreshToken = localStorage.getItem("tfx_refresh_token");
+  if (accessToken) {
+    api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+  }
 }
 
 if (typeof window !== "undefined") {
   accessToken = localStorage.getItem("tfx_access_token");
   refreshToken = localStorage.getItem("tfx_refresh_token");
+  if (accessToken) {
+    sec.log("♻️  Session hydrated — existing JWT loaded from localStorage");
+  }
 }
+
+const CSRF_METHODS = new Set(["post", "put", "patch", "delete"]);
 
 api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
+    sec.log(`🔐 JWT Bearer attached — scheme: Bearer | alg: HS256 | method: ${(config.method ?? "GET").toUpperCase()} | endpoint: ${config.url}`);
+  } else {
+    sec.warn(`⚠️  Unauthenticated request — method: ${(config.method ?? "GET").toUpperCase()} | endpoint: ${config.url}`);
   }
+
+  if (config.method && CSRF_METHODS.has(config.method.toLowerCase()) && csrfToken) {
+    config.headers["X-CSRF-Token"] = csrfToken;
+  }
+
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    sec.log(`✅ Response OK — status: ${response.status} | endpoint: ${response.config.url}`);
+    return response;
+  },
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry && refreshToken) {
-      original._retry = true;
-      const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, {
-        refresh_token: refreshToken
+    const status = error.response?.status;
+    const url = original?.url ?? "";
+
+    // Dev debugging
+    if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+      const method = original?.method?.toUpperCase?.() ?? "GET";
+      console.warn(`[TradeFinlytix API] ${method} ${url} failed`, {
+        status: status ?? "network",
+        detail: error.response?.data?.detail ?? error.message,
       });
-      setTokens(data.access_token, data.refresh_token);
-      original.headers.Authorization = `Bearer ${data.access_token}`;
-      return api(original);
     }
+
+    // Refresh logic
+    if ([401, 403].includes(status) && !original._retry && refreshToken) {
+      sec.warn(`🔄 Token expired (${status}) on ${url} — attempting refresh`);
+
+      original._retry = true;
+
+      try {
+        const { data } = await axios.post(`${API_BASE}/api/v1/auth/refresh`, {
+          refresh_token: refreshToken,
+        });
+
+        setTokens(data.access_token, data.refresh_token);
+        original.headers.Authorization = `Bearer ${data.access_token}`;
+
+        sec.log(`🆕 Token refreshed — retrying request: ${url}`);
+        return api(original);
+
+      } catch (refreshErr) {
+        sec.err("❌ Token refresh failed — user must re-authenticate");
+        clearTokens();
+        return Promise.reject(refreshErr);
+      }
+    }
+
+    // Error handling
+    if (status === 403) {
+      sec.err(`🚫 Access denied (403) — ${url}`);
+    } else if (status === 401) {
+      sec.warn(`🔒 Unauthorized (401) — ${url}`);
+    } else if (status >= 500) {
+      sec.err(`💥 Server error (${status}) — ${url}`);
+    }
+
     return Promise.reject(error);
   }
 );

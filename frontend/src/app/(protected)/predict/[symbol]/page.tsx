@@ -2,10 +2,14 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useMarketPrediction } from "@/lib/queries";
 import { useTheme } from "@/lib/use-theme";
 import { ChevronLeft, Loader2, AlertTriangle, CheckCircle2, TrendingUp, Target, ShieldAlert, Zap } from "lucide-react";
 import NHITSForecastChart from "@/components/NHITSForecastChart";
+import { API_SEC } from "@/lib/api";
+import { ErrorState, SkeletonBlock, StatCardSkeleton } from "@/components/ux-states";
+
 
 const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; darkBg: string }> = {
   BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", darkBg: "#14532d" },
@@ -42,6 +46,20 @@ export default function PredictSymbolPage() {
     barPct:    Math.abs(f.shap_value ?? 0) / maxShap,
     direction: f.direction ?? (f.shap_value >= 0 ? "bullish" : "bearish"),
   }));
+
+  useEffect(() => {
+    if (!data) return;
+    const alg = (data.integrity as any)?.algorithm ?? "HMAC-SHA256";
+    const ok  = data.integrity?.verified !== false;
+
+    if (ok) {
+      API_SEC.log(`🛡️  HMAC Integrity Check PASSED — alg: ${alg} | symbol: ${symbol} | signal: ${data.prediction?.signal?.toUpperCase()} | confidence: ${((data.prediction?.confidence ?? 0) * 100).toFixed(1)}%`);
+    } else {
+      API_SEC.err(`⚠️  HMAC Integrity Check FAILED — alg: ${alg} | symbol: ${symbol} — response payload may have been tampered`);
+    }
+    API_SEC.log(`🔏 Prediction signed — engine: ${data.prediction?.engine} | tier: ${data.prediction?.tier} | risk: ${data.risk?.level} (score: ${data.risk?.score}) | issued: ${data.predicted_at}`);
+    API_SEC.log(`📊 SHAP attribution — method: ${data.prediction?.explanation?.method ?? "n/a"} | features_explained: ${rawFeatures.length} | base_value: ${data.prediction?.explanation?.base_value?.toFixed(4) ?? "n/a"}`);
+  }, [data, symbol]);
 
   const th = mono ? {
     text: "#f1f5f9",
@@ -114,28 +132,45 @@ export default function PredictSymbolPage() {
     tierBorder: "#BBF7D0",
     tierColor: "#16A34A",
   };
+  const tone = mono ? "dark" : "light";
 
   if (isLoading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: mono ? "#94a3b8" : "#9CA3AF" }}>
-      <div style={{ textAlign: "center" }}>
-        <Loader2 size={32} style={{ animation: "spin 1s linear infinite", marginBottom: 12 }} />
-        <div>Fetching prediction for {symbol}…</div>
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: mono ? "#f1f5f9" : "#111827" }} role="status" aria-label={`Loading prediction for ${symbol}`}>
+      <div style={{ marginBottom: 24 }}>
+        <SkeletonBlock tone={tone} width={170} height={38} radius={10} />
+      </div>
+      <div style={{ background: mono ? "#1e293b" : "white", border: `1.5px solid ${mono ? "#334155" : "#E5E7EB"}`, borderRadius: 20, padding: 32, marginBottom: 24 }}>
+        <SkeletonBlock tone={tone} width="35%" height={34} radius={12} />
+        <div style={{ height: 18 }} />
+        <SkeletonBlock tone={tone} width="60%" height={18} />
+      </div>
+      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 }}>
+        <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} tone={tone} />)}
+        </div>
+        <div style={{ background: mono ? "#1e293b" : "white", border: `1.5px solid ${mono ? "#334155" : "#E5E7EB"}`, borderRadius: 16, padding: 24 }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} style={{ marginBottom: 14 }}>
+              <SkeletonBlock tone={tone} height={14} width="70%" />
+              <div style={{ height: 8 }} />
+              <SkeletonBlock tone={tone} height={8} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 
   if (error || !data) return (
-    <div style={{ textAlign: "center", padding: 48 }}>
+    <div style={{ padding: 24 }}>
       <Link href="/predict" style={{ color: "#16A34A", fontSize: 14 }}>← Back to Predictions</Link>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 24, marginBottom: 8 }}>
-        <AlertTriangle size={20} color="#DC2626" />
-        <span style={{ fontWeight: 600, fontSize: 18, color: mono ? "#f1f5f9" : "#111827" }}>
-          Prediction unavailable for {symbol}
-        </span>
+      <div style={{ marginTop: 24 }}>
+        <ErrorState
+          tone={tone}
+          title={`Prediction unavailable for ${symbol}`}
+          message={(error as any)?.response?.data?.detail ?? "The ML model could not generate a prediction right now. Try again shortly."}
+        />
       </div>
-      <p style={{ fontSize: 14, color: mono ? "#94a3b8" : "#6B7280" }}>
-        {(error as any)?.response?.data?.detail ?? "The ML model could not generate a prediction right now. Try again shortly."}
-      </p>
     </div>
   );
 
@@ -362,14 +397,14 @@ export default function PredictSymbolPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
           <TrendingUp size={16} color="#F97316" strokeWidth={2} />
           <h3 style={{ fontWeight: 700, fontSize: 16, color: th.text }}>
-            NHITS — 50-Day Price Forecast
+            NHITS — 10-Day Price Forecast
           </h3>
           <span style={{ marginLeft: "auto", display: "inline-block", padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 700, background: "#FEF3C7", color: "#92400E" }}>
             Neural Hierarchical Interpolation
           </span>
         </div>
         <p style={{ fontSize: 12, color: th.muted, marginBottom: 16 }}>
-          Deep learning price forecast · 50 trading days · 59-feature input · Updated per request
+          Deep learning price forecast · 10 trading days · 59-feature input · Updated per request
         </p>
         <NHITSForecastChart symbol={symbol} isDark={mono} />
       </div>

@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       hasRole: (roles) => !!user && roles.includes(user.role),
       login: async (email, password) => {
         const { data } = await api.post("/auth/login", { email, password });
-        setTokens(data.tokens.access_token, data.tokens.refresh_token);
+        setTokens(data.tokens.access_token, data.tokens.refresh_token, data.tokens.csrf_token);
         setUser(data.user);
       },
       register: async (email, password, fullName) => {
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
           full_name: fullName
         });
-        setTokens(data.tokens.access_token, data.tokens.refresh_token);
+        setTokens(data.tokens.access_token, data.tokens.refresh_token, data.tokens.csrf_token);
         setUser(data.user);
       },
       completeTokenLogin: async (accessToken, refreshToken) => {

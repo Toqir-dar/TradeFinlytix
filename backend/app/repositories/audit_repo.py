@@ -24,6 +24,18 @@ logger = logging.getLogger(__name__)
 GENESIS_HASH = "genesis"
 
 
+def _normalize_dt(dt: datetime) -> datetime:
+    """Return a naive UTC datetime truncated to milliseconds.
+
+    Motor (default tz_aware=False) returns naive UTC datetimes from MongoDB,
+    and BSON Date only stores milliseconds. Normalising here before hashing
+    ensures record() and verify_chain() always hash the same value.
+    """
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.replace(microsecond=(dt.microsecond // 1000) * 1000)
+
+
 class AuditRepository:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
         self.db = db
@@ -58,13 +70,14 @@ class AuditRepository:
             )
             return
         try:
+            ts = _normalize_dt(created_at or datetime.now(timezone.utc))
             doc = {
                 "event_type": event_type,
                 "user_id": user_id,
                 "ip": ip,
                 "path": path,
                 "payload": payload or {},
-                "created_at": created_at or datetime.now(timezone.utc),
+                "created_at": ts,
             }
             prev_hash = await self._get_chain_head()
             doc["prev_hash"] = prev_hash
@@ -73,7 +86,7 @@ class AuditRepository:
             inserted_id = doc.get("_id")
             if inserted_id:
                     import asyncio
-                    asyncio.ensure_future(store_embedding(self.db, inserted_id, doc))
+                    asyncio.create_task(store_embedding(self.db, inserted_id, doc))
 
         except Exception as e:
             logger.warning(
@@ -87,6 +100,12 @@ class AuditRepository:
         event_type: str | None = None,
         user_id: str | None = None,
         since: datetime | None = None,
+        ip: str | None = None,
+        path: str | None = None,
+        payload_key: str | None = None,
+        payload_value: str | None = None,
+        min_payload_score: float | None = None,
+        max_payload_score: float | None = None,
         skip: int = 0,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
@@ -97,6 +116,23 @@ class AuditRepository:
             query["user_id"] = user_id
         if since:
             query["created_at"] = {"$gte": since}
+        if ip:
+            query["ip"] = ip
+        if path:
+            query["path"] = path
+        # payload key/value exact-match
+        if payload_key and payload_value is not None:
+            query[f"payload.{payload_key}"] = payload_value
+        # numeric payload score range (common field: payload.score or payload.risk_score)
+        score_field_candidates = ["payload.score", "payload.risk_score"]
+        score_query: dict[str, Any] = {}
+        if min_payload_score is not None:
+            score_query.setdefault("$gte", min_payload_score)
+        if max_payload_score is not None:
+            score_query.setdefault("$lte", max_payload_score)
+        if score_query:
+            # apply to both possible fields using $or
+            query["$or"] = [{f: score_query} for f in score_field_candidates]
         cursor = (
             self.collection.find(query)
             .sort("created_at", -1)
@@ -111,6 +147,12 @@ class AuditRepository:
         event_type: str | None = None,
         user_id: str | None = None,
         since: datetime | None = None,
+        ip: str | None = None,
+        path: str | None = None,
+        payload_key: str | None = None,
+        payload_value: str | None = None,
+        min_payload_score: float | None = None,
+        max_payload_score: float | None = None,
     ) -> int:
         query: dict[str, Any] = {}
         if event_type:
@@ -119,6 +161,20 @@ class AuditRepository:
             query["user_id"] = user_id
         if since:
             query["created_at"] = {"$gte": since}
+        if ip:
+            query["ip"] = ip
+        if path:
+            query["path"] = path
+        if payload_key and payload_value is not None:
+            query[f"payload.{payload_key}"] = payload_value
+        score_field_candidates = ["payload.score", "payload.risk_score"]
+        score_query: dict[str, Any] = {}
+        if min_payload_score is not None:
+            score_query.setdefault("$gte", min_payload_score)
+        if max_payload_score is not None:
+            score_query.setdefault("$lte", max_payload_score)
+        if score_query:
+            query["$or"] = [{f: score_query} for f in score_field_candidates]
         return await self.collection.count_documents(query)
 
     async def verify_chain(self, limit: int = 1000) -> dict[str, Any]:
@@ -135,8 +191,12 @@ class AuditRepository:
             checked += 1
             stored_chain = doc.get("chain_hash")
             stored_prev = doc.get("prev_hash")
-            # Must mirror record(): hash is over event fields plus prev_hash, with same outer concat.
-            if stored_prev != prev_hash:
+            # Legacy docs inserted before chain hashing stored None instead of GENESIS_HASH.
+            # Treat None as GENESIS_HASH only when we're at the chain start.
+            effective_prev = (
+                GENESIS_HASH if stored_prev is None and prev_hash == GENESIS_HASH else stored_prev
+            )
+            if effective_prev != prev_hash:
                 return {
                     "ok": False,
                     "checked": checked,
@@ -144,6 +204,7 @@ class AuditRepository:
                     "expected_prev": prev_hash,
                     "stored_prev": stored_prev,
                 }
+            raw_dt = doc.get("created_at")
             recomputed = compute_audit_hash(
                 {
                     "event_type": doc.get("event_type"),
@@ -151,10 +212,10 @@ class AuditRepository:
                     "ip": doc.get("ip"),
                     "path": doc.get("path"),
                     "payload": doc.get("payload"),
-                    "created_at": doc.get("created_at"),
-                    "prev_hash": stored_prev,
+                    "created_at": _normalize_dt(raw_dt) if isinstance(raw_dt, datetime) else raw_dt,
+                    "prev_hash": effective_prev,
                 },
-                prev_hash,
+                effective_prev,
             )
             if stored_chain != recomputed:
                 return {

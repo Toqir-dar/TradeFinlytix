@@ -163,20 +163,22 @@ export default function ScreenerPage() {
         .checkbox-control { width: 18px; height: 18px; accent-color: #16A34A; flex-shrink: 0; }
         @media (max-width: 900px) {
           .screener-grid { grid-template-columns: 1fr !important; }
-          .result-row { grid-template-columns: 1fr 1fr; }
-          .result-head { display: none !important; }
         }
         @media (max-width: 640px) {
-          .screener-presets { grid-template-columns: 1fr !important; }
+          .screener-presets { grid-template-columns: 1fr 1fr !important; }
           .screener-field-grid { grid-template-columns: 1fr !important; }
           .screener-run-btn { width: 100%; justify-content: center; }
+          .section-card { padding: 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .screener-presets { grid-template-columns: 1fr !important; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
         <div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6, color: th.heading }}>Stock Screener</h1>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6, color: th.heading }}>Stock Screener</h1>
           <p style={{ fontSize: 14, color: th.bgSubtext }}>Filter PSX symbols by score, trend, price, and volume.</p>
         </div>
         <button className="run-btn screener-run-btn" type="button" onClick={() => screenStocks.mutate()} disabled={screenStocks.isPending} aria-busy={screenStocks.isPending}>

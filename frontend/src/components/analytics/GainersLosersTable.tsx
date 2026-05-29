@@ -75,7 +75,7 @@ export function GainersLosersTable({ data, loading, error }: Props) {
 
    if (loading) {
     return (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="gainers-losers-grid">
         {[0, 1].map((i) => (
           <div key={i} style={{ background: card.bg, border: `1px solid ${card.border}`, borderRadius: 16, padding: 28, minHeight: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ width: 32, height: 32, border: "3px solid #4ADE80", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
@@ -90,9 +90,17 @@ export function GainersLosersTable({ data, loading, error }: Props) {
   const losers = data?.losers ?? [];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-      <TableSection title="Top Gainers" items={gainers} mode="gainer" card={card} />
-      <TableSection title="Top Losers" items={losers} mode="loser" card={card} />
-    </div>
+    <>
+      <style>{`
+        .gainers-losers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 600px) {
+          .gainers-losers-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <div className="gainers-losers-grid">
+        <TableSection title="Top Gainers" items={gainers} mode="gainer" card={card} />
+        <TableSection title="Top Losers" items={losers} mode="loser" card={card} />
+      </div>
+    </>
   );
 }

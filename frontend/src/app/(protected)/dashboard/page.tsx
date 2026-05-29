@@ -637,62 +637,7 @@ export default function DashboardPage() {
         </>
       )}
 
-        {/* ── CISO VIEW ── */}
-        {isCiso && (
-          <div style={{ marginTop: 18 }}>
-            <Card style={{ padding: 18 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: th.text }}>Audit Events</h3>
-                  <p style={{ margin: 0, fontSize: 12, color: th.muted }}>Quick verification and filters</p>
-                </div>
-                <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(120px, 1fr))", gap: 8, alignItems: "center" }}>
-                  <label>
-                    <span className="sr-only">IP address</span>
-                    <input aria-label="Filter audit by IP address" placeholder="ip" value={auditFilters.ip ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, ip: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
-                  </label>
-                  <label>
-                    <span className="sr-only">Path</span>
-                    <input aria-label="Filter audit by path" placeholder="path" value={auditFilters.path ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, path: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
-                  </label>
-                  <label>
-                    <span className="sr-only">Payload key</span>
-                    <input aria-label="Filter audit by payload key" placeholder="payload key" value={auditFilters.payload_key ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, payload_key: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
-                  </label>
-                  <label>
-                    <span className="sr-only">Payload value</span>
-                    <input aria-label="Filter audit by payload value" placeholder="payload value" value={auditFilters.payload_value ?? ""} onChange={(e) => setAuditFilters({ ...auditFilters, payload_value: e.target.value, skip: 0 })} style={{ width: "100%", padding: 8, borderRadius: 8, border: `1px solid ${th.borderSubtle}`, background: th.innerCard, color: th.text }} />
-                  </label>
-                </div>
-              </div>
 
-              <div style={{ marginBottom: 12 }}>
-                <strong style={{ color: th.text }}>Total:</strong> {isCisoAuditLoading ? "loading..." : cisoAudit?.total ?? 0}
-              </div>
-
-              {isCisoAuditError ? (
-                <ErrorState tone={tone} title="Audit events unavailable" message="The audit stream could not be loaded." onRetry={() => refetchCisoAudit()} />
-              ) : (
-              <div>
-                {isCisoAuditLoading ? <TableSkeleton rows={5} columns={5} tone={tone} /> : (cisoAudit?.items ?? []).slice(0, 5).map((it: any) => (
-                  <div key={it._id ?? Math.random()} style={{ padding: 10, borderBottom: `1px solid ${th.borderSubtle}`, display: "flex", gap: 12, alignItems: "center" }}>
-                    <div style={{ fontSize: 13, color: th.muted, minWidth: 110 }}>{new Date(it.created_at).toLocaleString()}</div>
-                    <div style={{ fontWeight: 700, color: th.text }}>{it.event_type}</div>
-                    <div style={{ color: th.muted }}>{it.user_id ?? "-"}</div>
-                    <div style={{ color: th.muted }}>{it.ip ?? "-"}</div>
-                    <div style={{ color: th.muted }}>{it.path ?? "-"}</div>
-                  </div>
-                ))}
-              </div>
-              )}
-
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-                <Button variant="secondary" size="sm" className="" onClick={() => setAuditFilters({ ...auditFilters, skip: Math.max(0, (auditFilters.skip || 0) - (auditFilters.limit || 5)) })} style={{ marginRight: 8 }}>Prev</Button>
-                <Button variant="secondary" size="sm" onClick={() => setAuditFilters({ ...auditFilters, skip: (auditFilters.skip || 0) + (auditFilters.limit || 5) })}>Next</Button>
-              </div>
-            </Card>
-          </div>
-        )}
     </motion.div>
   );
 }

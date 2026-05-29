@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/use-theme";
-import { useAnomalies, useAudit } from "@/lib/queries";
+import { useAnomalies, useCisoAudit } from "@/lib/queries";
 import { api } from "@/lib/api";
 import { FileSearch, AlertTriangle, CheckCircle2, Search, Loader2, Activity, Shield, BarChart3, LogIn, LogOut, TrendingUp, Briefcase, UserX, Sparkles, Bot, ArrowRight } from "lucide-react";
 
@@ -49,6 +49,10 @@ export default function CisoAuditPage() {
   const [activeTab, setActiveTab] = useState<"events" | "anomalies" | "ai">("events");
   const [eventFilter, setEventFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [ipSearch, setIpSearch] = useState("");
+  const [payloadSearch, setPayloadSearch] = useState("");
+  const [appliedIp, setAppliedIp] = useState("");
+  const [appliedPayload, setAppliedPayload] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [ragQuestion, setRagQuestion] = useState("");
@@ -62,8 +66,24 @@ export default function CisoAuditPage() {
     onSuccess: (data) => setRagResult(data),
   });
 
-  const { data: auditRaw, isLoading } = useAudit({
+  const applySearch = () => {
+    setAppliedIp(ipSearch);
+    setAppliedPayload(payloadSearch);
+    setPage(0);
+  };
+
+  const clearAdvancedFilters = () => {
+    setIpSearch("");
+    setPayloadSearch("");
+    setAppliedIp("");
+    setAppliedPayload("");
+    setPage(0);
+  };
+
+  const { data: auditRaw, isLoading } = useCisoAudit({
     event_type: eventFilter !== "all" ? eventFilter : undefined,
+    ip: appliedIp || undefined,
+    payload_value: appliedPayload || undefined,
     limit: PAGE_SIZE,
     skip: page * PAGE_SIZE,
   });
@@ -78,7 +98,7 @@ export default function CisoAuditPage() {
   ];
 
   const filteredAudit = auditItems.filter((i: any) =>
-    !search || i.event_type.includes(search) || i.user_id?.includes(search) || i.path?.includes(search)
+    !search || i.event_type.includes(search) || i.user_id?.includes(search) || i.path?.includes(search) || i.ip?.includes(search)
   );
   const totalPages = Math.max(1, Math.ceil((auditRaw?.total ?? 0) / PAGE_SIZE));
 
@@ -302,28 +322,81 @@ export default function CisoAuditPage() {
       {activeTab === "events" && (
         <div className="section-card">
           {/* Filters */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-              <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
-                <Search size={14} strokeWidth={2} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+            {/* Row 1: text search + event type buttons */}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
+                <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
+                  <Search size={14} strokeWidth={2} />
+                </div>
+                <input className="input-field" style={{ paddingLeft: 32, width: "100%" }} placeholder="Search event type, user, path..."
+                  value={search} onChange={e => setSearch(e.target.value)}/>
               </div>
-              <input className="input-field" style={{ paddingLeft: 32, width: "100%" }} placeholder="Search event type, user, path..."
-                value={search} onChange={e => setSearch(e.target.value)}/>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {EVENT_TYPES.slice(0, 6).map(t => (
+                  <button key={t} className={`filter-btn ${eventFilter === t ? "active" : ""}`} onClick={() => { setEventFilter(t); setPage(0); }}>
+                    {t === "all" ? "All" : t.replace(/_/g, " ")}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {EVENT_TYPES.slice(0, 6).map(t => (
-                <button key={t} className={`filter-btn ${eventFilter === t ? "active" : ""}`} onClick={() => { setEventFilter(t); setPage(0); }}>
-                  {t === "all" ? "All" : t.replace(/_/g, " ")}
+            {/* Row 2: IP search + payload search + apply/clear */}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ position: "relative", flex: 1, minWidth: 160 }}>
+                <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
+                  <Shield size={14} strokeWidth={2} />
+                </div>
+                <input className="input-field" style={{ paddingLeft: 32, width: "100%" }}
+                  placeholder="Filter by IP address..."
+                  value={ipSearch}
+                  onChange={e => setIpSearch(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && applySearch()} />
+              </div>
+              <div style={{ position: "relative", flex: 1, minWidth: 160 }}>
+                <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: th.muted, display: "flex" }}>
+                  <FileSearch size={14} strokeWidth={2} />
+                </div>
+                <input className="input-field" style={{ paddingLeft: 32, width: "100%" }}
+                  placeholder="Search in payload..."
+                  value={payloadSearch}
+                  onChange={e => setPayloadSearch(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && applySearch()} />
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button onClick={applySearch}
+                  style={{ padding: "10px 16px", background: "#16A34A", color: "white", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <Search size={13} strokeWidth={2.5} />Apply
                 </button>
-              ))}
+                {(appliedIp || appliedPayload) && (
+                  <button onClick={clearAdvancedFilters}
+                    style={{ padding: "10px 14px", background: th.innerCard, color: th.subtext, border: `1.5px solid ${th.border}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
+            {/* Active filter badges */}
+            {(appliedIp || appliedPayload) && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {appliedIp && (
+                  <span style={{ background: th.innerCard, border: `1px solid ${th.border}`, color: th.subtext, padding: "4px 10px", borderRadius: 100, fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    <Shield size={11} strokeWidth={2} />IP: {appliedIp}
+                  </span>
+                )}
+                {appliedPayload && (
+                  <span style={{ background: th.innerCard, border: `1px solid ${th.border}`, color: th.subtext, padding: "4px 10px", borderRadius: 100, fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    <FileSearch size={11} strokeWidth={2} />Payload: {appliedPayload}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="table-scroll">
             <div className="table-min">
               {/* Table Header */}
               <div className="audit-row" style={{ borderBottom: `2px solid ${th.borderSubtle}`, padding: "8px 16px" }}>
-                {["Event Type", "User / Path", "Time", "Details"].map(h => (
+                {["Event Type", "User / Path", "Time", "IP / Payload"].map(h => (
                   <span key={h} style={{ fontSize: 11, fontWeight: 700, color: th.muted, textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</span>
                 ))}
               </div>
@@ -355,8 +428,13 @@ export default function CisoAuditPage() {
                         <div style={{ fontSize: 13, color: th.text }}>{new Date(item.created_at).toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" })}</div>
                         <div style={{ fontSize: 11, color: th.muted }}>{new Date(item.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short" })}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: th.subtext, fontFamily: "monospace" }}>
-                        {Object.keys(item.payload ?? {}).length > 0 ? JSON.stringify(item.payload).slice(0, 40) + "..." : "—"}
+                      <div style={{ fontSize: 12, color: th.subtext }}>
+                        {item.ip && (
+                          <div style={{ fontFamily: "monospace", fontSize: 11, color: th.muted, marginBottom: 2 }}>{item.ip}</div>
+                        )}
+                        <div style={{ fontFamily: "monospace" }}>
+                          {Object.keys(item.payload ?? {}).length > 0 ? JSON.stringify(item.payload).slice(0, 40) + "..." : "—"}
+                        </div>
                       </div>
                     </div>
                   );

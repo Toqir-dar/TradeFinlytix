@@ -161,7 +161,7 @@ export default function ScreenerPage() {
         .result-row:last-child { border-bottom: none; }
         .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
         .checkbox-control { width: 18px; height: 18px; accent-color: #16A34A; flex-shrink: 0; }
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
           .screener-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 640px) {
@@ -171,6 +171,9 @@ export default function ScreenerPage() {
           .section-card { padding: 16px !important; }
         }
         @media (max-width: 480px) {
+          .screener-presets { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 400px) {
           .screener-presets { grid-template-columns: 1fr !important; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }

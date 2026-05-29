@@ -161,7 +161,8 @@ export default function DashboardPage() {
         .dash-two-col-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
         .dash-quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .dash-admin-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .dash-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .dash-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .dash-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         @media (max-width: 1024px) {
           .dash-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .dash-quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
@@ -170,11 +171,15 @@ export default function DashboardPage() {
         @media (max-width: 768px) {
           .dash-two-col { grid-template-columns: 1fr !important; }
           .dash-two-col-equal { grid-template-columns: 1fr !important; }
-          .dash-header { flex-direction: column; gap: 16px; }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 480px) {
+          .dash-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-header-actions { width: 100%; }
+          .dash-header-actions > * { flex: 1; justify-content: center; text-align: center; }
+        }
+        @media (max-width: 400px) {
           .dash-stat-grid { grid-template-columns: 1fr !important; }
-          .dash-quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-quick-actions { grid-template-columns: 1fr !important; }
           .dash-admin-actions { grid-template-columns: 1fr !important; }
         }
       `}</style>
@@ -196,12 +201,12 @@ export default function DashboardPage() {
             </p>
           </div>
           {isInvestor && (
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="dash-header-actions">
               <Link href="/predict" style={{ background: "#16A34A", color: "white", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
                 <Zap size={15} color="white" strokeWidth={2} />
                 Get Signal
               </Link>
-              <Link href="/portfolio" style={{ background: th.headerBtnBg, color: th.headerBtnColor, border: `1.5px solid ${th.headerBtnBorder}`, padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+              <Link href="/portfolio" style={{ background: th.headerBtnBg, color: th.headerBtnColor, border: `1.5px solid ${th.headerBtnBorder}`, padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none", display: "flex", alignItems: "center" }}>
                 Portfolio
               </Link>
             </div>
@@ -636,8 +641,6 @@ export default function DashboardPage() {
           </div>
         </>
       )}
-
-
     </motion.div>
   );
 }

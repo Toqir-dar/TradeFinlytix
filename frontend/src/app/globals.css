@@ -200,8 +200,19 @@ html.tfx-mono body .shell-mobile-nav-link.active {
   display: grid;
 }
 
+/* Prevent grid children from overflowing their cells */
+.responsive-grid-4 > *,
+.responsive-grid-3 > *,
+.responsive-grid-2 > *,
+.responsive-grid-1-2 > *,
+.responsive-grid-2-1 > *,
+.responsive-form-grid > * {
+  min-width: 0;
+}
+
 .table-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-min {
@@ -218,13 +229,15 @@ html.tfx-mono body .shell-mobile-nav-link.active {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .responsive-grid-2,
   .responsive-grid-1-2,
   .responsive-grid-2-1 {
     grid-template-columns: 1fr !important;
   }
+}
 
+@media (max-width: 900px) {
   .responsive-form-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
@@ -236,7 +249,7 @@ html.tfx-mono body .shell-mobile-nav-link.active {
     grid-template-columns: 1fr !important;
   }
 
-    .responsive-form-grid {
+  .responsive-form-grid {
     grid-template-columns: 1fr !important;
   }
 

@@ -143,10 +143,14 @@ export default function PortfolioPage() {
         .add-btn { background: #16A34A; color: white; border: none; padding: 11px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .add-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
         .add-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        @media (max-width: 900px) {
+          .portfolio-form-grid { grid-template-columns: 1fr 1fr !important; }
+        }
         @media (max-width: 640px) {
           .portfolio-actions { width: 100%; }
           .portfolio-actions > * { flex: 1; justify-content: center; }
-          .portfolio-form-actions { width: 100%; }
+          .portfolio-form-grid { grid-template-columns: 1fr !important; }
+          .portfolio-form-actions { width: 100%; flex-direction: row; }
           .portfolio-form-actions > button { flex: 1; justify-content: center; }
         }
       `}</style>
@@ -175,7 +179,7 @@ export default function PortfolioPage() {
       {showForm && (
         <div id="add-position-form" style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.formTitle }}>Add New Position</h3>
-          <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
+          <div className="responsive-form-grid portfolio-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12 }}>
             <div>
               <label htmlFor="portfolio-symbol" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
               <input id="portfolio-symbol" className="input-field" autoComplete="off" required placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
@@ -188,7 +192,7 @@ export default function PortfolioPage() {
               <label htmlFor="portfolio-avg-price" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Avg Buy Price (PKR)</label>
               <input id="portfolio-avg-price" className="input-field" inputMode="decimal" min={0} step="0.01" required placeholder="e.g. 173.50" type="number" value={avgPrice} onChange={e => setAvgPrice(e.target.value)}/>
             </div>
-            <div className="portfolio-form-actions" style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
+            <div className="portfolio-form-actions" style={{ display: "flex", alignItems: "flex-end", gap: 8, flexWrap: "wrap" }}>
               <button className="add-btn" type="button" onClick={() => savePortfolio.mutate()} disabled={!symbol || !quantity || !avgPrice || savePortfolio.isPending} aria-busy={savePortfolio.isPending}>
                 {savePortfolio.isPending ? "Saving..." : "Save"}
               </button>

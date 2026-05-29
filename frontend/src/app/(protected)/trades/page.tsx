@@ -139,11 +139,15 @@ export default function TradesPage() {
         .add-btn:hover:not(:disabled) { background: #15803D; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,163,74,0.3); }
         .add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .chip { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        @media (max-width: 900px) {
+          .trade-form-grid { grid-template-columns: 1fr 1fr !important; }
+        }
         @media (max-width: 640px) {
           .trade-header-action { width: 100%; justify-content: center; }
-          .trade-form-actions { width: 100%; }
+          .trade-form-grid { grid-template-columns: 1fr !important; }
+          .trade-form-actions { width: 100%; flex-direction: row; }
           .trade-form-actions > button { flex: 1; justify-content: center; }
-          .trade-table-toolbar { align-items: stretch !important; }
+          .trade-table-toolbar { align-items: stretch !important; flex-wrap: wrap !important; }
           .trade-table-toolbar > div { width: 100%; }
           .trade-table-toolbar input { width: 100% !important; }
         }
@@ -165,7 +169,7 @@ export default function TradesPage() {
       {showForm && (
         <div id="add-trade-form" style={{ background: th.formBg, border: `1.5px solid ${th.formBorder}`, borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: th.formTitle }}>Log New Trade</h3>
-          <div className="responsive-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
+          <div className="responsive-form-grid trade-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 12, alignItems: "end" }}>
             <div>
               <label htmlFor="trade-symbol" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Symbol</label>
               <input id="trade-symbol" className="input-field" autoComplete="off" required placeholder="e.g. OGDC" value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}/>
@@ -195,7 +199,7 @@ export default function TradesPage() {
               <label htmlFor="trade-price" style={{ fontSize: 12, fontWeight: 600, color: th.labelColor, display: "block", marginBottom: 6 }}>Price (PKR)</label>
               <input id="trade-price" className="input-field" inputMode="decimal" min={0} step="0.01" required placeholder="e.g. 173.50" type="number" value={price} onChange={e => setPrice(e.target.value)}/>
             </div>
-            <div className="trade-form-actions" style={{ display: "flex", gap: 8 }}>
+            <div className="trade-form-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button className="add-btn" type="button" onClick={() => addTrade.mutate()} disabled={!symbol || !quantity || !price || addTrade.isPending} aria-busy={addTrade.isPending}>
                 {addTrade.isPending ? "Saving..." : "Save"}
               </button>

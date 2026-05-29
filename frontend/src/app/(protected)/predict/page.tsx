@@ -118,10 +118,20 @@ export default function PredictPage() {
         .predict-btn { background: #16A34A; color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 8px; }
         .predict-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
         .predict-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .predict-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+        @media (max-width: 960px) {
+          .predict-symbol-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+          .predict-layout { grid-template-columns: 1fr !important; }
+          .predict-sidebar { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        }
         @media (max-width: 640px) {
           .predict-search-box { padding: 20px !important; border-radius: 16px !important; }
           .search-input { font-size: 15px; padding-right: 14px; }
           .predict-btn { padding: 14px 18px; }
+          .predict-symbol-grid { grid-template-columns: 1fr !important; }
+          .predict-sidebar { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -176,7 +186,7 @@ export default function PredictPage() {
         </div>
       </div>
 
-      <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
+      <div className="predict-layout">
         {/* Left — Browse Symbols */}
         <div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
@@ -186,7 +196,7 @@ export default function PredictPage() {
             ))}
           </div>
 
-          <div className="responsive-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div className="responsive-grid-3 predict-symbol-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {filtered.map(s => (
               <Link key={s.symbol} href={`/predict/${s.symbol}`} className="symbol-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -216,7 +226,7 @@ export default function PredictPage() {
         </div>
 
         {/* Right — Recent Searches + Info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="predict-sidebar" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: th.card, border: `1.5px solid ${th.border}`, borderRadius: 16, padding: 20 }}>
             <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: th.text, display: "flex", alignItems: "center", gap: 8 }}>
               <Clock size={15} color="#16A34A" strokeWidth={2} />

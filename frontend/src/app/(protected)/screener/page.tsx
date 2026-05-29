@@ -145,17 +145,19 @@ export default function ScreenerPage() {
   const tone = mono ? "dark" : "light";
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text }}>
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: th.text, width: "100%", minWidth: 0 }}>
       <style>{`
         * { box-sizing: border-box; }
-        .section-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; transition: background 0.2s ease, border-color 0.2s ease; }
+        .section-card { background: ${th.card}; border: 1.5px solid ${th.border}; border-radius: 16px; padding: 24px; transition: background 0.2s ease, border-color 0.2s ease; min-width: 0; }
         .input-field { width: 100%; padding: 11px 14px; border: 1.5px solid ${th.inputBorder}; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; color: ${th.text}; background: ${th.inputBg}; transition: all 0.2s; }
         .input-field:focus { border-color: #4ADE80; box-shadow: 0 0 0 3px rgba(74,222,128,0.1); }
         .input-field option { background: ${th.inputBg}; color: ${th.text}; }
-        .preset-btn { text-align: left; border: 1.5px solid ${th.presetBorder}; background: ${th.presetBg}; border-radius: 12px; padding: 14px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .preset-btn { text-align: left; border: 1.5px solid ${th.presetBorder}; background: ${th.presetBg}; border-radius: 12px; padding: 14px; cursor: pointer; font-family: inherit; transition: all 0.15s; width: 100%; }
         .preset-btn.active { border-color: ${th.presetActiveBorder}; background: ${th.presetActiveBg}; }
-        .run-btn { background: #16A34A; color: white; border: none; border-radius: 10px; padding: 12px 22px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
+        .run-btn { background: #16A34A; color: white; border: none; border-radius: 10px; padding: 12px 22px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .run-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+        .table-min { min-width: 620px; }
         .result-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr 2fr; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid ${th.borderSubtle}; transition: background 0.15s; }
         .result-row:hover { background: ${th.innerCard}; border-radius: 8px; }
         .result-row:last-child { border-bottom: none; }
@@ -166,22 +168,23 @@ export default function ScreenerPage() {
         }
         @media (max-width: 640px) {
           .screener-presets { grid-template-columns: 1fr 1fr !important; }
-          .screener-field-grid { grid-template-columns: 1fr !important; }
+          .screener-field-grid { grid-template-columns: 1fr 1fr !important; }
           .screener-run-btn { width: 100%; justify-content: center; }
           .section-card { padding: 16px !important; }
         }
         @media (max-width: 480px) {
-          .screener-presets { grid-template-columns: 1fr !important; }
+          .screener-presets { grid-template-columns: 1fr 1fr !important; }
+          .screener-field-grid { grid-template-columns: 1fr 1fr !important; }
         }
-        @media (max-width: 400px) {
+        @media (max-width: 360px) {
           .screener-presets { grid-template-columns: 1fr !important; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
-        <div>
-          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, marginBottom: 6, color: th.heading }}>Stock Screener</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 className="page-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 5vw, 32px)", marginBottom: 6, color: th.heading }}>Stock Screener</h1>
           <p style={{ fontSize: 14, color: th.bgSubtext }}>Filter PSX symbols by score, trend, price, and volume.</p>
         </div>
         <button className="run-btn screener-run-btn" type="button" onClick={() => screenStocks.mutate()} disabled={screenStocks.isPending} aria-busy={screenStocks.isPending}>
@@ -190,7 +193,7 @@ export default function ScreenerPage() {
         </button>
       </div>
 
-      <div className="screener-grid" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 20 }}>
+      <div className="screener-grid" style={{ display: "grid", gridTemplateColumns: "minmax(280px, 360px) 1fr", gap: 20 }}>
         <div className="section-card">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
             <Filter size={17} color="#16A34A" />

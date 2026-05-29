@@ -31,7 +31,7 @@ export default function PredictSymbolPage() {
   const { data, isLoading, error } = useMarketPrediction(symbol);
   const mono = useTheme();
 
-  const signal = data?.prediction?.signal ?? "BUY";
+  const signal = (data?.prediction?.signal ?? "BUY").toUpperCase();
   const sigConfig = SIGNAL_CONFIG[signal] ?? SIGNAL_CONFIG.BUY;
   const riskLevel = data?.risk?.level ?? "LOW";
   const riskConfig = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.LOW;

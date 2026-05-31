@@ -31,6 +31,7 @@ from app.api.routes import prediction as prediction_routes
 from app.api.routes import news_rag as news_rag_routes
 from app.api.routes import rag as rag_routes
 from app.api.routes import screener as screener_routes
+from app.api.routes import backtest as backtest_routes
 from app.core.bootstrap import bootstrap_privileged_users
 from app.core.config import settings
 from app.core.database import close_db, connect_db, get_db
@@ -115,6 +116,11 @@ OPENAPI_TAGS = [
         "description": "PSX market analytics: KSE-100 summary, top gainers/losers, "
         "OHLC candlestick data, and company profiles. "
         "TTL-cached (60 s) with MongoDB persistence and safe-response guards.",
+    },
+    {
+        "name": "Backtest",
+        "description": "Simulate trading strategies (SMA crossover, RSI, buy-and-hold) on "
+        "historical OHLC data. Returns equity curve, drawdown, Sharpe ratio, win rate, and full trade log.",
     },
     {"name": "System", "description": "Health checks (no JWT)."},
 ]
@@ -256,6 +262,7 @@ app.include_router(news_rag_routes.router, prefix="/api/v1")
 app.include_router(portfolio_routes.router, prefix="/api/v1")
 app.include_router(alerts_routes.router, prefix="/api/v1")
 app.include_router(screener_routes.router, prefix="/api/v1")
+app.include_router(backtest_routes.router, prefix="/api/v1")
 app.include_router(market_routes.router, prefix="/api/v1")
 app.include_router(admin_routes.router, prefix="/api/v1")
 app.include_router(ciso_routes.router, prefix="/api/v1")

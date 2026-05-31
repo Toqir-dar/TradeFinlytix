@@ -8,14 +8,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Role } from "@/lib/types";
-import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, BarChart2, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Briefcase, History, Users, FileSearch, AlertTriangle, UserCircle, Bell, LogOut, Filter, BarChart2, FlaskConical, type LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/analytics", label: "Analytics", roles: ["investor", "admin", "ciso"] as Role[] },
-  { href: "/predict", label: "Predictions", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/predict", label: "Predict", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/screener", label: "Screener", roles: ["investor", "admin", "ciso"] as Role[] },
+  { href: "/backtest", label: "Backtest", roles: ["investor", "admin", "ciso"] as Role[] },
   { href: "/portfolio", label: "Portfolio", roles: ["investor"] as Role[] },
   { href: "/trades", label: "Trades", roles: ["investor"] as Role[] },
   { href: "/admin/users", label: "Users", roles: ["admin"] as Role[] },
@@ -35,6 +36,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/analytics": BarChart2,
   "/predict": TrendingUp,
   "/screener": Filter,
+  "/backtest": FlaskConical,
   "/portfolio": Briefcase,
   "/trades": History,
   "/admin/users": Users,
@@ -224,7 +226,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
-        .nav-link { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; color: ${sh.iconColor}; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
+        .nav-link { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 9px; font-size: 13px; font-weight: 500; color: ${sh.iconColor}; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
         .nav-link:hover { background: ${mono ? "#1a2e1a" : "#F0FDF4"}; color: ${mono ? "#4ADE80" : "#16A34A"}; }
         .nav-link.active { background: ${mono ? "#1a2e1a" : "#DCFCE7"}; color: ${mono ? "#4ADE80" : "#15803D"}; font-weight: 600; }
         .alert-item { padding: 12px 16px; border-bottom: 1px solid ${sh.alertDivider}; transition: background 0.15s; cursor: pointer; }
@@ -235,7 +237,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); } 60% { box-shadow: 0 0 0 5px rgba(220,38,38,0); } }
         .alerts-panel { animation: slideDown 0.2s ease; }
         .badge-pulse { animation: badgePulse 2s ease-in-out infinite; }
-        .shell-desktop-nav { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; flex-wrap: nowrap; overflow: hidden; }
+        .shell-desktop-nav { display: flex; align-items: center; gap: 1px; flex: 1; justify-content: center; flex-wrap: nowrap; overflow: hidden; }
         .shell-right-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .shell-mobile-btn { display: none; background: ${sh.mobileBtnBg}; border: 1.5px solid ${sh.mobileBtnBorder}; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
         .shell-mobile-nav { background: ${sh.mobileBtnBg}; border-bottom: 1px solid ${sh.mobileBtnBorder}; padding: 8px 12px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); animation: slideDown 0.2s ease; }
@@ -244,7 +246,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         .shell-mobile-nav-link.active { background: ${mono ? "#1a2e1a" : "#DCFCE7"}; color: ${mono ? "#4ADE80" : "#15803D"}; font-weight: 600; }
         .shell-user-name { font-size: 13px; font-weight: 600; color: ${sh.userNameColor}; line-height: 1.2; }
         .shell-logo-text { font-weight: 700; font-size: 17px; color: ${sh.logoText}; letter-spacing: -0.3px; white-space: nowrap; }
-        @media (max-width: 860px) { .shell-desktop-nav { display: none !important; } .shell-mobile-btn { display: flex !important; } }
+        @media (max-width: 1100px) { .shell-desktop-nav { display: none !important; } .shell-mobile-btn { display: flex !important; } }
         @media (max-width: 600px) { .shell-user-name { display: none; } .shell-right-controls { gap: 8px !important; } .shell-user-badge { padding: 5px !important; gap: 0 !important; } }
         @media (max-width: 480px) { .shell-logo-text { display: none; } .shell-right-controls { gap: 6px !important; } .shell-navbar-inner { padding: 0 14px !important; } }
         @media (max-width: 360px) { .shell-navbar-inner { padding: 0 10px !important; } }

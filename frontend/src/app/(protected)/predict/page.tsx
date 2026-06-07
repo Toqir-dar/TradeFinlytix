@@ -25,15 +25,13 @@ const SECTORS = ["All", "Energy", "Banking", "Chemicals", "Cement", "Power", "FM
 
 const MOCK_RECENT = [
   { symbol: "OGDC", signal: "BUY", confidence: 81, time: "2 min ago" },
-  { symbol: "HBL", signal: "HOLD", confidence: 62, time: "15 min ago" },
+  { symbol: "HBL", signal: "SELL", confidence: 62, time: "15 min ago" },
   { symbol: "ENGRO", signal: "BUY", confidence: 74, time: "1 hr ago" },
-  { symbol: "LUCK", signal: "TRIM", confidence: 48, time: "2 hr ago" },
+  { symbol: "LUCK", signal: "SELL", confidence: 48, time: "2 hr ago" },
 ];
 
 const SIGNAL_COLORS: Record<string, { bg: string; color: string; border: string }> = {
   BUY: { bg: "#DCFCE7", color: "#15803D", border: "#BBF7D0" },
-  HOLD: { bg: "#FEF9C3", color: "#854D0E", border: "#FDE68A" },
-  TRIM: { bg: "#FFEDD5", color: "#9A3412", border: "#FED7AA" },
   SELL: { bg: "#FEE2E2", color: "#991B1B", border: "#FECACA" },
 };
 
@@ -261,7 +259,7 @@ export default function PredictPage() {
             {[
               { num: "1", text: "Enter any PSX symbol (.KA ticker)" },
               { num: "2", text: "AI ensemble runs XGBoost + LightGBM + LSTM" },
-              { num: "3", text: "Get BUY/HOLD/TRIM/SELL with confidence score" },
+              { num: "3", text: "Get BUY/SELL signal with confidence score" },
               { num: "4", text: "SHAP explains which factors drove the signal" },
             ].map(s => (
               <div key={s.num} style={{ display: "flex", gap: 10, marginBottom: 12 }}>

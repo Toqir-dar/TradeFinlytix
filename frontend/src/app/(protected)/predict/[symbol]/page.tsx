@@ -13,8 +13,6 @@ import { ErrorState, SkeletonBlock, StatCardSkeleton } from "@/components/ux-sta
 
 const SIGNAL_CONFIG: Record<string, { bg: string; color: string; border: string; label: string; darkBg: string }> = {
   BUY:  { bg: "#DCFCE7", color: "#15803D", border: "#4ADE80", label: "Strong Buy Signal", darkBg: "#14532d" },
-  HOLD: { bg: "#FEF9C3", color: "#854D0E", border: "#FDE68A", label: "Hold Position", darkBg: "#451a03" },
-  TRIM: { bg: "#FFEDD5", color: "#9A3412", border: "#FED7AA", label: "Consider Trimming", darkBg: "#431407" },
   SELL: { bg: "#FEE2E2", color: "#991B1B", border: "#FECACA", label: "Exit Position", darkBg: "#450a0a" },
 };
 

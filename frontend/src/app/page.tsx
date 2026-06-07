@@ -394,7 +394,7 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
-                {[["HBL", "+1.1%", "HOLD", mono ? "#2d2400" : "#FEF3C7", mono ? "#fbbf24" : "#92400E"], ["ENGRO", "+0.8%", "BUY", mono ? "#14532d" : "#DCFCE7", mono ? "#4ade80" : "#15803D"]].map(([sym, chg, sig, bg, col]) => (
+                {[["HBL", "+1.1%", "SELL", mono ? "#450a0a" : "#FEE2E2", mono ? "#f87171" : "#991B1B"], ["ENGRO", "+0.8%", "BUY", mono ? "#14532d" : "#DCFCE7", mono ? "#4ade80" : "#15803D"]].map(([sym, chg, sig, bg, col]) => (
                   <div key={sym} style={{ background: th.card, border: `1px solid ${th.borderSubtle}`, borderRadius: 10, padding: "10px 14px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{sym}</div>
                     <div style={{ fontSize: 13, color: "#16A34A", fontWeight: 500 }}>{chg}</div>

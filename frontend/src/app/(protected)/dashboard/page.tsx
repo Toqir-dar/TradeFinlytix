@@ -22,8 +22,6 @@ const MOCK_RISK = [
 
 const SIGNAL_COLORS: Record<string, { bg: string; color: string }> = {
   BUY: { bg: "#DCFCE7", color: "#15803D" },
-  HOLD: { bg: "#FEF9C3", color: "#854D0E" },
-  TRIM: { bg: "#FFEDD5", color: "#9A3412" },
   SELL: { bg: "#FEE2E2", color: "#991B1B" },
 };
 

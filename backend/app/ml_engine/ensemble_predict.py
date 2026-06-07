@@ -57,21 +57,13 @@ def predict_symbol_ensemble(
         explanation = ensemble.explain(features)
 
         # Determine signal based on confidence
-        if confidence >= 0.65:
+        if confidence >= 0.50:
             signal = "buy"
-            expected_gain_pct = 3.0 + (confidence - 0.65) * 10.0
+            expected_gain_pct = 1.0 + (confidence - 0.50) * 14.0
             time_horizon_days = 5
-        elif confidence >= 0.55:
-            signal = "hold"
-            expected_gain_pct = 0.5
-            time_horizon_days = 2
-        elif confidence >= 0.45:
-            signal = "trim"
-            expected_gain_pct = -1.0 - (0.55 - confidence) * 5.0
-            time_horizon_days = 3
         else:
             signal = "sell"
-            expected_gain_pct = -3.0 - (0.45 - confidence) * 10.0
+            expected_gain_pct = -1.0 - (0.50 - confidence) * 14.0
             time_horizon_days = 1
 
         # Calculate target and stop loss
@@ -112,7 +104,7 @@ def predict_symbol_ensemble(
 def _get_fallback_prediction(symbol: str) -> dict[str, Any]:
     """Return a safe fallback prediction when ensemble fails."""
     return {
-        "signal": "hold",
+        "signal": "sell",
         "confidence": 0.5,
         "model_version": "stacked_ensemble_v1",
         "engine": "fallback",
@@ -134,7 +126,7 @@ def predict_symbol_rules(symbol: str) -> dict[str, Any]:
     """
     # Return a basic prediction format compatible with the old API
     return {
-        "signal": "hold",
+        "signal": "sell",
         "confidence": 0.5,
         "engine": "rule_v1",
         "tier": "core",

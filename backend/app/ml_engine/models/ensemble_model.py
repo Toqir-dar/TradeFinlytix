@@ -225,12 +225,8 @@ class EnsembleModel:
         confidence = float(prediction_value)
 
         # Determine signal based on confidence
-        if confidence >= 0.65:
+        if confidence >= 0.50:
             signal = "buy"
-        elif confidence >= 0.55:
-            signal = "hold"
-        elif confidence >= 0.45:
-            signal = "trim"
         else:
             signal = "sell"
 

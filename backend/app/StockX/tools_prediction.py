@@ -352,7 +352,7 @@ def fetch_prediction(symbol: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _signal_icon(signal: str) -> str:
-    return {"buy": "🟢 BUY", "sell": "🔴 SELL", "hold": "🟡 HOLD"}.get(
+    return {"buy": "🟢 BUY", "sell": "🔴 SELL"}.get(
         signal.lower(), f"⚪ {signal.upper()}"
     )
 
